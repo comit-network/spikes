@@ -1,2 +1,1 @@
-# spikes
 COMIT research outcomes
