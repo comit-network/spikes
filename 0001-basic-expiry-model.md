@@ -36,7 +36,7 @@ It would therefore be ideal to find a value of `alpha_expiry` that lets Bob rede
 #### Assumptions
 
 - Bob provides <img src="https://latex.codecogs.com/gif.latex?T_{\alpha}"/>, the time in which he is overwhelmingly confident he will be able to confirm a transaction on `alpha_ledger`.
-He has direct influence over this since he can choose the fee.
+For simplicity, the model assumes that the probability of this happening within the time provided is 1.
 - Bob provides <img src="https://latex.codecogs.com/gif.latex?k"/>, the number of additional confirmations he would need to have on his redeem transaction before he considers `alpha_asset` to be his own.
 - Block time on `alpha_ledger` can be modelled as a random variable that follows an exponential distribution with parameter <img src="https://latex.codecogs.com/gif.latex?\lambda_{\alpha}"/>.
 - A confirmation is given by the arrival of a new block.
@@ -50,16 +50,19 @@ The time it would take for Bob's redeem transaction to obtain <img src="https://
 
 Letting <img src="https://latex.codecogs.com/gif.latex?C_{k}\sim\textrm{Erlang}(k,\lambda_{\alpha})"/>,
 
-<img src="https://latex.codecogs.com/gif.latex?\Delta_{R}=T_{\alpha}&plus;Q_{C_{k}}(p)"/>,
+<img src="https://latex.codecogs.com/gif.latex?\Delta_{R}=T_{\alpha}&plus;Q_{C_{k}}(p_{\alpha})"/>,
 
-where <img src="https://latex.codecogs.com/gif.latex?Q_{C_{k}}(p)"/> is the [quantile function](https://en.wikipedia.org/wiki/Quantile_function) of <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> for a probability <img src="https://latex.codecogs.com/gif.latex?p"/>. 
-This is, a function returning the minimum time taken for <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> to take place with probability <img src="https://latex.codecogs.com/gif.latex?p"/>.
+where <img src="https://latex.codecogs.com/gif.latex?Q_{C_{k}}(p_{\alpha})"/> is the [quantile function](https://en.wikipedia.org/wiki/Quantile_function) of <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> for a probability <img src="https://latex.codecogs.com/gif.latex?p_{\alpha}"/>. 
+This is, a function returning the minimum time taken for <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> to take place with probability <img src="https://latex.codecogs.com/gif.latex?p_{\alpha}"/>.
 
 Quantile functions for Erlang random variables can only be approximated via [numerical methods](https://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.stats.erlang.html).
 
 Knowing all this, `alpha_expiry` can be estimated:
 
-<img src="https://latex.codecogs.com/gif.latex?E_{\alpha}=E_{\beta}&plus;T_{\alpha}&plus;Q_{C_{k}}(p)"/>.
+<img src="https://latex.codecogs.com/gif.latex?E_{\alpha}=E_{\beta}&plus;T_{\alpha}&plus;Q_{C_{k}}(p_{\alpha})"/>,
+
+where <img src="https://latex.codecogs.com/gif.latex?p_{\alpha}"/> represents the probability that Bob redeems `alpha_asset` given that Alice has revealed the secret before `beta_expiry`. 
+In other words, the probability that Bob doesn't lose any money.
 
 ### Beta expiry
 
@@ -73,11 +76,11 @@ Consequently, it would be ideal to find a value of `beta_expiry` that lets Alice
 #### Assumptions
 
 - Alice provides <img src="https://latex.codecogs.com/gif.latex?T^{\alpha}_{A}"/>, the time in which she is overwhelmingly confident she will be able to confirm a transaction on `alpha_ledger`.
-She has direct influence over this since she can choose the fee.
+For simplicity, the model assumes that the probability of this happening within the time provided is 1.
 - Bob provides <img src="https://latex.codecogs.com/gif.latex?T^{\beta}_{B}"/>, the time in which he is overwhelmingly confident he will be able to confirm a transaction on `beta_ledger`.
-He has direct influence over this since he can choose the fee.
+For simplicity, the model assumes that the probability of this happening within the time provided is 1.
 - Alice provides <img src="https://latex.codecogs.com/gif.latex?T^{\beta}_{A}"/>, the time in which she is overwhelmingly confident she will be able to confirm a transaction on `beta_ledger`.
-She has direct influence over this since she can choose the fee.
+For simplicity, the model assumes that the probability of this happening within the time provided is 1.
 - Alice provides <img src="https://latex.codecogs.com/gif.latex?k"/>, the number of additional confirmations she would need to have on her redeem transaction before she considers `beta_asset` to be her own.
 - Block time on `beta_ledger` can be modelled as a random variable that follows an exponential distribution with parameter <img src="https://latex.codecogs.com/gif.latex?\lambda_{\beta}"/>.
 - A confirmation is given by the arrival of a new block.
@@ -90,15 +93,16 @@ The time it would take for Alice's redeem transaction to obtain <img src="https:
 
 Letting <img src="https://latex.codecogs.com/gif.latex?C_{k}\sim\textrm{Erlang}(k,\lambda_{\beta})"/>,
 
-<img src="https://latex.codecogs.com/gif.latex?E_{\beta}=t_{0}&plus;T^{\alpha}_{A}&plus;T^{\beta}_{B}&plus;T^{\beta}_{A}&plus;Q_{C_{k}}(p)"/>, [1]
+<img src="https://latex.codecogs.com/gif.latex?E_{\beta}=t_{0}&plus;T^{\alpha}_{A}&plus;T^{\beta}_{B}&plus;T^{\beta}_{A}&plus;Q_{C_{k}}(p_{\beta})"/>, [1]
 
-where <img src="https://latex.codecogs.com/gif.latex?t_{0}"/> is the time when all the protocol parameters are set and <img src="https://latex.codecogs.com/gif.latex?Q_{C_{k}}(p)"/> is the [quantile function](https://en.wikipedia.org/wiki/Quantile_function) of <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> for a probability <img src="https://latex.codecogs.com/gif.latex?p"/>.
-This is, a function returning the minimum time taken for <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> to take place with probability <img src="https://latex.codecogs.com/gif.latex?p"/>.
+where <img src="https://latex.codecogs.com/gif.latex?t_{0}"/> is the time when all the protocol parameters are set and <img src="https://latex.codecogs.com/gif.latex?Q_{C_{k}}(p_{\beta})"/> is the [quantile function](https://en.wikipedia.org/wiki/Quantile_function) of <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> for a probability <img src="https://latex.codecogs.com/gif.latex?p_{\beta}"/>.
+This is, a function returning the minimum time taken for <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> to take place with probability <img src="https://latex.codecogs.com/gif.latex?p_{\beta}"/>.
 
 As mentioned in the previous section, quantile functions for Erlang random variables can only be approximated via [numerical methods](https://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.stats.erlang.html).
 
 
-With this knowledge, `beta_expiry` can be estimated using [1].
+With this knowledge, `beta_expiry` can be estimated using [1]. In this case, <img src="https://latex.codecogs.com/gif.latex?p_{\beta}"/> represents the probability that Alice redeems `beta_asset` before `beta_expiry`.
+In other words, the probability that the protocol will not stop half-way through.
 
 ### Example
 
@@ -124,8 +128,10 @@ alice_beta_time = 1.5
 alice_confirmations = 40
 # Ethereum (beta ledger) block time
 beta_block_time = 0.25
-# Time taken for k blocks to be generated on Ethereum (beta ledger) with probability 0.95
-time_for_confirmations_beta = erlang.ppf(0.999999, alice_confirmations, 0, beta_block_time)
+# Probability of Bob redeeming beta asset before beta expiry
+beta_redeem_probability = 0.999999
+# Time taken for k blocks to be generated on Ethereum (beta ledger) with beta_redeem_probability
+time_for_confirmations_beta = erlang.ppf(beta_redeem_probability, alice_confirmations, 0, beta_block_time)
 print("Time for %i confirmations on beta ledger: %f" % (alice_confirmations, time_for_confirmations_beta))
 
 beta_expiry = t_0 + alice_alpha_time + bob_beta_time + alice_beta_time + time_for_confirmations_beta
@@ -140,8 +146,10 @@ bob_alpha_time = 30
 bob_confirmations = 6
 # Ethereum (beta ledger) block time
 alpha_block_time = 10
-# Time taken for k blocks to be generated on Ethereum (beta ledger) with probability 0.95
-time_for_confirmations_alpha = erlang.ppf(0.999999, bob_confirmations, 0, alpha_block_time)
+# Probability of Alice redeeming alpha asset before alpha expiry
+alpha_redeem_probability = 0.999
+# Time taken for k blocks to be generated on Ethereum (beta ledger) with alpha_redeem_probability
+time_for_confirmations_alpha = erlang.ppf(alpha_redeem_probability, bob_confirmations, 0, alpha_block_time)
 print("Time for %i confirmations on alpha ledger: %f" % (bob_confirmations, time_for_confirmations_alpha))
 
 alpha_expiry = beta_expiry + bob_alpha_time + time_for_confirmations_alpha
