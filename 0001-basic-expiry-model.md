@@ -59,9 +59,7 @@ Quantile functions for Erlang random variables can only be approximated via [num
 
 Knowing all this, `alpha_expiry` can be estimated:
 
-<img src="https://latex.codecogs.com/gif.latex?E_{\alpha}=E_{\beta}&plus;T_{\alpha}&plus;Q_{C_{k}}(p)"/>,
-
-where the value of <img src="https://latex.codecogs.com/gif.latex?p"/> is directly proportional to the security of the model (and the size of `alpha_expiry`).
+<img src="https://latex.codecogs.com/gif.latex?E_{\alpha}=E_{\beta}&plus;T_{\alpha}&plus;Q_{C_{k}}(p)"/>.
 
 ### Beta expiry
 
