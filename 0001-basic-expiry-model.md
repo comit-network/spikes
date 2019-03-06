@@ -38,7 +38,7 @@ It would therefore be ideal to find a value of `alpha_expiry` that lets Bob rede
 - Bob provides <img src="https://latex.codecogs.com/gif.latex?T_{\alpha}"/>, the time in which he is overwhelmingly confident he will be able to confirm a transaction on `alpha_ledger`.
 He has direct influence over this since he can choose the fee.
 - Bob provides <img src="https://latex.codecogs.com/gif.latex?k"/>, the number of additional confirmations he would need to have on his redeem transaction before he considers `alpha_asset` to be his own.
-- Block time on `alpha_ledger` can be modelled as a random variable that follows an exponential distribution with parameter <img src="https://latex.codecogs.com/gif.latex?\lambda"/>.
+- Block time on `alpha_ledger` can be modelled as a random variable that follows an exponential distribution with parameter <img src="https://latex.codecogs.com/gif.latex?\lambda_{\alpha}"/>.
 - A confirmation is given by the arrival of a new block.
 - The value of `beta_expiry`, <img src="https://latex.codecogs.com/gif.latex?E_{\beta}"/>, is constant.
 
@@ -46,9 +46,9 @@ He has direct influence over this since he can choose the fee.
 
 To determine `alpha_expiry`, the time <img src="https://latex.codecogs.com/gif.latex?\Delta_{R}"/> Bob will need to get his desired number of confirmations on his redeem transaction of `alpha_asset` will need to be estimated.
 
-The time it would take for Bob's redeem transaction to obtain <img src="https://latex.codecogs.com/gif.latex?k"/> confirmations on `alpha_ledger` can be modelled as a sum of <img src="https://latex.codecogs.com/gif.latex?k"/> mutually independent exponential random variables with the same rate parameter <img src="https://latex.codecogs.com/gif.latex?\lambda"/>, which is equal to an <img src="https://latex.codecogs.com/gif.latex?\textrm{Erlang}(k,\lambda)"/> distribution.
+The time it would take for Bob's redeem transaction to obtain <img src="https://latex.codecogs.com/gif.latex?k"/> confirmations on `alpha_ledger` can be modelled as a sum of <img src="https://latex.codecogs.com/gif.latex?k"/> mutually independent exponential random variables with the same rate parameter <img src="https://latex.codecogs.com/gif.latex?\lambda_{\alpha}"/>, which is equal to an <img src="https://latex.codecogs.com/gif.latex?\textrm{Erlang}(k,\lambda_{\alpha})"/> distribution.
 
-Letting <img src="https://latex.codecogs.com/gif.latex?C_{k}\sim\textrm{Erlang}(k,\lambda)"/>,
+Letting <img src="https://latex.codecogs.com/gif.latex?C_{k}\sim\textrm{Erlang}(k,\lambda_{\alpha})"/>,
 
 <img src="https://latex.codecogs.com/gif.latex?\Delta_{R}=T_{\alpha}&plus;Q_{C_{k}}(p)"/>,
 
@@ -79,16 +79,16 @@ He has direct influence over this since he can choose the fee.
 - Alice provides <img src="https://latex.codecogs.com/gif.latex?T^{\beta}_{A}"/>, the time in which she is overwhelmingly confident she will be able to confirm a transaction on `beta_ledger`.
 She has direct influence over this since she can choose the fee.
 - Alice provides <img src="https://latex.codecogs.com/gif.latex?k"/>, the number of additional confirmations she would need to have on her redeem transaction before she considers `beta_asset` to be her own.
-- Block time on `beta_ledger` can be modelled as a random variable that follows an exponential distribution with parameter <img src="https://latex.codecogs.com/gif.latex?\lambda"/>.
+- Block time on `beta_ledger` can be modelled as a random variable that follows an exponential distribution with parameter <img src="https://latex.codecogs.com/gif.latex?\lambda_{\beta}"/>.
 - A confirmation is given by the arrival of a new block.
 
 #### Model
 
 To determine `beta_expiry`, the random variable <img src="https://latex.codecogs.com/gif.latex?R_{\beta}"/>, which models the time Alice will need to get her desired number of confirmations on her redeem transaction of `beta_asset`, will need to be approximated.
 
-The time it would take for Alice's redeem transaction to obtain <img src="https://latex.codecogs.com/gif.latex?k"/> confirmations on `beta_ledger` can be modelled as a sum of <img src="https://latex.codecogs.com/gif.latex?k"/> mutually independent exponential random variables with the same rate parameter <img src="https://latex.codecogs.com/gif.latex?\lamda"/>, which is equal to an <img src="https://latex.codecogs.com/gif.latex?\textrm{Erlang}(k,\lambda)"/> distribution.
+The time it would take for Alice's redeem transaction to obtain <img src="https://latex.codecogs.com/gif.latex?k"/> confirmations on `beta_ledger` can be modelled as a sum of <img src="https://latex.codecogs.com/gif.latex?k"/> mutually independent exponential random variables with the same rate parameter <img src="https://latex.codecogs.com/gif.latex?\lamda"/>, which is equal to an <img src="https://latex.codecogs.com/gif.latex?\textrm{Erlang}(k,\lambda_{\beta})"/> distribution.
 
-Letting <img src="https://latex.codecogs.com/gif.latex?C_{k}\sim\textrm{Erlang}(k,\lambda)"/>,
+Letting <img src="https://latex.codecogs.com/gif.latex?C_{k}\sim\textrm{Erlang}(k,\lambda_{\beta})"/>,
 
 <img src="https://latex.codecogs.com/gif.latex?E_{\beta}=t_{0}&plus;T^{\alpha}_{A}&plus;T^{\beta}_{B}&plus;T^{\beta}_{A}&plus;Q_{C_{k}}(p)"/>, [1]
 
