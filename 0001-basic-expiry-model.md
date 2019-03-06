@@ -94,7 +94,7 @@ Letting <img src="https://latex.codecogs.com/gif.latex?C_{k}\sim\textrm{Erlang}(
 
 <img src="https://latex.codecogs.com/gif.latex?E_{\beta}=t_{0}&plus;T^{\alpha}_{A}&plus;T^{\beta}_{B}&plus;T^{\beta}_{A}&plus;Q_{C_{k}}(p)"/>, [1]
 
-where <img src="https://latex.codecogs.com/gif.latex?Q_{C_{k}}(p)"/> is the [quantile function](https://en.wikipedia.org/wiki/Quantile_function) of <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> for a probability <img src="https://latex.codecogs.com/gif.latex?p"/>.
+where <img src="https://latex.codecogs.com/gif.latex?t_{0}"/> is the time when all the protocol parameters are set and <img src="https://latex.codecogs.com/gif.latex?Q_{C_{k}}(p)"/> is the [quantile function](https://en.wikipedia.org/wiki/Quantile_function) of <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> for a probability <img src="https://latex.codecogs.com/gif.latex?p"/>.
 This is, a function returning the minimum time taken for <img src="https://latex.codecogs.com/gif.latex?C_{k}"/> to take place with probability <img src="https://latex.codecogs.com/gif.latex?p"/>.
 
 As mentioned in the previous section, quantile functions for Erlang random variables can only be approximated via [numerical methods](https://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.stats.erlang.html).
