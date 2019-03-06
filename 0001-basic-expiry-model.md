@@ -104,6 +104,8 @@ With this knowledge, `beta_expiry` can be estimated using [1].
 
 ### Example
 
+All times expressed in minutes.
+
 #### Code
 
 ```python
