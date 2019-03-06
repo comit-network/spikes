@@ -161,6 +161,6 @@ print("Alpha expiry: %f" % alpha_expiry)
 ```
 Time for 40 confirmations on beta ledger: 19.385065
 Beta expiry: 42.885065
-Time for 6 confirmations on alpha ledger: 254.126261
-Alpha expiry: 327.011326
+Time for 6 confirmations on alpha ledger: 164.547452
+Alpha expiry: 237.432517
 ```
