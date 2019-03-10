@@ -1,6 +1,5 @@
 # Use MADR-like solution for spike outcomes
 
-* Status: accepted
 * Authors: [Lucas Soriano](@luckysori)
 * Date: 2019-03-05
 
