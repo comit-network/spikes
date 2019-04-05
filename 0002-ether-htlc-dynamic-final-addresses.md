@@ -90,7 +90,7 @@ if CALLDATASIZE == (20 + 65 + 32) {
         let (v,r,s) = signature;
         if redeem_identity == ecrecover(message_hash, v, r, s) {
             log("Redeemed(secret)"); // could also log the address it was redeemed to
-            selfdescrtruct(final_redeem_address)
+            selfdestruct(final_redeem_address)
         }
     }
     else {
@@ -101,7 +101,7 @@ if CALLDATASIZE == (20 + 65 + 32) {
 
     if timestamp() > expiry {
         log("Refunded");
-        selfdescrtruct(final_refund_address);
+        selfdestruct(final_refund_address);
     }
     else {
         return
