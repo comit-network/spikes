@@ -76,7 +76,7 @@ To verify the signature we use the `ecrecover` precompiled contract.
 Note that this means the signature we need to send is the 65 byte recoverable ECDSA signature.
 (A recoverable signature is one where you can figure out the public key from the signature itself)
 
-Here's the psuedocode for the contract:
+Here's the rust-styled pseudocode for the contract:
 
 ``` rust
 let (expiry, redeem_identity, refund_identity, secret_hash) = embedded_somehow...;
