@@ -58,12 +58,15 @@ The key things when deciding what to sign are:
 2. It must not be possible to re-use the signature on a different chain or a different contract on the same chain.
 
 To ensure (1) we need to sign the final address (redeem or refund) with the private key of the corresponding identity.
-To ensure (2) we should sign the HTLC's contract address, the network id and chain id.
+To ensure (2) we should sign the HTLC's contract address, the chain_id
+
+Note, that hashing the `network_id` isn't necessary because it doesn't seem to be used for protecting against replay attacks in Etheruem.
+No current Ethereum chain has the same `chain_id` (see [chainid.network/](https://chainid.network/)), regardless of their `network_id` so they can be uniquely identified by their `chain_id` alone.
 
 So I propose that we sign the following messages for each outcome:
 
-- Redeem: `network_id || chain_id || htlc_contract_address || final_redeem_address`
-- Refund: `network_id || chain_id || htlc_contract_address || final_refund_address`
+- Redeem: `chain_id || htlc_contract_address || final_redeem_address`
+- Refund: `chain_id || htlc_contract_address || final_refund_address`
 
 We have to hash the message before signing it.
 In this case we can choose any 256 bit output hash function because we control both the singing code (in COMIT) and the verifier (in the contract).
@@ -86,7 +89,7 @@ if CALLDATASIZE == (20 + 65 + 32) {
     let (final_redeem_address, signature, secret) = CALLDATA();
 
     if sha256(secret) == secret_hash {
-        let message_hash = sha3(network_id, chain_id, address(), final_redeem_address);
+        let message_hash = sha3(chain_id, address(), final_redeem_address);
         let (v,r,s) = signature;
         if redeem_identity == ecrecover(message_hash, v, r, s) {
             log("Redeemed(secret)"); // could also log the address it was redeemed to
