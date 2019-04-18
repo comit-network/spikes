@@ -16,7 +16,7 @@ I present the conclusions first and a summary of what I learned from LND.
 
 This section recommends how we should generate and store the secret seed by answering key questions.
 
-### Is there any way to recover anything if you have your secret seed but no database?
+### Can you recover anything if you have your secret seed but no database backup?
 
 **In practice, No.**
 
@@ -30,24 +30,24 @@ I don't think this partial recovery is worth putting the significant effort that
 ### Should it be encrypted?
 
 I think this should be optional.
-A COMIT node doesn't own the funds long term.
-It can only control the funds of protocols that are in being executed.
+A COMIT node doesn't hold funds long term.
+It can only control the funds during the execution of a protocol.
 This is different to LND where if someone gets access to your seed they can take all your funds regardless of whether you have channels open or not.
 
-The best attack vector against an unencrypted seed is for the attacker to get short term access to the system COMIT is running on, covertly steal their secret seed and then wait for them to execute a swap and then redeem to your own address.
+The best attack vector against an unencrypted seed is for the attacker to get short term access to the system COMIT is running on, covertly steal their secret seed and then wait for them to execute a swap and then redeem to their own address.
 Encrypting the seed does give you protection against this.
 
 Having said that, giving an attacker access to your COMIT node will probably give them access to the HTTP API which they can use to redeem funds to their own address.
 This is probably a better attack vector than the above.
 
-note: We could prevent this attack by giving the node a way of generating the final redeem addresses without getting them from the api.
+Note: We could prevent this attack by giving the node a way of generating the final redeem addresses without getting them from the api.
 
-I think we should leave it unencrypted for now, make encryption an option later on and then perhaps make encryption the default as a last step.
+For the sake of expediency I propose we incrementally increase the security, i.e. (i) leave the secret unencrypted for now, (ii) make encryption an option later on and (iii) make encryption the default eventually.
 
 ### Where to store it?
 
-Unlike lnd, I don't think we should store secret seed in the database file.
-This allows users to backup the secret seed separately from the database (although they need to backup both).
+I don't think we should store secret seed in the database file (this is what lnd does).
+This lets users backup the secret seed separately from the database (although they need to backup both).
 Given that the two are linked, we should store a hash of the secret seed along with the swap id (in the same row or whatever).
 This allows the user to change the secret seed while not invalidating the entire database.
 
@@ -68,7 +68,7 @@ We should make the permissions restrictive so only the user has read permission 
 I don't think it's worth encrypting the database yet until we have a motivation to do it.
 An attacker stealing the database would learn what protocol executions you're involved in so atm it's just a privacy issue.
 
-We *could* encrypt the database we the `secret_seed` seeing as they're separated.
+We *could* encrypt the database with the `secret_seed` seeing as they're separated.
 
 ### How to generate it?
 
@@ -97,14 +97,14 @@ Obviously, in our case you can't do this attack but I'd suggest we use a hash fu
 ### Use u8 rather than strings to identify key types
 
 There's nothing inherently wrong with using utf-8 encoded strings to a hash function to produce secret keys etc. e.g. `hash(seed || "secret")` (putting length extension attacks to the side).
-This is what we do now in rfc003's [SecretSource](https://github.com/comit-network/comit-rs/blob/master/application/comit_node/src/swap_protocols/rfc003/secret_source.rs).
+This is what we do now in rfc003's [SecretSource](https://github.com/comit-network/comit-rs/blob/48d807d3b173f62b3e6adb2c5aebcb2ebb6967a5/application/comit_node/src/swap_protocols/rfc003/secret_source.rs).
 There is another way to do it which is to simply encode integers for each type of key:
 
 ``` rust
 enum SecretType {
-    Secret,
-    RedeemKey,
-    RefundKey,
+    Secret = 0,
+    RedeemKey = 1,
+    RefundKey = 2,
 }
 
 ..
@@ -135,6 +135,8 @@ The main reasons are:
 
 BLAKE2b's key is 64-bytes so I also suggest changing the secret seed we use to 64-bytes.
 
+The implementation I recommend using is https://github.com/RustCrypto/hashes just because it's maintained by the rust crypto organisation.
+
 ### NodeID
 
 I think we should derive the NodeID from the master seed simply by hashing something arbitrary.
@@ -151,7 +153,7 @@ It faces a similar problem to us in that you can't restore stuff you've learned 
 
 The wallet seed is stored encrypted with a password in the node's `wallet.db` (or at least I think that's where it's hiding).
 You have to unlock the wallet on lnd startup with the password via an RPC call (this is what the ln-cli does).
-There is a `--noseedbackup` option which id going to be depreciated which encrypts it with the default password so you don't have unlock the wallet.
+There is a (to be depreciated) `--noseedbackup` option  which encrypts it with the default password so you don't have unlock the wallet.
 But this means you can't back up your seed so it's strictly for development.
 
 Here's an interesting issue which discusses the possibility of making the password optional  (i.e. leaving the seed unencrypted): [#899](https://github.com/lightningnetwork/lnd/issues/899) (note they removed the `--noencryptwallet` thing mentioned there).
