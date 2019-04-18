@@ -149,7 +149,7 @@ We should leave the door open to having multiple top level ids (i.e. one for lig
 To help inform the above decisions I looked at LND because it's the flagship layer two protocol node and has to generate many keys and secrets.
 It faces a similar problem to us in that you can't restore stuff you've learned from the other party (signatures on states, revocation keys etc) from the seed.
 
-### Seed srorage
+### Seed storage
 
 The wallet seed is stored encrypted with a password in the node's `wallet.db` (or at least I think that's where it's hiding).
 You have to unlock the wallet on lnd startup with the password via an RPC call (this is what the ln-cli does).
