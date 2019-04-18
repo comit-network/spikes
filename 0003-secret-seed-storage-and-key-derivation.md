@@ -76,6 +76,10 @@ If `secret_seed_file` isn't set, I think we should just generate it from `OsRng`
 
 We can make a tool to generate/restore it from a mnemonic and encrypt/decrypt it later on.
 
+### Should it have a checksum?
+
+This probably won't catch much but it seems like a decent idea to attach a checksum to it if it's stored or transferred in a way that could be corrupted (or perhaps corrupted accidentally via a text editor).
+
 ## Secret/NodeID Derivation
 
 I think the way we are doing it now is roughly the right way but I recommend modifying it in the following ways:
