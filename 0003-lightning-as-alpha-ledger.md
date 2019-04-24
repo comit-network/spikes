@@ -148,11 +148,11 @@ If a trade involves LN using LND we can aproach these things differently:
     * btsieve needs LND support
 
 
-# COMIT link relation
+#### COMIT link relation
 Assumption: Bob is the creator of the link and is willing to receive Bitcoin for Ether for 1:10.
 
 Bob cannot yet create a hold invoice, i.e. `addholdinvoice` as he does not know the secret yet, hence, all he can add in the link is the information about Ledgers, Assets and exchange rates.
 
-## Fall-back mechanism of LN
+#### Fall-back mechanism of LN
 LN allows to specificy a fallback address (_fallback_addr_) in when creating calling `addholdinvoice`.
 We could use this information to fall back to an on-chain HTLC trade if no route can be found between Alice and Bob.
