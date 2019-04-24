@@ -101,6 +101,9 @@ If a trade involves LN using LND we can aproach these things differently:
     * comit-i needs LND support
 
 
+---
+
+
 * Action
     * Pay invoice
 * Responsibility:
@@ -113,6 +116,10 @@ If a trade involves LN using LND we can aproach these things differently:
     * comit-i needs LND support
 
 
+
+---
+
+
 * Action:
     * Settle Invoice
 * Responsibility
@@ -123,6 +130,11 @@ If a trade involves LN using LND we can aproach these things differently:
     * As soon as the secret has been learned, the HTLC on the LN should be settled using the command `settleinvoice`, this can either be done by the user (and exposed through comit-i) or done automatically through the comit-node. Since we have the extra _redeem_ step for Bitcoin and Ethereum (as well for Erc20) which needs to be performed from the user, we should leave the settlement of the invoice to the user (e.g. expose this information through comit-i).
 * Conclusion
     * comit-i needs LND support
+
+
+
+---
+
 
 * Action
     * Monitor LN
