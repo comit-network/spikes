@@ -68,9 +68,9 @@ The payment is complete.
 
 The trade is complete.
 
-### Considerations and limitations
+## Spike Outcome
 
-#### Lightning Network: a new ledger
+### Lightning Network: a new ledger
 Similiar to the ledger definitions for [Bitcoin](https://github.com/comit-network/RFCs/blob/master/RFC-004-Bitcoin.md) and [Ethereum](https://github.com/comit-network/RFCs/blob/master/RFC-006-Ethereum.md) we need to handle the Lightning Network differently.
 This is required because the comit-node and btsieve need to perform different actions accordingly.
 We are always talking about Ledgers and Assets, (e.g. _Bitcoin_ Asset on the _Bitcoin_ Ledger, _Ether_ Asset on the _Ethereum_ Ledger, _Erc20_ on the _Ethereum_ Ledger, ...), Hence,
@@ -79,11 +79,11 @@ if we follow this approach, for supporting LN (through LND) we will need to intr
 * Ledger: the **Lightning Network**. _Ledgers_ are used as _settlement layers_ for our HTLCs. In the case of LND, this layer is the Lightning Network.
 * Asset: **Bitcoin**. Since LN is a layer-2 network on top of Bitcoin, the asset should also be Bitcoin.
 
-#### Timeouts
+### Dealing with timeouts
 When calling `addholdinvoice` an [`expiry`](https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L142) (in seconds) can be given. However, this timeout is relative and will get accumulated across the payment path.
 Hence, Alice will need to know the path and this value in advance before sending a swap request to Bob as she won't (or should not) be able to change neither `alpha_expiry` nor `beta_expiry` after the swap request.
 
-#### Responsabilitites
+### Responsabilitites
 
 A main goal of COMIT is to keep the autonomy to the user and let him/her decide when to deploy a HTLC, redeem or refund a HTLC, etc.
 If a trade involves LN using LND we can aproach these things differently:
@@ -148,11 +148,11 @@ If a trade involves LN using LND we can aproach these things differently:
     * btsieve needs LND support
 
 
-#### COMIT link relation
+### COMIT link relation
 Assumption: Bob is the creator of the link and is willing to receive Bitcoin for Ether for 1:10.
 
 Bob cannot yet create a hold invoice, i.e. `addholdinvoice` as he does not know the secret yet, hence, all he can add in the link is the information about Ledgers, Assets and exchange rates.
 
-#### Fall-back mechanism of LN
+### Fall-back mechanism of LN
 LN allows to specificy a fallback address (_fallback_addr_) in when creating calling `addholdinvoice`.
 We could use this information to fall back to an on-chain HTLC trade if no route can be found between Alice and Bob.
