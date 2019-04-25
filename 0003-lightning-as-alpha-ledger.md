@@ -13,7 +13,7 @@ The **Hold invoice feature** was introduced in the following PR: [lightningnetwo
 > At that point, it is not possible anymore for the sender to revoke the payment, but the receiver still can choose whether to settle or cancel the htlc and invoice.
 
 This allows us to trade Bitcoin on the Lightning Network (LN) for an asset _X_ on a different ledger where LN is the _alpha ledger_ as per the definition in [RFC003](https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md).
-For the other way around, Bitcoin on the Lightning Network is the _beta asset/ledger_, we can make use of `createinvoice`.
+For the other way around, Bitcoin on the Lightning Network is the _beta asset/ledger_, we can make use of `createinvoice` as Alice would instantly release the secret by settling Bob's LN payment.
 
 ### Standard _hold invoice_ process
 
@@ -22,7 +22,7 @@ For the other way around, Bitcoin on the Lightning Network is the _beta asset/le
 2) Bob calls `addholdinvoice` with an amount `X` and the hashed preimage `h(p)` ([more details](https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L142)).
 3) Bob sends the generated invoice to Alice.
 4) Alice now can pay the invoice using `sendpayment`.
-5) As soon as Alice is happy (because she is in a good mode), she tells Bob the secret (or he learns it otherwise, see below).
+5) As soon as Alice is happy (because she is in a good mood), she tells Bob the secret (or he learns it otherwise, see below).
 6) Bob settles the payment by calling `settleInvoice` ([more details](https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L53)).
 
 The payment is complete.
@@ -30,10 +30,10 @@ The payment is complete.
 ## Research
 
 > Assumption: Bob wants to receive _X_ Bitcoin (**A** Asset) on the LN (**alpha** Ledger) for _Y_ Ether (**B** Asset) on Ethereum (**beta** Ledger)
-> Alice magically finds out about this _whish_ or using a [COMIT link](fill in some link).
+> Alice magically finds out about this _wish_ or using a [COMIT link](fill in some link).
 >
 > * Alpha Ledger: Lightning Network
-> * Alpha Asset: Bitcoin on the Lighting Network
+> * Alpha Asset: Bitcoin
 > * Beta Ledger: Ethereum
 > * Beta Asset: Ether
 
@@ -61,7 +61,7 @@ The payment is complete.
 | `alpha_redeem_identity` | `α::Identity` | The identity on alpha that **A**, this is the LN `invoice`  |
 | `beta_refund_identity`  | `β::Identity` | The identity on beta that **B** will be transferred to when the beta-HTLC is activated after `beta_expiry`      |
 
-4) Alice now starts the [exection phase](https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md#1-alice-deploys-%CE%B1-htlc) by paying the invoice using the LND command `sendpayment`.
+4) Alice now starts the [execution phase](https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md#1-alice-deploys-%CE%B1-htlc) by paying the invoice using the LND command `sendpayment`.
 5) Bob gets notified about funding of alpha (i.e. the invoice has been paid but cannot be settled yet), and continues with [deploying beta-HTLC](https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md#2-bob-deploys-%CE%B2-htlc), i.e. he deploys a HTLC on Ethereum.
 6) As soon as beta has enough confirmations for Alice, she redeems the beta-HTLC using her secret.
 7) Bob gets notified about this, learns the secret and can now settle the LND invoice by invoking the LND command `settleInvoice` ([more details](https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L53)).
@@ -80,13 +80,19 @@ if we follow this approach, for supporting LN (through LND) we will need to intr
 * Asset: **Bitcoin**. Since LN is a layer-2 network on top of Bitcoin, the asset should also be Bitcoin.
 
 ### Dealing with timeouts
-When calling `addholdinvoice` an [`expiry`](https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L142) (in seconds) can be given. However, this timeout is relative and will get accumulated across the payment path.
-Hence, Alice will need to know the path and this value in advance before sending a swap request to Bob as she won't (or should not) be able to change neither `alpha_expiry` nor `beta_expiry` after the swap request.
+When calling `addholdinvoice` an [`expiry`](https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L142) (in seconds) can be given. However, this expiry is only related to the invoice itself and has nothing to do with the expiry times on the HTLCs later on.
+However, timeouts on the HTLCs are relative and will get accumulated across the payment path, which makes it harder to predict.
+Hence, Alice will need to know the path in advance before sending a swap request to Bob as she won't (or should not) be able to change neither `alpha_expiry` nor `beta_expiry` after the swap request.
+
+Timeouts on the HTLCs are configured globally for the payee node and can optionally be defined when paying by the payer node (`--final_cltv_delta=T`).
+
+> TODO: we should investigate this topic more in detail.
+
 
 ### Responsabilitites
 
 A main goal of COMIT is to keep the autonomy to the user and let him/her decide when to deploy a HTLC, redeem or refund a HTLC, etc.
-If a trade involves LN using LND we can aproach these things differently:
+If a trade involves LN using LND we can approach these things differently:
 
 
 * Action
