@@ -102,7 +102,7 @@ If a trade involves LN using LND we can approach these things differently:
 * Invoker
     * User, comit-i, comit-node
 * Description
-    * `addholdinvoice` is available as a RPC command or through the LND CLI. Althoug dealing with this is rather cumbersome, to keep the autonomy with the user, and to not introduce LND dependency into the comit-node, we this should be possible through comit-i.
+    * `addholdinvoice` is available as a RPC command or through the LND CLI. Although dealing with this is rather cumbersome, to keep the autonomy with the user, and to not introduce LND dependency into the comit-node, we this should be possible through comit-i.
 * Conclusion:
     * comit-i needs LND support
 
