@@ -89,7 +89,7 @@ Timeouts on the HTLCs are configured globally for the payee node and can optiona
 > TODO: we should investigate this topic more in detail.
 
 
-### Responsabilitites
+### Responsibilities
 
 A main goal of COMIT is to keep the autonomy to the user and let him/her decide when to deploy a HTLC, redeem or refund a HTLC, etc.
 If a trade involves LN using LND we can approach these things differently:
