@@ -1,0 +1,16 @@
+= [short title describing spike]
+
+NOTE: Authors: [list everyone involved in the research] +
+Date: [YYYY-MM-DD when the spike outcome was last updated]
+
+Tracking issue: [link to corresponding spike]
+
+:toc:
+
+== Context
+
+[Short description of the context]
+
+== Research
+
+[Documentation of steps followed and findings]
