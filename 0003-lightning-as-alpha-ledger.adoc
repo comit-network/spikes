@@ -205,3 +205,70 @@ We could use this information to fall back to an on-chain HTLC trade if no route
 == Appendix
 
 === Commands for call
+
+I can confirm, the following works:
+
+[source,bash]
+----
+secret=0000000000000000000000000000000000000000000000000000000000000001
+sha256=ec4916dd28fc4c10d78e287ca5d9cc51ee1ae73cbfde08c6b37324cbfaac8bc5
+----
+
+[source]
+----
+$bob: lncli --network=simnet addholdinvoice ec4916dd28fc4c10d78e287ca5d9cc51ee1ae73cbfde08c6b37324cbfaac8bc5 --amt 10
+----
+
+
+
+[source]
+----
+$alice: lncli --network=simnet payinvoice lnsb100n....
+----
+
+[source]
+----
+$bob: `lncli --network=simnet lookupinvoice 4146873...
+{
+    "memo": "",
+    "receipt": null,
+    "r_preimage": null,
+    ...
+    "amt_paid_msat": "10000",
+    "state": "ACCEPTED"
+}
+----
+
+[source]
+----
+$bob: lncli --network=simnet settleinvoice 0000000000000000000000000000000000000000000000000000000000000001
+----
+
+[source]
+----
+$bob: `lncli --network=simnet lookupinvoice ec4916dd28fc4c10d78e287ca5d9cc51ee1ae73cbfde08c6b37324cbfaac8bc5
+{
+    "memo": "",
+    "receipt": null,
+    "r_preimage": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=",
+    "r_hash": "7EkW3Sj8TBDXjih8pdnMUe4a5zy/3gjGs3Mky/qsi8U=",
+    "value": "10",
+    "settled": true,
+    "creation_date": "1556272625",
+    "settle_date": "1556272661",
+    "payment_request": "lnsb100n1pwv9403pp5a3y3dhfgl3xpp4uw9p72tkwv28hp4eeuhl0q334nwvjvh74v30zsdqqcqzpgjemg8uy8y7ej0q6lmxvkfhwfrjnesv6jryk46m5kcfcd2drykskq97c2ad9lvp9d6mmyt0r6rhp26e2cmrqd9qgc88rf5l58hz6ntxgqc3azkn",
+    "description_hash": null,
+    "expiry": "3600",
+    "fallback_addr": "",
+    "cltv_expiry": "40",
+    "route_hints": [
+    ],
+    "private": false,
+    "add_index": "7",
+    "settle_index": "1",
+    "amt_paid": "10000",
+    "amt_paid_sat": "10",
+    "amt_paid_msat": "10000",
+    "state": "SETTLED"
+}
+----
