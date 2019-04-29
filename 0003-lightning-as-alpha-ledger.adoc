@@ -77,7 +77,7 @@ ____
 
 [start=2]
 2. Bob _accepts_ the request and performs the following step:
-    .. Create a hold incoice using `addholdinvoice` with the amount `X` and the hashed preimage `secret_hash` (https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L142[more details]).
+    .. Create a hold invoice using `addholdinvoice` with the amount `X` and the hashed preimage `secret_hash` (https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L142[more details]).
     .. Bob _subscribes_ to the invoice and waits for the payment either using
       ... `SubscribeSingleInvoice` - this is not available through the CLI but as RPC; or
       ... `LookupInvoice` - this is available trough the CLI but needs to be polled regularly.
@@ -142,8 +142,11 @@ If a trade involves LN using LND we can approach these things differently:
 * Description
     ** `addholdinvoice` is available as a RPC command or through the LND CLI. Although dealing with this is rather cumbersome, to keep the autonomy with the user, and to not introduce LND dependency into the comit-node, we this should be possible through comit-i.
 * Conclusion:
-    ** comit-i needs LND support
-
+    ** comit-i needs LND support. However, in order to do this, we will need to introduce a new action which is meant to be executed prior accepting a swap request:
+    *** Bob receives a swap request from Alice (an learns about the hashed secret)
+    *** *Action 1:* Bob creates a hold invoice through comit-i
+    *** *Action 2:* Bob accepts the swap requests by posting the newly generated invoice ID back to comit-rs
+    A quick research showed that LN payments can be done with the browser extension: https://lightningjoule.com/[Joule] and requests to a LND node can be done through the browser.
 
 ---
 
@@ -157,7 +160,7 @@ If a trade involves LN using LND we can approach these things differently:
 * Description
     ** To keep the autonomy to the user when to initiate a trade, we should return the invoice information through our API to the user (e.g. expose it through comit-i ) and let him/her pay the invoice.
 * Conclusion
-    ** comit-i needs LND support
+    ** comit-i needs LND support.
 
 
 
@@ -173,7 +176,7 @@ If a trade involves LN using LND we can approach these things differently:
 * Description
     ** As soon as the secret has been learned, the HTLC on the LN should be settled using the command `settleinvoice`, this can either be done by the user (and exposed through comit-i) or done automatically through the comit-node. Since we have the extra _redeem_ step for Bitcoin and Ethereum (as well for Erc20) which needs to be performed from the user, we should leave the settlement of the invoice to the user (e.g. expose this information through comit-i).
 * Conclusion
-    ** comit-i needs LND support
+    ** comit-i needs LND support.
 
 
 
@@ -189,7 +192,7 @@ If a trade involves LN using LND we can approach these things differently:
 * Description
     ** Similar to other Ledgers we need to monitor LN for the payment (and later on settlement) of an invoice. To keep our current abstraction layer, this should be done through btsieve
 * Conclusion
-    ** btsieve needs LND support
+    ** btsieve needs LND support.
 
 
 === COMIT link relation
@@ -208,7 +211,7 @@ We could use this information to fall back to an on-chain HTLC trade if no route
 
 I can confirm, the following works:
 
-[source,bash]
+[source]
 ----
 secret=0000000000000000000000000000000000000000000000000000000000000001
 sha256=ec4916dd28fc4c10d78e287ca5d9cc51ee1ae73cbfde08c6b37324cbfaac8bc5
