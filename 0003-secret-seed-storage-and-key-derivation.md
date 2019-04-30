@@ -143,8 +143,12 @@ The implementation I recommend using is https://github.com/RustCrypto/hashes jus
 
 ### NodeID
 
+This is the NodeID that will be used by libp2p.
+
 I think we should derive the NodeID from the master seed simply by hashing something arbitrary.
 We should leave the door open to having multiple top level ids (i.e. one for lightning, one for COMIT).
+
+The derivation path can be: `master_seed / "comit_node_id"`
 
 # Research Notes
 
