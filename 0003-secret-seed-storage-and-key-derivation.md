@@ -157,7 +157,7 @@ It faces a similar problem to us in that you can't restore stuff you've learned 
 
 The wallet seed is stored encrypted with a password in the node's `wallet.db` (or at least I think that's where it's hiding).
 You have to unlock the wallet on lnd startup with the password via an RPC call (this is what the ln-cli does).
-There is a (to be depreciated) `--noseedbackup` option  which encrypts it with the default password so you don't have unlock the wallet.
+There is a (to be deprecated) `--noseedbackup` option  which encrypts it with the default password so you don't have unlock the wallet.
 But this means you can't back up your seed so it's strictly for development.
 
 Here's an interesting issue which discusses the possibility of making the password optional  (i.e. leaving the seed unencrypted): [#899](https://github.com/lightningnetwork/lnd/issues/899) (note they removed the `--noencryptwallet` thing mentioned there).
