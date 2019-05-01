@@ -68,7 +68,7 @@ We *could* encrypt the database with the `secret_seed` seeing as they're separat
 
 ### How to generate it?
 
-If `secret_seed_file` isn't set, I think we should just generate it from `OsRng` to `~/.comit/secret_seed` if it doesn't exist.
+If `secret_seed_file` isn't set, I think we should just generate it from `OsRng` to its default location if it doesn't exist.
 
 We can make a tool to generate/restore it from a mnemonic and encrypt/decrypt it later on.
 
