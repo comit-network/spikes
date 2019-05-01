@@ -57,6 +57,8 @@ By default I'd put it somewhere like:
 ~/.comit/secret_seed
 ```
 
+But we could also use something like https://github.com/soc/directories-rs to choose the directory for us.
+
 But its location should be configurable with `secret_seed_file` in the `.toml` config.
 
 The format of the file should be toml with a single entry `secret_seed` (so we can `encrypted_secret_seed` later).
