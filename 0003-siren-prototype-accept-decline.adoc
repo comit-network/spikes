@@ -3,7 +3,7 @@
 * Authors: Franck Royer
 * Date: 2019-05-02
 
-Tracking issue: [comit-rs#917](https://github.com/comit-network/comit-rs/issues/917)
+Tracking issue: https://github.com/comit-network/comit-rs/issues/917[comit-rs#917]
 
 == Context
 
@@ -11,7 +11,7 @@ In order to move forward easily with Bobtimus prime we should define the siren j
 
 Siren repository: https://github.com/kevinswiber/siren/
 
-The prototype must conform to [Siren JSON schema](https://github.com/kevinswiber/siren/blob/master/siren.schema.json)
+The prototype must conform to https://github.com/kevinswiber/siren/blob/master/siren.schema.json[Siren JSON schema]
 
 == Research
 
