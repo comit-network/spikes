@@ -55,7 +55,7 @@ By default I'd put it next to the config file.
 
 But its location should be configurable with `secret_seed_file` in the `.toml` config.
 
-The format of the file should be toml with a single entry `secret_seed` (so we can `encrypted_secret_seed` later).
+The format of the file should be some text file format like [pem](https://docs.rs/pem/0.6.0/pem/).
 
 We should make the permissions restrictive so only the user has read permission on it.
 
