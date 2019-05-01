@@ -51,13 +51,7 @@ This lets users backup the secret seed separately from the database (although th
 Given that the two are linked, we should store a hash of the secret seed along with the swap id (in the same row or whatever).
 This allows the user to change the secret seed while not invalidating the entire database.
 
-By default I'd put it somewhere like:
-
-```
-~/.comit/secret_seed
-```
-
-But we could also use something like https://github.com/soc/directories-rs to choose the directory for us.
+By default I'd put it next to the config file.
 
 But its location should be configurable with `secret_seed_file` in the `.toml` config.
 
