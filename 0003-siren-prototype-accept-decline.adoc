@@ -1,11 +1,11 @@
-# Siren Prototype for comit-rs HTTP API - Accept/Decline acions
+= Siren Prototype for comit-rs HTTP API - Accept/Decline actions
 
 * Authors: Franck Royer
 * Date: 2019-05-02
 
 Tracking issue: [comit-rs#917](https://github.com/comit-network/comit-rs/issues/917)
 
-## Context
+== Context
 
 In order to move forward easily with Bobtimus prime we should define the siren json document of how a IN_PROGRESS response look like in each state of accept and decline, i.e. when you call GET /swaps/ for Bob.
 
@@ -13,11 +13,11 @@ Siren repository: https://github.com/kevinswiber/siren/
 
 The prototype must conform to [Siren JSON schema](https://github.com/kevinswiber/siren/blob/master/siren.schema.json)
 
-## Research
+== Research
 
-The prototype:
-
-```json
+.The prototype
+[source,json]
+----
 {
   "class": ["swaps"],
   "entities": [
@@ -85,4 +85,4 @@ The prototype:
     {"rel": ["self"], "href": "/swaps"}
   ]
 }
-```
+----
