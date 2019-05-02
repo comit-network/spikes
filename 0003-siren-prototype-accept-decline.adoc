@@ -23,7 +23,7 @@ The prototype must conform to https://github.com/kevinswiber/siren/blob/master/s
   "entities": [
     {
       "class": ["swap"],
-      "rel": [],
+      "rel": ["item"],
       "properties": {
         "role": "Alice",
         "protocol": "rfc003",
