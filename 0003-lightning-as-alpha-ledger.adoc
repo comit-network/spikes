@@ -2,9 +2,9 @@
 Philipp Hoenisch <philipp@tenx.tech>
 :revdate: 2019-04-24
 
-NOTE: * Author: {authors}
-* Date: {revdate}
-* Tracking issue: TBA
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: TBA
 
 :toc:
 
