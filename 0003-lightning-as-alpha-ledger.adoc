@@ -1,12 +1,12 @@
 =  LND as Alpha Ledger as described in RFC003
 Philipp Hoenisch <philipp@tenx.tech>
 :revdate: 2019-04-24
+:toc:
 
 NOTE: Author: {authors} +
 Date: {revdate} +
 Tracking issue: TBA
 
-:toc:
 
 == Context
 
