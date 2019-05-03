@@ -1,8 +1,10 @@
 = [short title describing spike]
-John Smith <john.smith@coblox.tech>; Fabien Miller <Fabien@coblox.tech>;
+Satoshi Nakamoto <satoshi.nakamoto@coblox.tech>;
+:toc:
+:revdate: YYYY-MM-DD
 
-* Author: {authors}
-* Date: {docdate}
+* Author(s): {authors}
+* Date: {revdate}
 
 Tracking issue: [#?]link-to-corresponding-spike
 
