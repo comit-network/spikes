@@ -37,7 +37,9 @@ ____
 
 The payment is complete.
 
-== Lightning Network as Alpha Ledger within the bounds of RFC003
+== Lightning Network as Alpha Ledger within the bounds of RFC003?
+
+Below, we try if Lightning Network as Alpha Ledger _fits_ into the definition of RFC003:
 
 ____
 Assumption: Bob wants to receive _X_ Bitcoin (**A** Asset) on the LN (**alpha** Ledger) for _Y_ Ether (**B** Asset) on Ethereum (**beta** Ledger)
