@@ -1,8 +1,8 @@
 =  LND as Alpha Ledger as described in RFC003
-Philipp Hoenisch <philipp@tenx.tech>
+Philipp Hoenisch <philipp@tenx.tech>, 2019-04-24
 
 NOTE: * Author: {authors}
-* Date: {docdate}
+* Date: {revdate}
 * Tracking issue: TBA
 
 :toc:
