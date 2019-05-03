@@ -1,8 +1,9 @@
-=   LND as Alpha Ledger as described in RFC003
+=  LND as Alpha Ledger as described in RFC003
+Philipp Hoenisch <philipp@tenx.tech>
 
-NOTE: Authors: Philipp Hoenisch +
-Date: 2019-04-24 +
-Tracking issue: TBA
+NOTE: * Author: {authors}
+* Date: {docdate}
+* Tracking issue: TBA
 
 :toc:
 
