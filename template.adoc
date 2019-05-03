@@ -1,6 +1,8 @@
 = [short title describing spike]
-John Smith <john.smith@coblox.tech>
-YYYY-MM-DD (when the spike outcome was last updated)
+John Smith <john.smith@coblox.tech>; Fabien Miller <Fabien@coblox.tech>;
+
+* Author: {authors}
+* Date: {docdate}
 
 Tracking issue: [#?]link-to-corresponding-spike
 
