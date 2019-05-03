@@ -1,5 +1,6 @@
 =  LND as Alpha Ledger as described in RFC003
-Philipp Hoenisch <philipp@tenx.tech>, 2019-04-24
+Philipp Hoenisch <philipp@tenx.tech>
+:revdate: 2019-04-24
 
 NOTE: * Author: {authors}
 * Date: {revdate}
