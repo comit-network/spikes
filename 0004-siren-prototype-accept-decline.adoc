@@ -1,7 +1,10 @@
 = Siren Prototype for comit-rs HTTP API - Accept/Decline actions
+Franck Royer <franck.royer@coblox.tech>
+:toc:
+:revdate: 2019-05-02
 
-* Authors: Franck Royer
-* Date: 2019-05-02
+* Author(s): {authors}
+* Date: {revdate}
 
 Tracking issue: https://github.com/comit-network/comit-rs/issues/917[comit-rs#917]
 
@@ -61,7 +64,6 @@ The prototype must conform to https://github.com/kevinswiber/siren/blob/master/s
           "method": "POST",
           "href": "/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept",
           "type": "application/json",
-          "class": ["comit-action"],
           "fields": [
             {
               "name": "beta_ledger_refund_identity", "title": "Refund address on Ethereum", "type": "text",
@@ -75,7 +77,6 @@ The prototype must conform to https://github.com/kevinswiber/siren/blob/master/s
           "method": "POST",
           "href": "/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/decline",
           "type": "application/json",
-          "class": ["comit-action"],
           "fields": []
         }
       ]
@@ -85,4 +86,5 @@ The prototype must conform to https://github.com/kevinswiber/siren/blob/master/s
     {"rel": ["self"], "href": "/swaps"}
   ]
 }
+
 ----
