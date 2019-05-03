@@ -1,9 +1,10 @@
 = [short title describing spike]
 Satoshi Nakamoto <satoshi.nakamoto@coblox.tech>;
+:revdate: 2009-01-03
 
-NOTE: * Author: {authors}
-* Date: {docdate}
-* Tracking issue: TBA
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: TBA
 
 :toc:
 
