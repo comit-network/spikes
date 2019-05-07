@@ -1,12 +1,11 @@
 = [short title describing spike]
 Satoshi Nakamoto <satoshi.nakamoto@coblox.tech>;
-:revdate: 2009-01-03
+:toc:
+:revdate: YYYY-MM-DD
 
 NOTE: Author: {authors} +
 Date: {revdate} +
-Tracking issue: TBA
-
-:toc:
+Tracking issue: [#?]link-to-corresponding-spike
 
 == Context
 
