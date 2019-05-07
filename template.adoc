@@ -3,9 +3,8 @@ Satoshi Nakamoto <satoshi.nakamoto@coblox.tech>;
 :toc:
 :revdate: YYYY-MM-DD
 
-* Author(s): {authors}
-* Date: {revdate}
-
+NOTE: Author: {authors} +
+Date: {revdate} +
 Tracking issue: [#?]link-to-corresponding-spike
 
 == Context
