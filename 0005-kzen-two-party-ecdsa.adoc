@@ -1,0 +1,22 @@
+= Kzen Two Party ECDSA Review
+Lloyd Fournier <lloyd@coblox.tech>
+:toc:
+:revdate: 2019-05-100000000
+
+* Authors(s): {authors}
+* Date: {revdate}
+
+Issue: https://github.com/comit-network/comit-rs/issues/897[#897]
+
+
+== Context
+
+In order to do a _Scriptless Scripts_ atomic swap <<pedro_ss>> with ECDSA signatures we need to have an implementation of <<lindell_17>>.
+The point of this spike is to review <<lindell_17>> and KZen's rust implementation <<kzen_mp_ecdsa>> and make notes about.
+
+[Bibliography]
+== References
+
+- [[pedro_ss]] Scriptless Scripts with ECDSA, https://lists.linuxfoundation.org/pipermail/lightning-dev/attachments/20180426/fe978423/attachment-0001.pdf
+- [[lindell_17]] Fast Secure Two-Party ECDSA Signing, https://eprint.iacr.org/2017/552.pdf
+- [[kzen_mp_ecdsa]] KZen's rust implementation, https://github.com/KZen-networks/multi-party-ecdsa
