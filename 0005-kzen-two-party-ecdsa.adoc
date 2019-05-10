@@ -47,7 +47,7 @@ Here's a list of the main proofs that are needed to implement the protocol.
 
 == Key Generation
 
-=== Generating the joint Public key
+=== Generating the joint public key
 
 To produce signatures under a joint public key you first need generate it fairly.
 Because of rogue key attacks, you can't just have one party send their public key and the other send one back.
@@ -78,7 +78,7 @@ The proof mentioned in the original paper is <<Hazay11>>.
 But in a more recent paper on multi-party ECDSA, <<Lindell18>> modifies the proof from <<Goldberg18>> to do the job (see section 6.2.3).
 Roughly speaking, the strategy is to prove that `N` is *square free* and to show that `f(x) = x ^ N (mod N)` is a permutation which proves that `N = pq` form.
 
-=== Implementation notes
+==== Implementation notes
 
 Since it's a public coin protocol, you can make an non-interactive version of the proof using the [Fiat-Shamir transformation](https://en.wikipedia.org/wiki/Fiat%E2%80%93Shamir_heuristic).
 They've implemented a non-interactive version of it here: https://github.com/KZen-networks/zk-paillier/blob/a7f3907fb2b3464f12b55e3ad2f50405db54f36a/src/zkproofs/correct_key_ni.rs (which uses the interactive proof module but supplies the challenge as a hash of the initial commitment).
@@ -99,7 +99,7 @@ He simply uses his ability to decrypt the Paillier encryption.
 In other words, anyone who knows the factorization `N = pq` can make this proof to P2.
 The proof is not showing knowledge of the private key, just that the encrypted private key is indeed the preimage of `p1_public_key`.
 
-=== Implementation notes
+==== Implementation notes
 
 This proof isn't in its own module but the code for it hangs around with the rest of the protocol:
 
@@ -125,6 +125,44 @@ Without this the proof will not be _complete_.
 It's implemented here:
 
 https://github.com/KZen-networks/zk-paillier/blob/a7f3907fb2b3464f12b55e3ad2f50405db54f36a/src/zkproofs/range_proof.rs
+
+=== Messages
+
+Here's my early sketch of how many messages you need:
+
+1. P1 -> `Hash(p1_public_key, schnorr_nizk(p1_public_key))`
+2. P2 ->
+   1. `p2_public_key`
+   2. `schnorr_nizk(p2_public_key)`
+3. P1 ->
+   1. Opens commitment from first message
+   2. Paillier modulus `N`
+   3. Proof `N` was generated properly
+   4. `(c,r) = PaillierEncrypt(p1_private_key)`
+   5. Range proof for `c` encrypts a valid private key
+4. P2 -> Challenge for `c` being the private key of `p1_public_key`
+5. P1 -> Committed response for `c` being valid
+6. P2 -> Reveal challenge from (4)
+7. P1 -> Open response from (5)
+
+== Signing
+
+Assuming the keygen phase went well we have the parties knowing the following (where `x1`,`x2` are private keys and `X` is the joint public key).
+
+1. P1 knows: `x1` , `X`, `(N,p,q | N = pq)`,
+2. P2 knows: `x2`, `X`, `N`, `c1 = PaillierEncrypt(x1, N)`
+
+Now they want to sign a message `m`.
+
+Since ECDSA signatures are in the form `(r,s)`.
+They need to agree on the `r` value before they can produce the `s` value.
+To do this, they do the same coin flipping protocol as in <<Generating the joint public key>> (3 rounds).
+
+Then P2 sends back which is produced `c3` by performing homomorphic operations with P1's encrypted private key (`c1`) and his own private data.
+
+=== Messages
+
+The messages are nicely pictures in section 3.3 figure 1
 
 [Bibliography]
 == References
