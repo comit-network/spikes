@@ -17,7 +17,7 @@ The point of this spike is to review <<Lindell17>> and KZen's rust implementatio
 
 == Overview
 
-[[Lindell17]] describes a two-party protocol to (i) generate a joint public key and (ii) jointly create ECDSA signatures under that public key.
+<<Lindell17>> describes a two-party protocol to (i) generate a joint public key and (ii) jointly create ECDSA signatures under that public key.
 This is usually called signature _aggregation_.
 There's a video by the Lindell summarizing his paper here: https://www.youtube.com/watch?v=pwc_Ork-1aA
 
@@ -30,7 +30,8 @@ In schnorr you can quite literally just add each party's share of the signature 
 The method we have to use in ECDSA is to move the operations to produce the *s* component of the signature into a [Paillier group](https://en.wikipedia.org/wiki/Paillier_cryptosystem) rather than doing them simply modulo the Secp256k1 curve order.
 Once you're in Paillier land things become much easier but it comes at a cost of boatloads of messages and complexity during the key generation and exchange phase.
 It is so complicated that it's amazing that anyone actually bothered to come up with this.
-For us it may be very useful. Even though Bitcoin will get Schnorr signatures, Ethereum probably won't switch anytime soon.
+For us it may be very useful. 
+Even though Bitcoin will get Schnorr signatures, Ethereum probably won't switch anytime soon.
 
 The hard bit is doing the setup phase which involves quite a few proofs.
 Some of them are in the above crate but some of them are imported from elsewhere.
@@ -40,7 +41,7 @@ We'll start with going through these.
 
 === Generating the joint public key
 
-To produce signatures under a joint public key you first need generate it fairly.
+To produce signatures under a joint public key you first need to generate it fairly.
 Because of rogue key attacks, you can't just have one party send their public key and the other send one back.
 
 The technique used in the paper (and followed by the implementation) is to do a coin tossing like protocol.
@@ -97,7 +98,7 @@ This proof isn't in its own module but the code for it hangs around with the res
 https://github.com/KZen-networks/multi-party-ecdsa/blob/e5a741bf8dd756b650b35ef8d65f6cecbd4f196a/src/protocols/two_party_ecdsa/lindell_2017/party_one.rs
 (look for things starting with `PDL`).
 
-It looks like this protocol cannot be made non-interactive. It requires four round of communication.
+It looks like this protocol cannot be made non-interactive. It requires four rounds of communication.
 
 === Range proof
 
