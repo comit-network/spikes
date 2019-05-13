@@ -103,7 +103,7 @@ It looks like this protocol cannot be made non-interactive. It requires four rou
 === Range proof
 
 In order for the previous proof to actually prove the statement you have to couple it with a range proof which proves that the encrypted private key is in the curve order (i.e. is a valid private key).
-The poof chosen was originally from <<Boudot>>  but I found it was easier to understand in <<Lindell17>> anyway (see Appendix A).
+The poof chosen was originally from <<Boudot00>>  but I found it was easier to understand in <<Lindell17>> anyway (see Appendix A).
 
 The proof uses the cut and choose technique, so it's quite large.
 It's tricky to understand, but doesn't use any wonky math.
