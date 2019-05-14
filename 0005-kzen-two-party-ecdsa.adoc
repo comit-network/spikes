@@ -155,9 +155,11 @@ Since ECDSA signatures are in the form `(r,s)`.
 They need to agree on the `r` value before they can produce the `s` value.
 To do this, they do the same coin flipping protocol as in <<Generating the joint public key>> (3 rounds).
 
-Then P2 sends back which is produced `c3` by performing homomorphic operations with P1's encrypted private key (`c1`) and his own private data.
-
+Then P2 sends back `c3` which is produced by performing homomorphic operations with P1's encrypted private key (`c1`) and his own private data.
 Note, When P2 creates `c3` there is a random rho factor (ρ * q) added to `c3` to prevent P1 from learning anything from it before doing a modular reduction to the curve order (q).
+
+P1 then decrypts `c3` and does a modular reduction to the curve order (this transforms it from a scalar in the Paillier group to a scalar in the elliptic curve group).
+From this, P1 can produce `s` and therefore a valid `(r,s)` ECDSA signature on `m`.
 
 ==== Implementation Notes
 
