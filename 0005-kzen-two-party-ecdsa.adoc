@@ -56,12 +56,12 @@ This ensures that the public key is totally random and cannot be biased by the p
 
 Note, The ability to simulate a random coin toss gives the key generation very strong security guarantees (they are able to do a simulation based proof).
 
-The protocol is roughly as follows, where `x1` is P1's (resp. P2) private key and `X1` is her public key.
+The protocol is roughly as follows, where x~1~ is P1's (resp. P2) private key and X~1~ = g^x~1~^  is her public key.
 
 - P1 -> `Hash(X1, schnorr_nizk(X1))`
 - P2 -> `X2, schnorr_nizk(X2)`
 - P1 -> Opens commitment from first message
-- Both parties calculate the joint public key X = X1^x2^ = X2^x1^.
+- Both parties calculate the joint public key X = X~1~^x2^ = X~2~^x1^.
 
 ==== Implementation notes
 The implementation commits by sending two hashes, one for the key and one for the NIZK.
