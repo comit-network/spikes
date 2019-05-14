@@ -61,7 +61,7 @@ The protocol is roughly as follows, where `x1` is P1's (resp. P2) private key an
 - P1 -> `Hash(X1, schnorr_nizk(X1))`
 - P2 -> `X2, schnorr_nizk(X2)`
 - P1 -> Opens commitment from first message
-- Both parties calculate the joint public key X = X1^x2 = X2^x1.
+- Both parties calculate the joint public key X = X1^x2^ = X2^x1^.
 
 ==== Implementation notes
 The implementation commits by sending two hashes, one for the key and one for the NIZK.
