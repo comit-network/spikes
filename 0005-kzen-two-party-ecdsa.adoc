@@ -132,27 +132,25 @@ https://github.com/KZen-networks/zk-paillier/blob/a7f3907fb2b3464f12b55e3ad2f504
 
 Here's my early sketch of how many messages you need:
 
-1. P1 -> `Hash(p1_public_key, schnorr_nizk(p1_public_key))`
-2. P2 ->
-   1. `p2_public_key`
-   2. `schnorr_nizk(p2_public_key)`
-3. P1 ->
-   1. Opens commitment from first message
-   2. Paillier modulus `N`
-   3. Proof `N` was generated properly
-   4. `(c,r) = PaillierEncrypt(p1_private_key)`
-   5. Range proof for `c` encrypts a valid private key
-4. P2 -> Challenge for `c` being the private key of `p1_public_key`
-5. P1 -> Committed response for `c` being valid
-6. P2 -> Reveal challenge from (4)
-7. P1 -> Open response from (5)
+. P1 -> Hash(X~1~, schnorr_nizk(X~1~))
+. P2 -> X~2~, schnorr_nizk(X~2~)
+. P1 ->
+.. Opens commitment from first message
+.. Paillier modulus `N`
+.. Proof `N` was generated properly
+.. (c,r) = PaillierEncrypt(x~1~)
+.. Range proof for `c` encrypts a valid private key
+. P2 -> Challenge for `c` being Paillier encryption of x~1~.
+. P1 -> Committed response to challenge (4)
+. P2 -> Reveal challenge from (4)
+. P1 -> Open response from (5)
 
 == Signing
 
-Assuming the keygen phase went well we have the parties knowing the following (where `x1`,`x2` are private keys and `X` is the joint public key).
+Assuming the keygen phase went well we have the parties knowing the following:
 
-1. P1 knows: `x1` , `X`, `(N,p,q | N = pq)`,
-2. P2 knows: `x2`, `X`, `N`, `c1 = PaillierEncrypt(x1, N)`
+1. P1 knows: x~1~ , X, \[N,p,q | N = pq\],
+2. P2 knows: x~2~,  X, `N`, `c1 = PaillierEncrypt(x1, N)`
 
 Now they want to sign a message `m`.
 
