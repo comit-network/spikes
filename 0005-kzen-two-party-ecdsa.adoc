@@ -73,7 +73,7 @@ In order to use Paillier encryption P1 needs to generate a RSA type modulus `N =
 P1 needs to prove that she generated `N` properly (I don't actually know what the risk is to P2 if she doesn't).
 
 The proof mentioned in the original paper is <<Hazay11>>.
-But in a more recent paper on multi-party ECDSA, <<Lindell18>> modifies the proof from <<Goldberg18>> to do the job (see section 6.2.3).
+But in a more recent paper on multi-party ECDSA, <<Lindell18>> (section 6.2.3) modifies the proof from <<Goldberg18>> to do the job.
 Roughly speaking, the strategy is to prove that `N` is *square free* and to show that `f(x) = x ^ N (mod N)` is a permutation which proves that `N = pq` form.
 
 ==== Implementation notes
