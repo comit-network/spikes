@@ -120,7 +120,7 @@ You just have to follow what happens closely.
 
 ==== Implementation notes
 
-To prove that the private key lies within the curve order P1 first has to choose their private key so that it's in Z~q~/3 rather than Z~q~.
+To prove that the private key lies within the curve order P1 first has to choose their private key so that it's in Z~q/3~ rather than Z~q~.
 Without this the proof will not be _complete_.
 
 It's implemented here:
