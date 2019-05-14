@@ -50,7 +50,7 @@ We'll start with going through these.
 To produce signatures under a joint public key you first need to generate it fairly.
 Because of rogue key attacks, you can't just have one party send their public key and the other send one back.
 
-The technique used in the paper (and followed by the implementation) is to do a coin tossing like protocol.
+The technique used in the paper (and followed by the implementation) is to do a coin tossing protocol to determine the joint public key.
 This ensures that the public key is totally random and cannot be biased by the party that chooses their key afterwards.
 
 Note, The ability to simulate a random coin toss gives the key generation very strong security guarantees (they are able to do a simulation based proof).
