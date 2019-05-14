@@ -57,8 +57,8 @@ Note, The ability to simulate a random coin toss gives the key generation very s
 
 The protocol is roughly as follows:
 
-- P1 -> Hash(p1_public_key, schnorr_nizk(p1_public_key))
-- P2 -> p2_public_key, schnorr_nizk(p2_public_key)
+- P1 -> `Hash(p1_public_key, schnorr_nizk(p1_public_key))`
+- P2 -> `p2_public_key, schnorr_nizk(p2_public_key)`
 - P1 -> Opens commitment from first message
 - Both parties calculate `joint_public_key = p1_public_key + p2_public_key`.
 
