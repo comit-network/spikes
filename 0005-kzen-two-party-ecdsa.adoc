@@ -90,12 +90,16 @@ In order for P2 to know that he's signing under their joint public key, he has t
 
 The proof is described in <<Lindell17>> (section 6).
 It's a little tricky to get your head around.
-First P2 sends a challenge to P1.
-If P1's response to the challenge is valid then P2 knows that the encrypted private key corresponds to `p1_public_key`.
+Here's a high level and very rough intuition to how it works (it would be better to read the paper):
 
-The weird thing is that P1 doesn't actually use his knowledge of what private key is in order to produce the proof that the encrypted private key is correct.
-Anyone who knows the factorization `N = pq` can make this proof to P2.
-This is becasuse the proof is not showing knowledge of the private key, just that the encrypted private key is indeed the preimage of `p1_public_key`.
+P2 takes the P1's encrypted private key `c1` and multiplies and adds random stuff to it (using Paillier operations).
+This creates a new encrypted private key `c1'`.
+P2 has no idea what about the value of this new private key he's just created **but** he can figure out the corresponding public key because he knows P1's public key and the values he added to `c1`.
+P2 sends `c1'` to P1 (think of it as his challenge to P1).
+
+P1 decrypts `c1'` to this random private key and figures out the public key.
+
+If P1 can produce the same public key for `c1'` that P2 calculated then `c` must encrypt P1's public key.
 
 ==== Implementation notes
 
