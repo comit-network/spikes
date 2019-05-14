@@ -24,14 +24,15 @@ The protocols are implemented pretty strictly to how they are described in the p
 == Protocol Overview
 
 <<Lindell17>> describes a two-party protocol to (i) generate a joint public key and (ii) jointly create ECDSA signatures under that public key.
-This is usually called signature _aggregation_.
+The technical term for this is _key aggregation_.
 There's a video by the Lindell summarizing his paper here: https://www.youtube.com/watch?v=pwc_Ork-1aA
 
-Aggregated signatures are a nice thing to have.
+Signature schemes with aggregated keys are a nice thing to have.
 They look exactly like normal signatures but are produced by multiple parties instead of one.
-Practically, this means you don't need to lock Bitcoin to multiple public keys and check the signature with `OP_CHECKMULTISIG`; you can just lock it to a joint public key using a normal `P2WSH` output (i.e. use `OP_CHECKSIG`). There's no way to tell the difference between a single user `P2WSH` output and a `P2WSH` output from a joint public key.
+Practically, this means you don't need to lock Bitcoin to multiple public keys and check the signature with `OP_CHECKMULTISIG`; you can just lock it to a joint public key using a normal `P2WSH` output (i.e. use `OP_CHECKSIG`).
+There's no way to tell the difference between a single user `P2WSH` output and a `P2WSH` output from a joint public key.
 
-Since ECDSA signatures doesn't have a nice algebraic structure it is **very** difficult to do signature aggregation.
+Since ECDSA signatures doesn't have a nice algebraic structure it is **very** difficult to do key aggregation.
 In schnorr you can quite literally just add each party's share of the signature together.
 The method we have to use in ECDSA is to move the operations to produce the *s* component of the signature into a https://en.wikipedia.org/wiki/Paillier_cryptosystem[Paillier group] rather than doing them simply modulo the Secp256k1 curve order.
 Once you're in Paillier land things become much easier but it comes at a cost of boatloads of messages and complexity during the key generation and exchange phase.
