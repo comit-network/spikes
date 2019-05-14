@@ -156,8 +156,7 @@ Assuming the keygen phase went well we have the parties knowing the following (w
 
 Now they want to sign a message `m`.
 
-Since ECDSA signatures are in the form `(r,s)`.
-They need to agree on the `r` value before they can produce the `s` value.
+Since ECDSA signatures are in the form `(r,s)`, they need to agree on the `r` value before they can produce the `s` value.
 To do this, they do the same coin flipping protocol as in <<Generating the joint public key>> (3 rounds).
 
 Then P2 sends back `c3` which is produced by performing homomorphic operations with P1's encrypted private key (`c1`) and his own private data.
