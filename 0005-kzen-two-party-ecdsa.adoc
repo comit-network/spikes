@@ -149,8 +149,8 @@ Here's my early sketch of how many messages you need:
 
 Assuming the keygen phase went well we have the parties knowing the following:
 
-1. P1 knows: x~1~ , X, \[N,p,q | N = pq\],
-2. P2 knows: x~2~,  X, `N`, `c1 = PaillierEncrypt(x1, N)`
+1. P1 knows: x~1~ , X, N,p,q | N = pq,
+2. P2 knows: x~2~,  X, N, c1 = PaillierEncrypt(x~1~, N)
 
 Now they want to sign a message `m`.
 
