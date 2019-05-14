@@ -33,7 +33,7 @@ Practically, this means you don't need to lock Bitcoin to multiple public keys a
 
 Since ECDSA signatures doesn't have a nice algebraic structure it is **very** difficult to do signature aggregation.
 In schnorr you can quite literally just add each party's share of the signature together.
-The method we have to use in ECDSA is to move the operations to produce the *s* component of the signature into a [Paillier group](https://en.wikipedia.org/wiki/Paillier_cryptosystem) rather than doing them simply modulo the Secp256k1 curve order.
+The method we have to use in ECDSA is to move the operations to produce the *s* component of the signature into a https://en.wikipedia.org/wiki/Paillier_cryptosystem[Paillier group] rather than doing them simply modulo the Secp256k1 curve order.
 Once you're in Paillier land things become much easier but it comes at a cost of boatloads of messages and complexity during the key generation and exchange phase.
 It is so complicated that it's amazing that anyone actually bothered to come up with this.
 For us it may be very useful.
@@ -78,7 +78,7 @@ Roughly speaking, the strategy is to prove that `N` is *square free* and to show
 
 ==== Implementation notes
 
-Since it's a public coin protocol, you can make an non-interactive version of the proof using the [Fiat-Shamir transformation](https://en.wikipedia.org/wiki/Fiat%E2%80%93Shamir_heuristic).
+Since it's a public coin protocol, you can make an non-interactive version of the proof using the https://en.wikipedia.org/wiki/Fiat%E2%80%93Shamir_heuristic[Fiat-Shamir transformation].
 They've implemented a non-interactive version of it here: https://github.com/KZen-networks/zk-paillier/blob/a7f3907fb2b3464f12b55e3ad2f50405db54f36a/src/zkproofs/correct_key_ni.rs (which uses the interactive proof module but supplies the challenge as a hash of the initial commitment).
 
 
