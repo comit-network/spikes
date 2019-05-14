@@ -92,9 +92,9 @@ The proof is described in <<Lindell17>> (section 6).
 It's a little tricky to get your head around.
 Here's a high level and very rough intuition to how it works (it would be better to read the paper):
 
-P2 takes the P1's encrypted private key `c1` and multiplies and adds random stuff to it (using Paillier operations).
+P2 takes the P1's encrypted private key c~1~ and multiplies and adds random stuff to it (using Paillier operations).
 This creates a new encrypted private key `c1'`.
-P2 has no idea what about the value of this new private key he's just created **but** he can figure out the corresponding public key because he knows P1's public key and the values he added to `c1`.
+P2 has no idea what about the value of this new private key he's just created **but** he can figure out the corresponding public key because he knows P1's public key and the values he added to c~1~.
 P2 sends `c1'` to P1 (think of it as his challenge to P1).
 
 P1 decrypts `c1'` to this random private key and figures out the public key.
@@ -121,7 +121,7 @@ You just have to follow what happens closely.
 
 ==== Implementation notes
 
-To prove that the private key lies within the curve order P1 first has to choose their private key so that it's in `Z_q/3` rather than `Z_q`.
+To prove that the private key lies within the curve order P1 first has to choose their private key so that it's in Z~q~/3 rather than Z~q~.
 Without this the proof will not be _complete_.
 
 It's implemented here:
@@ -139,8 +139,8 @@ Here's my early sketch of how many messages you need:
 .. Paillier modulus `N`
 .. Proof `N` was generated properly
 .. (c,r) = PaillierEncrypt(x~1~)
-.. Range proof for `c` encrypts a valid private key
-. P2 -> Challenge for `c` being Paillier encryption of x~1~.
+.. Range proof for c encrypts a valid private key
+. P2 -> Challenge for c being Paillier encryption of x~1~.
 . P1 -> Committed response to challenge (4)
 . P2 -> Reveal challenge from (4)
 . P1 -> Open response from (5)
@@ -157,11 +157,11 @@ Now they want to sign a message `m`.
 Since ECDSA signatures are in the form `(r,s)`, they need to agree on the `r` value before they can produce the `s` value.
 To do this, they do the same coin flipping protocol as in <<Generating the joint public key>> (3 rounds).
 
-Then P2 sends back `c3` which is produced by performing homomorphic operations with P1's encrypted private key (`c1`) and his own private data.
-Note, When P2 creates `c3` there is a random rho factor (ρ * q) added to `c3` to prevent P1 from learning anything from it before doing a modular reduction to the curve order (q).
+Then P~2~ sends back c~3~ which is produced by performing homomorphic operations with P~1~'s encrypted private key c~1~ and his own private data.
+Note, When P~2~ creates c~3~ there is a random rho factor (ρ * q) added to c~3~ to prevent P1 from learning anything from it before doing a modular reduction to the curve order (q).
 
-P1 then decrypts `c3` and does a modular reduction to the curve order (this transforms it from a scalar in the Paillier group to a scalar in the elliptic curve group).
-From this, P1 can produce `s` and therefore a valid `(r,s)` ECDSA signature on `m`.
+P1 then decrypts c~3~ and does a modular reduction to the curve order (this transforms it from a scalar in the Paillier group to a scalar in the elliptic curve group).
+From this, P~1~ can produce `s` and therefore a valid `(r,s)` ECDSA signature on `m`.
 
 ==== Implementation Notes
 
