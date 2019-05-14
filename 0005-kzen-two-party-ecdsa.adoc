@@ -11,7 +11,7 @@ Issue: https://github.com/comit-network/comit-rs/issues/897[#897]
 
 == Context
 
-In order to do a _Scriptless Scripts_ atomic swap <<Sanchez18a>> with ECDSA signatures we need to have an implementation of <<Lindell17>>.
+In order to do a atomic swap with the _Scriptless Scripts_ with ECDSA protocol described in <<Sanchez18a>> we need to have an implementation of <<Lindell17>>.
 The point of this spike is to review <<Lindell17>> and KZen's rust implementation <<kzen_mp_ecdsa>> and make notes about.
 
 == Outcome Summary
