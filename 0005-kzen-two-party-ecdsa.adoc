@@ -57,10 +57,10 @@ Note, The ability to simulate a random coin toss gives the key generation very s
 
 The protocol is roughly as follows, where x~1~ is P1's (resp. P2) private key and X~1~ = g^x~1~^  is her public key.
 
-- P1 -> Hash(X~1~, schnorr_nizk(X~1~))`
-- P2 -> X~2~, schnorr_nizk(X~2~)
-- P1 -> Opens commitment from first message
-- Both parties calculate the joint public key X = X~1~^x2^ = X~2~^x1^ (i.e. Diffie-Hellman)
+- P1 -> P2: Hash(X~1~, schnorr_nizk(X~1~))`
+- P2 -> P1: X~2~, schnorr_nizk(X~2~)
+- P1 -> P2: X~1~, schnorr_nizk(X~1~) (i.e. opens the commitment from 1)
+- Both parties calculate the joint public key X = X~1~^x~2~^ = X~2~^x~1~^ (i.e. Diffie-Hellman)
 
 ==== Implementation notes
 The implementation commits by sending two hashes, one for the key and one for the NIZK.
@@ -131,18 +131,18 @@ https://github.com/KZen-networks/zk-paillier/blob/a7f3907fb2b3464f12b55e3ad2f504
 
 Here's my early sketch of how many messages you need:
 
-. P1 -> Hash(X~1~, schnorr_nizk(X~1~))
-. P2 -> X~2~, schnorr_nizk(X~2~)
-. P1 ->
-.. Opens commitment from first message
+. P1 -> P2: Hash(X~1~, schnorr_nizk(X~1~))
+. P2 -> P1: X~2~, schnorr_nizk(X~2~)
+. P1 -> P2:
+.. Opens commitment from (1)
 .. Paillier modulus `N`
 .. Proof `N` was generated properly
 .. c~key~ = PaillierEncrypt(x~1~)
 .. Range proof for c encrypts a valid private key
-. P2 -> Challenge for c being Paillier encryption of x~1~.
-. P1 -> Committed response to challenge (4)
-. P2 -> Reveal challenge from (4)
-. P1 -> Open response from (5)
+. P2 -> P1: Challenge for c being Paillier encryption of x~1~.
+. P1 -> P2: Committed response to challenge from (4)
+. P2 -> P1: Reveal challenge from (4)
+. P1 -> P2: Open committed response from (5)
 
 == Signing
 
