@@ -168,7 +168,7 @@ The code for the signing part is in the main 2pECDSA crate: https://github.com/K
 
 === Messages
 
-The messages are nicely pictures in section 3.3 figure 1
+The messages are depicted nicely in Section 3.3, Figure 1 of <<Lindell17>>x
 
 [Bibliography]
 == References
