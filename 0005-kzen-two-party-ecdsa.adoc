@@ -11,8 +11,8 @@ Issue: https://github.com/comit-network/comit-rs/issues/897[#897]
 
 == Context
 
-In order to do an atomic swap with the _Scriptless Scripts_ with ECDSA protocol described in <<Sanchez18a>> we need to have an implementation of <<Lindell17>>.
-The point of this spike is to review <<Lindell17>> and KZen's rust implementation <<kzen_mp_ecdsa>> and make notes about.
+In order to do an atomic swap with _Scriptless Scripts_ using the ECDSA protocol described in <<Sanchez18a>> we need to have an implementation of <<Lindell17>>.
+The point of this spike is to review <<Lindell17>> and KZen's rust implementation <<kzen_mp_ecdsa>>.
 
 == Outcome Summary
 
@@ -25,31 +25,31 @@ The protocols are implemented pretty strictly to how they are described in the p
 
 <<Lindell17>> describes a two-party protocol to (i) generate a joint public key and (ii) jointly create ECDSA signatures under that public key.
 The technical term for this is _key aggregation_.
-There's a video by the Lindell summarizing his paper here: https://www.youtube.com/watch?v=pwc_Ork-1aA
+Lindell summarizes his paper in the following https://www.youtube.com/watch?v=pwc_Ork-1aA[video].
 
 Signature schemes with aggregated keys are a nice thing to have.
 They look exactly like normal signatures but are produced by multiple parties instead of one.
-Practically, this means you don't need to lock Bitcoin to multiple public keys and check the signature with `OP_CHECKMULTISIG`; you can just lock it to a joint public key using a normal `P2WSH` output (i.e. use `OP_CHECKSIG`).
-There's no way to tell the difference between a single user `P2WSH` output and a `P2WSH` output from a joint public key.
+Practically, this means you do not need to lock Bitcoin to multiple public keys and check the signature with `OP_CHECKMULTISIG`; you can just lock it to a joint public key using a normal `P2WSH` output (i.e. use `OP_CHECKSIG`).
+There is no way to tell the difference between a single user `P2WSH` output and a `P2WSH` output from a joint public key.
 
-Since ECDSA signatures don't have a nice algebraic structure it is **very** difficult to do key aggregation.
-In schnorr you can quite literally just add each party's share of the signature together.
+Since ECDSA signatures don not have a nice algebraic structure it is **very** difficult to do key aggregation.
+Using Schnorr you can quite literally just add each party's share of the signature together.
 The method we have to use in ECDSA is to move the operations to produce the *s* component of the signature into a https://en.wikipedia.org/wiki/Paillier_cryptosystem[Paillier group] rather than doing them simply modulo the Secp256k1 curve order.
-Once you're in Paillier land things become much easier but it comes at a cost of boatloads of messages and complexity during the key generation and exchange phase.
-It is so complicated that it's amazing that anyone actually bothered to come up with this.
+Once you are in Paillier land things become much easier but it comes at a cost of boatloads of messages and complexity during the key generation and exchange phase.
+It is so complicated that it is amazing that anyone actually bothered to come up with this.
 For us it may be very useful.
-Even though Bitcoin will get Schnorr signatures, Ethereum probably won't switch anytime soon.
+Even though Bitcoin is likely to get Schnorr signatures eventually, Ethereum probably will not switch anytime soon.
 
 The hard bit is doing the setup phase which involves quite a few proofs.
 Some of them are in the above crate but some of them are imported from elsewhere.
-We'll start with going through these.
+We start with going through these.
 
 == Key Generation
 
 === Generating the joint public key
 
 To produce signatures under a joint public key you first need to generate it fairly.
-Because of rogue key attacks, you can't just have one party send their public key and the other send one back.
+Because of rogue key attacks, you can not just have one party send their public key and the other send one back.
 
 The technique used in the paper (and followed by the implementation) is to do a coin tossing protocol to determine the joint public key.
 This ensures that the public key is totally random and cannot be biased by the party that chooses their key afterwards.
@@ -70,7 +70,7 @@ The NIZK is implemented here: https://github.com/KZen-networks/curv/blob/18f0081
 === Proving Paillier modulus is well formed
 
 In order to use Paillier encryption P1 needs to generate a RSA type modulus `N = pq` where `p` and `q` are large primes.
-P1 needs to prove that she generated `N` properly (I don't actually know what the risk is to P2 if she doesn't).
+P1 needs to prove that she generated `N` properly (I do not actually know what the risk is to P2 if she does not generate `N` properly).
 
 The proof mentioned in the original paper is <<Hazay11>>.
 But in a more recent paper on multi-party ECDSA, <<Lindell18>> (section 6.2.3) modifies the proof from <<Goldberg18>> to do the job.
@@ -78,31 +78,31 @@ Roughly speaking, the strategy is to prove that `N` is *square free* and to show
 
 ==== Implementation notes
 
-Since it's a public coin protocol, you can make an non-interactive version of the proof using the https://en.wikipedia.org/wiki/Fiat%E2%80%93Shamir_heuristic[Fiat-Shamir transformation].
-They've implemented a non-interactive version of it here: https://github.com/KZen-networks/zk-paillier/blob/a7f3907fb2b3464f12b55e3ad2f50405db54f36a/src/zkproofs/correct_key_ni.rs (which uses the interactive proof module but supplies the challenge as a hash of the initial commitment).
+Since it is a public coin protocol, you can make a non-interactive version of the proof using the https://en.wikipedia.org/wiki/Fiat%E2%80%93Shamir_heuristic[Fiat-Shamir transformation].
+They implemented a non-interactive version of it here: https://github.com/KZen-networks/zk-paillier/blob/a7f3907fb2b3464f12b55e3ad2f50405db54f36a/src/zkproofs/correct_key_ni.rs (which uses the interactive proof module but supplies the challenge as a hash of the initial commitment).
 
 
 === Proving a Paillier encryption is a private key of a EC public key
 
-To do the signing protocol, we need one party (P2) to have the encrypted pivate key of the other (P1).
-In order for P2 to know that he's signing under their joint public key, he has to know that this encrypted private key is the right one (without learning what the private key is).
+To do the signing protocol, we need one party (P2) to have the encrypted private key of the other (P1).
+In order for P2 to know that he is signing under their joint public key, he has to know that this encrypted private key is the right one (without learning what the private key is).
 
 The proof is described in <<Lindell17>> (section 6).
-It's a little tricky to get your head around.
-Here's a high level and very rough intuition to how it works (it would be better to read the paper):
+It is a little tricky to get your head around.
+Here is a high level and very rough intuition to how it works (it would be better to read the paper):
 
 P2 takes the P1's encrypted private key c~key~ and multiplies and adds random stuff to it (using Paillier operations).
 This creates a new encrypted private key c~key~'.
-P2 has no idea what about the value of this new private key he's just created **but** he can figure out the corresponding public key because he knows P1's public key and the values he added to c~key~.
-P2 sends c~key~'` to P1 (think of it as his challenge to P1).
+P2 has no idea about the value of this new private key he has just created **but** he can figure out the corresponding public key because he knows P1's public key and the values he added to c~key~.
+P2 sends c~key~' to P1 (think of it as his challenge to P1).
 
-P1 decrypts c~key~` to this random private key and figures out the public key.
+P1 decrypts c~key~' to this random private key and figures out the public key.
 
 If P1 can produce the same public key for c~key~' that P2 calculated then c must encrypt P1's public key.
 
 ==== Implementation notes
 
-This proof isn't in its own module but the code for it hangs around with the rest of the protocol:
+This proof is not in its own module but the code for it hangs around with the rest of the protocol:
 
 https://github.com/KZen-networks/multi-party-ecdsa/blob/e5a741bf8dd756b650b35ef8d65f6cecbd4f196a/src/protocols/two_party_ecdsa/lindell_2017/party_one.rs
 (look for things starting with `PDL`).
@@ -114,22 +114,22 @@ It looks like this protocol cannot be made non-interactive. It requires four rou
 In order for the previous proof to actually prove the statement you have to couple it with a range proof which proves that the encrypted private key is in the curve order (i.e. is a valid private key).
 The poof chosen was originally from <<Boudot00>>  but I found it was easier to understand in <<Lindell17>> anyway (see Appendix A).
 
-The proof uses the cut and choose technique, so it's quite large.
-It's tricky to understand, but doesn't use any wonky math.
+The proof uses the cut and choose technique, so it is quite large.
+It is tricky to understand, but does not use any wonky math.
 You just have to follow what happens closely.
 
 ==== Implementation notes
 
-To prove that the private key lies within the curve order P1 first has to choose their private key so that it's in Z~q/3~ rather than Z~q~.
+To prove that the private key lies within the curve order P1 first has to choose their private key so that it is in Z~q/3~ rather than Z~q~.
 Without this the proof will not be _complete_.
 
-It's implemented here:
+This is implemented here:
 
 https://github.com/KZen-networks/zk-paillier/blob/a7f3907fb2b3464f12b55e3ad2f50405db54f36a/src/zkproofs/range_proof.rs
 
 === Messages
 
-Here's my early sketch of how many messages you need:
+Here is my early sketch of how many messages you need:
 
 . P1 -> P2: Hash(X~1~, schnorr_nizk(X~1~))
 . P2 -> P1: X~2~, schnorr_nizk(X~2~)
@@ -146,7 +146,7 @@ Here's my early sketch of how many messages you need:
 
 == Signing
 
-Assuming the keygen phase went well we have the parties knowing the following:
+Assuming the keygen phase went well both parties know the following:
 
 1. P1 knows: x~1~ , X, N,p,q | N = pq,
 2. P2 knows: x~2~,  X, N, c~key~ = PaillierEncrypt(x~1~, N)
@@ -168,7 +168,7 @@ The code for the signing part is in the main 2pECDSA crate: https://github.com/K
 
 === Messages
 
-The messages are depicted nicely in Section 3.3, Figure 1 of <<Lindell17>>x
+The messages are depicted nicely in Section 3.3, Figure 1 of <<Lindell17>>.
 
 [Bibliography]
 == References
