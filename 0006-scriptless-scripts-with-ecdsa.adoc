@@ -1,0 +1,80 @@
+= Scriptless Scripts with ECDSA
+Lloyd Fournier <lloyd@coblox.tech>;
+:toc:
+:revdate: 16-05-2019
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Issue: https://github.com/comit-network/comit-rs/issues/899
+
+== Context
+
+<<Sanchez18a>> describes a scriptless scripts protocol that can be used to replace HTLCs with conditional payments based on learning a discrete logarithm (rather than a hash pare-image).
+This would make atomic swap indistinguishable from normal transactions (at least in the case where there is no refund transaction).
+Luckily, we have KZen's implementation (<<kzen_multi_hop_locks>>) of <<Sanchez18b>> uses the same technique as <<Sanchez18a>> in a more complex protocol.
+The purpose of this spike is to review <<Sanchez18a>>, make any important notes, and describe how we can use <<kzen_multi_hop_locks>> to implement the idea.
+
+== Protocol Overview
+
+Let P1 and P2 have a joint public key X = g^x~1~x~2~^` and x~1~ and x~2~ are their respective private keys and assume the following situation:
+
+- P2 knows some value α and wishes to get a signature on a message 𝓂 under the joint public key X.
+- P1 knows g^α^ and wants to know α.
+
+So they make a deal.
+P1 will provide her half of the signature on 𝓂 as long as she is guaranteed to learn α if she sees the completed signature (note that he's going to be able to see the completed signature because it will be on the blockchain).
+In an HTLℂ, α plays a similar role as the hash preimage.
+
+== Key Generation
+
+=== Generating the joint nonce R
+
+When signing, like in <<Lindell17>>, P1 and P2 need to agree on a joint nonce R, except that instead of R = g^r~1~r~2~^ we have R = g^r~1~r~2~α^.
+
+First P2 sends g^a^ to P1.
+It is important to do this first to avoid breaking the simulation by letting P2 choose g^α^ adaptively.
+
+After that, P1 and P2 have exchange R~1~ = g^r~1~^ and R~2~ = g^r~2~^ via the usual simulatable Diffie-Hellman coin flipping in <<Lindell17>>.
+
+Next, P2 sends R~3~ = R~2~^α^ and a proof that (g^α^, R~2~, R~3~) is a valid Diffie-Hellman triple.
+Note, I think that he could actually just send this when he sends R~2~ during the coin flipping but I'm unsure whether the two things can happen in parallel without breaking the simulation.
+
+The proof for a valid Diffie-Hellman triple used in <<kzen_multi_hop_locks>> is originally from <<Chaum92>> and is a sigma protocol.
+The sigma protocol proves by knowledge of an α for the one-way homomorphism h(α) = (g^α^, R~2~^α^) which also proves that (g^α^, R~2~, R~3~) is a valid Diffie-Hellman triple.
+Since the paper is paywalled, I found a nice explanation of this in <<Maurer09>> (section 6.6).
+
+=== Implementation Notes
+
+The proof is implemented here: https://github.com/KZen-networks/curv/blob/18f0081a9a3025eafd49ad496e5032647edf4aa3/src/cryptographic_primitives/proofs/sigma_ec_ddh.rs
+and is non-interactive via Fiat-Shamir transform of the Sigma protocol.
+
+== Signing
+
+The signing protocol then continues as normal under R except at the end the `s` value for the signature that P1 has is not yet valid (it's missing α).
+We'll call this incomplete `s` value s~1~ (it's s\'\' in the paper)
+
+P1 now sends s~1~ to P2.
+P2 can now finally calculate the final s from s~1~ using his knowledge of α.
+Specifically s = α^-1^(s~1~).
+
+When s is revealed to P1, she can extract α = (s(s~1~^-1^))^-1^.
+
+Well almost.
+The (R,s) signature that makes it into the Bitcoin or Ethereum blockhain isn't necessarily the one you will be able to extract α from directly.
+This is because (R, -s) is also a valid signature.
+This isn't mentioned in <<Sanchez18a>≻ but it is recognised in <<Sanchez18b>>.
+You will have to try both α and -α to see which one is the real α.
+
+=== Implementation Notes
+
+This will have to implemented by us, but it may be helpful to follow along with：https://github.com/KZen-networks/multi-hop-locks to see how they did it for the multi-hop lock case.
+
+
+== References
+
+- [[Lindell17]] Fast Secure Two-Party ECDSA Signing: https://eprint.iacr.org/2017/552.pdf
+- [[Sanchez18a]] Scriptless Scripts with ECDSA: https://lists.linuxfoundation.org/pipermail/lightning-dev/attachments/20180426/fe978423/attachment-0001.pdf
+- [[Sanchez18b]] Anonymous Multi-Hop Locks for Blockchain Scalability and Interoperability: https://eprint.iacr.org/2018/472.pdf
+- [[Chaum92]] Transferred Cash Grows in Size: https://link.springer.com/chapter/10.1007/3-540-47555-9_32
+- [[kzen_multi_hop_locks]] KZen's ECDSA multi hop locks implementation https://github.com/KZen-networks/multi-hop-locks
+- [[Maurer08]] Unifying Zero-Knowledge Proofs of Knowledge：ftp://ftp.inf.ethz.ch/pub/crypto/publications/Maurer09.pdf
