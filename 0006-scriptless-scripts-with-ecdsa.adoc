@@ -62,7 +62,7 @@ When s is revealed to P1, she can extract α = (s(s~1~^-1^))^-1^.
 Well almost.
 The (R,s) signature that makes it into the Bitcoin or Ethereum blockhain isn't necessarily the one you will be able to extract α from directly.
 This is because (R, -s) is also a valid signature.
-This isn't mentioned in <<Sanchez18a>≻ but it is recognised in <<Sanchez18b>>.
+This isn't mentioned in <<Sanchez18a>> but it is recognised in <<Sanchez18b>>.
 You will have to try both α and -α to see which one is the real α.
 
 === Implementation Notes
