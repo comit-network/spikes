@@ -23,7 +23,7 @@ Let P1 and P2 have a joint public key X = g^x~1~x~2~^ and x~1~ and x~2~ are thei
 
 So they make a deal.
 P1 will provide her half of the signature on 𝓂 as long as she is guaranteed to learn α if she sees the completed signature (note that she's going to be able to see the completed signature because it will be on the blockchain).
-In an HTLℂ, α plays a similar role as the hash preimage.
+In an HTLC, α plays a similar role as the hash preimage.
 
 == Key Generation
 
