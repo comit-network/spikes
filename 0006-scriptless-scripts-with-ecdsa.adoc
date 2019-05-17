@@ -51,7 +51,7 @@ and is non-interactive via Fiat-Shamir transform of the Sigma protocol.
 == Signing
 
 The signing protocol then continues as normal under R except at the end the `s` value for the signature that P1 has is not yet valid (it's missing α).
-We'll call this incomplete `s` value s~1~ (it's s\'\' in the paper)
+We'll call this incomplete `s` value s~1~ (it's s'' in the paper)
 
 P1 now sends s~1~ to P2.
 P2 can now finally calculate the final s from s~1~ using his knowledge of α.
