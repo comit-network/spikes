@@ -16,7 +16,7 @@ The purpose of this spike is to review <<Sanchez18a>>, make any important notes,
 
 == Protocol Overview
 
-Let P1 and P2 have a joint public key X = g^x~1~x~2~^` and x~1~ and x~2~ are their respective private keys and assume the following situation:
+Let P1 and P2 have a joint public key X = g^x~1~x~2~^ and x~1~ and x~2~ are their respective private keys and assume the following situation:
 
 - P2 knows some value α and wishes to get a signature on a message 𝓂 under the joint public key X.
 - P1 knows g^α^ and wants to know α.
