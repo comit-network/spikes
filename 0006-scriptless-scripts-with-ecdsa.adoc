@@ -77,4 +77,4 @@ This will have to implemented by us, but it may be helpful to follow along with�
 - [[Sanchez18b]] Anonymous Multi-Hop Locks for Blockchain Scalability and Interoperability: https://eprint.iacr.org/2018/472.pdf
 - [[Chaum92]] Transferred Cash Grows in Size: https://link.springer.com/chapter/10.1007/3-540-47555-9_32
 - [[kzen_multi_hop_locks]] KZen's ECDSA multi hop locks implementation https://github.com/KZen-networks/multi-hop-locks
-- [[Maurer08]] Unifying Zero-Knowledge Proofs of Knowledge：ftp://ftp.inf.ethz.ch/pub/crypto/publications/Maurer09.pdf
+- [[Maurer09]] Unifying Zero-Knowledge Proofs of Knowledge：ftp://ftp.inf.ethz.ch/pub/crypto/publications/Maurer09.pdf
