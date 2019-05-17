@@ -92,13 +92,13 @@ It is a little tricky to get your head around.
 Here is a high level and very rough intuition to how it works (it would be better to read the paper):
 
 P2 takes the P1's encrypted private key c~key~ and multiplies and adds random stuff to it (using Paillier operations).
-This creates a new encrypted private key c~key~'.
+This creates a new encrypted private key c~key~.
 P2 has no idea about the value of this new private key he has just created **but** he can figure out the corresponding public key because he knows P1's public key and the values he added to c~key~.
-P2 sends c~key~' to P1 (think of it as his challenge to P1).
+P2 sends c~key~ to P1 (think of it as his challenge to P1).
 
-P1 decrypts c~key~' to this random private key and figures out the public key.
+P1 decrypts c~key~ to this random private key and figures out the public key.
 
-If P1 can produce the same public key for c~key~' that P2 calculated then c must encrypt P1's public key.
+If P1 can produce the same public key for c~key~ that P2 calculated then c must encrypt P1's public key.
 
 ==== Implementation notes
 
