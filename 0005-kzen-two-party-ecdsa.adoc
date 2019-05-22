@@ -32,7 +32,7 @@ They look exactly like normal signatures but are produced by multiple parties in
 Practically, this means you do not need to lock Bitcoin to multiple public keys and check the signature with `OP_CHECKMULTISIG`; you can just lock it to a joint public key using a normal `P2WSH` output (i.e. use `OP_CHECKSIG`).
 There is no way to tell the difference between a single user `P2WSH` output and a `P2WSH` output from a joint public key.
 
-Since ECDSA signatures don not have a nice algebraic structure it is **very** difficult to do key aggregation.
+Since ECDSA signatures do not have a nice algebraic structure it is **very** difficult to do key aggregation.
 Using Schnorr you can quite literally just add each party's share of the signature together.
 The method we have to use in ECDSA is to move the operations to produce the *s* component of the signature into a https://en.wikipedia.org/wiki/Paillier_cryptosystem[Paillier group] rather than doing them simply modulo the Secp256k1 curve order.
 Once you are in Paillier land things become much easier but it comes at a cost of boatloads of messages and complexity during the key generation and exchange phase.
