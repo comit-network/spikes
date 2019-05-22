@@ -69,7 +69,7 @@ The NIZK is implemented here: https://github.com/KZen-networks/curv/blob/18f0081
 
 === Proving Paillier modulus is well formed
 
-In order to use Paillier encryption P1 needs to generate a RSA type modulus `N = pq` where `p` and `q` are large primes.
+In order to use Paillier encryption, P1 needs to generate a RSA type modulus `N = pq` where `p` and `q` are large primes.
 P1 needs to prove that she generated `N` properly (I do not actually know what the risk is to P2 if she does not generate `N` properly).
 
 The proof mentioned in the original paper is <<Hazay11>>.
