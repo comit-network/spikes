@@ -53,7 +53,7 @@ Because of rogue key attacks, you can not just have one party send their public 
 
 The technique used in the paper (and followed by the implementation) is to do a coin tossing protocol to determine the joint public key.
 This ensures that the public key is totally random and cannot be biased by the party that chooses their key afterwards.
-Note, The ability to simulate a random coin toss gives the key generation very strong security guarantees.
+The ability to simulate a random coin toss gives the key generation very strong security guarantees.
 
 The protocol is roughly as follows, where x~1~ is P1's (resp. P2) private key and X~1~ = g^x~1~^  is her public key.
 
