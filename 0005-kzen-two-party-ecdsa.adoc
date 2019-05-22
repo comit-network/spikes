@@ -74,7 +74,7 @@ P1 needs to prove that she generated `N` properly (I do not actually know what t
 
 The proof mentioned in the original paper is <<Hazay11>>.
 But in a more recent paper on multi-party ECDSA, <<Lindell18>> (section 6.2.3) modifies the proof from <<Goldberg18>> to do the job.
-Roughly speaking, the strategy is to prove that `N` is *square free* and to show that `f(x) = x ^ N (mod N)` is a permutation which proves that `N = pq` form.
+Roughly speaking, the strategy is to prove that `N` is _square free_ and to show that ƒ(x) = x^N^ (mod N) is a permutation which proves that N is form N = pq.
 
 ==== Implementation notes
 
