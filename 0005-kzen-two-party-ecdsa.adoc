@@ -173,10 +173,10 @@ The messages are depicted nicely in Section 3.3, Figure 1 of <<Lindell17>>.
 [Bibliography]
 == References
 
-- [[Sanchez18a]] Scriptless Scripts with ECDSA: https://lists.linuxfoundation.org/pipermail/lightning-dev/attachments/20180426/fe978423/attachment-0001.pdf
-- [[Lindell17]] Fast Secure Two-Party ECDSA Signing: https://eprint.iacr.org/2017/552.pdf
-- [[kzen_mp_ecdsa]] KZen's rust implementation: https://github.com/KZen-networks/multi-party-ecdsa
-- [[Hazay11]] Efficient RSA Key Generation and Threshold Paillier in the Two-Party Setting: https://eprint.iacr.org/2011/494.pdf
-- [[Lindell18]] Fast Secure Multiparty ECDSA with Practical Distributed Key Generation and Applications to Cryptocurrency Custody: https://eprint.iacr.org/2018/987.pdf
-- [[Goldberg18]] Certifying RSA Public Keys with an Efficient NIZK: https://eprint.iacr.org/2018/057.pdf
-- [[Boudot00]] Efficient Proofs that a Committed Number Lies in an Interval: https://www.iacr.org/archive/eurocrypt2000/1807/18070437-new.pdf
+- [[[Sanchez18a]]] Scriptless Scripts with ECDSA: https://lists.linuxfoundation.org/pipermail/lightning-dev/attachments/20180426/fe978423/attachment-0001.pdf
+- [[[Lindell17]]] Fast Secure Two-Party ECDSA Signing: https://eprint.iacr.org/2017/552.pdf
+- [[[kzen_mp_ecdsa]]] KZen's rust implementation: https://github.com/KZen-networks/multi-party-ecdsa
+- [[[Hazay11]]] Efficient RSA Key Generation and Threshold Paillier in the Two-Party Setting: https://eprint.iacr.org/2011/494.pdf
+- [[[Lindell18]]] Fast Secure Multiparty ECDSA with Practical Distributed Key Generation and Applications to Cryptocurrency Custody: https://eprint.iacr.org/2018/987.pdf
+- [[[Goldberg18]]] Certifying RSA Public Keys with an Efficient NIZK: https://eprint.iacr.org/2018/057.pdf
+- [[[Boudot00]]] Efficient Proofs that a Committed Number Lies in an Interval: https://www.iacr.org/archive/eurocrypt2000/1807/18070437-new.pdf
