@@ -69,12 +69,12 @@ You will have to try both α and -α to see which one is the real α.
 
 This will have to implemented by us, but it may be helpful to follow along with：https://github.com/KZen-networks/multi-hop-locks to see how they did it for the multi-hop lock case.
 
-
+[bibliography]
 == References
 
-- [[Lindell17]] Fast Secure Two-Party ECDSA Signing: https://eprint.iacr.org/2017/552.pdf
-- [[Sanchez18a]] Scriptless Scripts with ECDSA: https://lists.linuxfoundation.org/pipermail/lightning-dev/attachments/20180426/fe978423/attachment-0001.pdf
-- [[Sanchez18b]] Anonymous Multi-Hop Locks for Blockchain Scalability and Interoperability: https://eprint.iacr.org/2018/472.pdf
-- [[Chaum92]] Transferred Cash Grows in Size: https://link.springer.com/chapter/10.1007/3-540-47555-9_32
-- [[kzen_multi_hop_locks]] KZen's ECDSA multi hop locks implementation https://github.com/KZen-networks/multi-hop-locks
-- [[Maurer09]] Unifying Zero-Knowledge Proofs of Knowledge：ftp://ftp.inf.ethz.ch/pub/crypto/publications/Maurer09.pdf
+- [[[Lindell17]]] Fast Secure Two-Party ECDSA Signing: https://eprint.iacr.org/2017/552.pdf
+- [[[Sanchez18a]]] Scriptless Scripts with ECDSA: https://lists.linuxfoundation.org/pipermail/lightning-dev/attachments/20180426/fe978423/attachment-0001.pdf
+- [[[Sanchez18b]]] Anonymous Multi-Hop Locks for Blockchain Scalability and Interoperability: https://eprint.iacr.org/2018/472.pdf
+- [[[Chaum92]]] Transferred Cash Grows in Size: https://link.springer.com/chapter/10.1007/3-540-47555-9_32
+- [[[kzen_multi_hop_locks]]] KZen's ECDSA multi hop locks implementation https://github.com/KZen-networks/multi-hop-locks
+- [[[Maurer09]]] Unifying Zero-Knowledge Proofs of Knowledge：ftp://ftp.inf.ethz.ch/pub/crypto/publications/Maurer09.pdf
