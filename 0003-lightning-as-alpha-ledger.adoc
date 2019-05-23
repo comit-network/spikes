@@ -142,6 +142,7 @@ Because of these limitations, we should introduce a new protocol for using LN as
 | `protocol`
 | RFC00X
 | The new protocol specifying LN Swaps
+|===
 
 [cols=3*,options=header]
 |===
@@ -164,7 +165,6 @@ Because of these limitations, we should introduce a new protocol for using LN as
 | `secret_hash`
 | `hex-encoded-bytes`
 | The output of calling `hash_function` on the secret
-
 |===
 
 [start=2]
