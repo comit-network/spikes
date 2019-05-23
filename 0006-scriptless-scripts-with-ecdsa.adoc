@@ -39,9 +39,9 @@ After that, P1 and P2 have exchange R~1~ = g^r~1~^ and R~2~ = g^r~2~^ via the us
 Next, P2 sends R~3~ = R~2~^α^ and a proof that (g^α^, R~2~, R~3~) is a valid Diffie-Hellman triple.
 Note, I think that he could actually just send this when he sends R~2~ during the coin flipping but I'm unsure whether the two things can happen in parallel without breaking the simulation.
 
-The proof for a valid Diffie-Hellman triple used in <<kzen_multi_hop_locks>> is originally from <<Chaum92>> and is a sigma protocol.
-The sigma protocol proves by knowledge of an α for the one-way homomorphism h(α) = (g^α^, R~2~^α^) which also proves that (g^α^, R~2~, R~3~) is a valid Diffie-Hellman triple.
-Since the paper is paywalled, I found a nice explanation of this in <<Maurer09>> (section 6.6).
+The proof for a valid Diffie-Hellman triple used in <<kzen_multi_hop_locks>> works by proving knowledge of a pre-image α for the one-way homomorphism h(α) = (g^α^, R~2~^α^) through the Sigma protocol.
+This proves that (g^α^, R~2~, R~3~) is a valid Diffie-Hellman triple.
+I found a nice explanation of this in <<Maurer09>> (section 6.6).
 
 === Implementation Notes
 
@@ -75,6 +75,5 @@ This will have to implemented by us, but it may be helpful to follow along with�
 - [[[Lindell17]]] Fast Secure Two-Party ECDSA Signing: https://eprint.iacr.org/2017/552.pdf
 - [[[Sanchez18a]]] Scriptless Scripts with ECDSA: https://lists.linuxfoundation.org/pipermail/lightning-dev/attachments/20180426/fe978423/attachment-0001.pdf
 - [[[Sanchez18b]]] Anonymous Multi-Hop Locks for Blockchain Scalability and Interoperability: https://eprint.iacr.org/2018/472.pdf
-- [[[Chaum92]]] Transferred Cash Grows in Size: https://link.springer.com/chapter/10.1007/3-540-47555-9_32
 - [[[kzen_multi_hop_locks]]] KZen's ECDSA multi hop locks implementation https://github.com/KZen-networks/multi-hop-locks
 - [[[Maurer09]]] Unifying Zero-Knowledge Proofs of Knowledge：ftp://ftp.inf.ethz.ch/pub/crypto/publications/Maurer09.pdf
