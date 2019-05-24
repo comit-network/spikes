@@ -167,6 +167,7 @@ Because of these limitations, we should introduce a new protocol for using LN as
 | The output of calling `hash_function` on the secret
 |===
 
+
 [start=2]
 2. Bob _accepts_ the request and performs the following step:
     .. Create a hold invoice using `addholdinvoice` with the amount `X` and the hashed preimage `secret_hash` (https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L142[more details]).
