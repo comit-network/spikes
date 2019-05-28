@@ -62,6 +62,7 @@ When s is revealed to P1, she can extract α = s^-1^s~1~ (note in <<Sanchez18a>>
 Well almost.
 The (R,s) signature that makes it into the Bitcoin or Ethereum blockhain isn't necessarily the one you will be able to extract α from directly.
 This is because (R, -s) is also a valid signature.
+There is a soft fork proposal in Bitcoin to fix this: [BIP146](https://github.com/bitcoin/bips/blob/master/bip-0146.mediawiki), but we have to make sure that the code doesn't break if you receive a signature with a "high s".
 This isn't mentioned in <<Sanchez18a>> but it is recognised in <<Sanchez18b>>.
 You will have to try both α and -α to see which one is the real α.
 
