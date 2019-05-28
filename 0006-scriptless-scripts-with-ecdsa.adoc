@@ -37,7 +37,6 @@ It is important to do this first to avoid breaking the simulation by letting P2 
 After that, P1 and P2 have exchange R~1~ = g^r~1~^ and R~2~ = g^r~2~^ via the usual simulatable Diffie-Hellman coin flipping in <<Lindell17>> (actually not see implementation note below).
 
 Next, P2 sends R~3~ = R~2~^y^ and a proof that (g^y^, R~2~, R~3~) is a valid Diffie-Hellman triple.
-Note, I think that he could actually just send this when he sends R~2~ during the coin flipping but I'm unsure whether the two things can happen in parallel without breaking the simulation.
 
 The proof for a valid Diffie-Hellman triple used in <<kzen_multi_hop_locks>> works by proving knowledge of a pre-image y for the one-way homomorphism f(y) = (g^y^, R~2~^y^) through the Sigma protocol.
 This proves that (g^y^, R~2~, R~3~) is a valid Diffie-Hellman triple.
@@ -51,6 +50,9 @@ and is non-interactive via Fiat-Shamir transform of the Sigma protocol.
 The coin flipping to determine R actually uses this Diffie-Hellman NIZΚ instead of the Schnorr NIZK used in the key generation (note that Diffie-Hellman proof is like a Schnorr proof for two bases in parallel).
 The argument is that doing the Diffie-Hellman NIZK for knowledge of x s.t. f(x) = (g^x^, h^x^) where the prover doesn't know α s.t. h = g^α^ proves the statement under the "knowledge of exponent" assumption without having to apply rewinding techniques (i.e. using [forking lemma](https://en.wikipedia.org/wiki/Forking_lemma))
 This idea is suggested in <<Lindell17>> (section 4.3) as way to make the signing protocol in parallel without violating the security proofs (under the "knowledge of exponent" assumption).
+
+For our case, we don't need to run our signing protocol in parallel, we only need security for a protocol that is run in isolation because nothing should be shared between multiple executions of the protocol (we choose new keys each time).
+We can actually run the choice of R and the joint public key X in parallel Schnorr proofs but let's wait and see how the overall protocol turns out before seeing what we can do in parallel.
 
 == Signing
 
