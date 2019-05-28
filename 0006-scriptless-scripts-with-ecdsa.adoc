@@ -9,8 +9,8 @@ Issue: https://github.com/comit-network/comit-rs/issues/899
 
 == Context
 
-<<Sanchez18a>> describes a scriptless scripts protocol that can be used to replace HTLCs with conditional payments based on learning a discrete logarithm (rather than a hash pare-image).
-This would make atomic swap indistinguishable from normal transactions (at least in the case where there is no refund transaction).
+<<Sanchez18a>> describes a scriptless scripts protocol that can be used to replace HTLCs with conditional payments based on learning a discrete logarithm (rather than a hash pre-image).
+This would make atomic swaps indistinguishable from normal transactions (at least in the case where there is no refund transaction).
 Luckily, we have KZen's implementation (<<kzen_multi_hop_locks>>) of <<Sanchez18b>> uses the same technique as <<Sanchez18a>> in a more complex protocol.
 The purpose of this spike is to review <<Sanchez18a>>, make any important notes, and describe how we can use <<kzen_multi_hop_locks>> to implement the idea.
 
@@ -31,7 +31,7 @@ In an HTLC, α plays a similar role as the hash preimage.
 
 When signing, like in <<Lindell17>>, P1 and P2 need to agree on a joint nonce R, except that instead of R = g^r~1~r~2~^ we have R = g^r~1~r~2~α^.
 
-First P2 sends g^a^ to P1.
+First P2 sends g^α^ to P1.
 It is important to do this first to avoid breaking the simulation by letting P2 choose g^α^ adaptively.
 
 After that, P1 and P2 have exchange R~1~ = g^r~1~^ and R~2~ = g^r~2~^ via the usual simulatable Diffie-Hellman coin flipping in <<Lindell17>>.
@@ -75,5 +75,5 @@ This will have to implemented by us, but it may be helpful to follow along with�
 - [[[Lindell17]]] Fast Secure Two-Party ECDSA Signing: https://eprint.iacr.org/2017/552.pdf
 - [[[Sanchez18a]]] Scriptless Scripts with ECDSA: https://lists.linuxfoundation.org/pipermail/lightning-dev/attachments/20180426/fe978423/attachment-0001.pdf
 - [[[Sanchez18b]]] Anonymous Multi-Hop Locks for Blockchain Scalability and Interoperability: https://eprint.iacr.org/2018/472.pdf
-- [[[kzen_multi_hop_locks]]] KZen's ECDSA multi hop locks implementation https://github.com/KZen-networks/multi-hop-locks
-- [[[Maurer09]]] Unifying Zero-Knowledge Proofs of Knowledge：ftp://ftp.inf.ethz.ch/pub/crypto/publications/Maurer09.pdf
+- [[[kzen_multi_hop_locks]]] KZen's ECDSA multi hop locks implementation: https://github.com/KZen-networks/multi-hop-locks
+- [[[Maurer09]]] Unifying Zero-Knowledge Proofs of Knowledge: ftp://ftp.inf.ethz.ch/pub/crypto/publications/Maurer09.pdf
