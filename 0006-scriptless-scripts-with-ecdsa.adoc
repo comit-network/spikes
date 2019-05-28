@@ -18,29 +18,30 @@ The purpose of this spike is to review <<Sanchez18a>>, make any important notes,
 
 Let P1 and P2 have a joint public key X = g^x~1~x~2~^ and x~1~ and x~2~ are their respective private keys and assume the following situation:
 
-- P2 knows some value α and wishes to get a signature on a message 𝓂 under the joint public key X.
-- P1 knows g^α^ and wants to know α.
+- P2 knows some value y and wishes to get a signature on a message 𝓂 under the joint public key X.
+- P1 knows g^y^ but wants to know y.
 
 So they make a deal.
-P1 will provide her half of the signature on 𝓂 as long as she is guaranteed to learn α if she sees the completed signature (note that she's going to be able to see the completed signature because it will be on the blockchain).
-In an HTLC, α plays a similar role as the hash preimage.
+P1 will provide her half of the signature on 𝓂 as long as she is guaranteed to learn y if she sees the completed signature (note that she's going to be able to see the completed signature because it will be on the blockchain).
+y plays a similar role as the hash preimage in an HTLC.
+Note that in <<Sanchez18a>≻ y is denoted as α.
 
 == Key Generation
 
 === Generating the joint nonce R
 
-When signing, like in <<Lindell17>>, P1 and P2 need to agree on a joint nonce R, except that instead of R = g^r~1~r~2~^ we have R = g^r~1~r~2~α^.
+When signing, like in <<Lindell17>>, P1 and P2 need to agree on a joint nonce R, except that instead of R = g^r~1~r~2~^ we have R = g^r~1~r~2~y^.
 
-First P2 sends g^α^ to P1.
-It is important to do this first to avoid breaking the simulation by letting P2 choose g^α^ adaptively.
+First P2 sends g^y^ to P1.
+It is important to do this first to avoid breaking the simulation by letting P2 choose g^y^ adaptively.
 
 After that, P1 and P2 have exchange R~1~ = g^r~1~^ and R~2~ = g^r~2~^ via the usual simulatable Diffie-Hellman coin flipping in <<Lindell17>> (actually not see implementation note below)
 
-Next, P2 sends R~3~ = R~2~^α^ and a proof that (g^α^, R~2~, R~3~) is a valid Diffie-Hellman triple.
+Next, P2 sends R~3~ = R~2~^y^ and a proof that (g^y^, R~2~, R~3~) is a valid Diffie-Hellman triple.
 Note, I think that he could actually just send this when he sends R~2~ during the coin flipping but I'm unsure whether the two things can happen in parallel without breaking the simulation.
 
-The proof for a valid Diffie-Hellman triple used in <<kzen_multi_hop_locks>> works by proving knowledge of a pre-image α for the one-way homomorphism f(α) = (g^α^, R~2~^α^) through the Sigma protocol.
-This proves that (g^α^, R~2~, R~3~) is a valid Diffie-Hellman triple.
+The proof for a valid Diffie-Hellman triple used in <<kzen_multi_hop_locks>> works by proving knowledge of a pre-image y for the one-way homomorphism f(y) = (g^y^, R~2~^y^) through the Sigma protocol.
+This proves that (g^y^, R~2~, R~3~) is a valid Diffie-Hellman triple.
 I found a nice explanation of this in <<Maurer09>> (section 6.6).
 
 === Implementation Notes
@@ -54,21 +55,21 @@ This idea is suggested in <<Lindell17>> (section 4.3) as way to make the signing
 
 == Signing
 
-The signing protocol then continues as normal under R except at the end the `s` value for the signature that P1 has is not yet valid (it's missing α).
+The signing protocol then continues as normal under R except at the end the `s` value for the signature that P1 has is not yet valid (it's missing y).
 We'll call this incomplete `s` value s~1~ (it's s'' in the paper)
 
 P1 now sends s~1~ to P2.
-P2 can now finally calculate the final s from s~1~ using his knowledge of α.
-Specifically s = α^-1^(s~1~).
+P2 can now finally calculate the final s from s~1~ using his knowledge of y.
+Specifically s = y^-1^(s~1~).
 
-When s is revealed to P1, she can extract α = s^-1^s~1~ (note in <<Sanchez18a>> the paper it says α = (s(s~1~^-1^))^-1^ but this is slower).
+When s is revealed to P1, she can extract y = s^-1^s~1~ (note in <<Sanchez18a>> the paper it says y = (s(s~1~^-1^))^-1^ but this is slower).
 
 Well almost.
-The (R,s) signature that makes it into the Bitcoin or Ethereum blockhain isn't necessarily the one you will be able to extract α from directly.
+The (R,s) signature that makes it into the Bitcoin or Ethereum blockhain isn't necessarily the one you will be able to extract y from directly.
 This is because (R, -s) is also a valid signature.
 There is a soft fork proposal in Bitcoin to fix this: [BIP146](https://github.com/bitcoin/bips/blob/master/bip-0146.mediawiki), but we have to make sure that the code doesn't break if you receive a signature with a "high s".
 This isn't mentioned in <<Sanchez18a>> but it is recognised in <<Sanchez18b>>.
-You will have to try both α and -α to see which one is the real α.
+You will have to try both y and -y to see which one is the real y.
 
 === Implementation Notes
 
