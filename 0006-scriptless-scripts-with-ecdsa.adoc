@@ -34,7 +34,7 @@ When signing, like in <<Lindell17>>, P1 and P2 need to agree on a joint nonce R,
 First P2 sends g^y^ to P1.
 It is important to do this first to avoid breaking the simulation by letting P2 choose g^y^ adaptively.
 
-After that, P1 and P2 have exchange R~1~ = g^r~1~^ and R~2~ = g^r~2~^ via the usual simulatable Diffie-Hellman coin flipping in <<Lindell17>> (actually not see implementation note below)
+After that, P1 and P2 have exchange R~1~ = g^r~1~^ and R~2~ = g^r~2~^ via the usual simulatable Diffie-Hellman coin flipping in <<Lindell17>> (actually not see implementation note below).
 
 Next, P2 sends R~3~ = R~2~^y^ and a proof that (g^y^, R~2~, R~3~) is a valid Diffie-Hellman triple.
 Note, I think that he could actually just send this when he sends R~2~ during the coin flipping but I'm unsure whether the two things can happen in parallel without breaking the simulation.
