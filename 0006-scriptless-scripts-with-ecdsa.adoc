@@ -11,8 +11,7 @@ Issue: https://github.com/comit-network/comit-rs/issues/899
 
 <<Sanchez18a>> describes a scriptless scripts protocol that can be used to replace HTLCs with conditional payments based on learning a discrete logarithm (rather than a hash pre-image).
 This would make atomic swaps indistinguishable from normal transactions (at least in the case where there is no refund transaction).
-Luckily, we have KZen's implementation (<<kzen_multi_hop_locks>>) of <<Sanchez18b>> uses the same technique as <<Sanchez18a>> in a more complex protocol.
-The purpose of this spike is to review <<Sanchez18a>>, make any important notes, and describe how we can use <<kzen_multi_hop_locks>> to implement the idea.
+The purpose of this spike is to review <<Sanchez18a>>, take important notes, and describe how we can use <<kzen_multi_hop_locks>> to implement the idea.
 
 == Protocol Overview
 
@@ -55,20 +54,20 @@ This idea is suggested in <<Lindell17>> (section 4.3) as way to make the signing
 
 == Signing
 
-The signing protocol then continues as normal under R except at the end the `s` value for the signature that P1 has is not yet valid (it's missing y).
-We'll call this incomplete `s` value s~1~ (it's s'' in the paper)
+The signing protocol then continues as normal under R except at the final output is no longer a valid signature (it's missing y).
+We'll call this incomplete signature s′′ as in <<Sanchez18a>>
 
-P1 now sends s~1~ to P2.
-P2 can now finally calculate the final s from s~1~ using his knowledge of y.
-Specifically s = y^-1^(s~1~).
+P1 now sends s′′ to P2.
+P2 can now finally calculate the final `s` from s′′ using his knowledge of y.
+Specifically `s` = y^-1^(s′′).
 
-When s is revealed to P1, she can extract y = s^-1^s~1~ (note in <<Sanchez18a>> the paper it says y = (s(s~1~^-1^))^-1^ but this is slower).
+When `s` is revealed to P1, she can extract y = s^-1^s′′ (note in <<Sanchez18a>> the paper it says y = (s(s′′^-1^))^-1^ but this is slower).
 
 Well almost.
-The (R,s) signature that makes it into the Bitcoin or Ethereum blockhain isn't necessarily the one you will be able to extract y from directly.
+The (R,s) signature that makes it into the Bitcoin or Ethereum Blockhain isn't necessarily the one you will be able to extract y from directly.
 This is because (R, -s) is also a valid signature.
 There is a soft fork proposal in Bitcoin to fix this: [BIP146](https://github.com/bitcoin/bips/blob/master/bip-0146.mediawiki), but we have to make sure that the code doesn't break if you receive a signature with a "high s".
-This isn't mentioned in <<Sanchez18a>> but it is recognised in <<Sanchez18b>>.
+This isn't mentioned in <<Sanchez18a>> but it is recognized in <<Sanchez18b>>.
 You will have to try both y and -y to see which one is the real y.
 
 === Implementation Notes
