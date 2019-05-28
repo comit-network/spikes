@@ -48,7 +48,7 @@ I found a nice explanation of this in <<Maurer09>> (section 6.6).
 The proof for a valid Diffie-Hellman triple is implemented here: https://github.com/KZen-networks/curv/blob/18f0081a9a3025eafd49ad496e5032647edf4aa3/src/cryptographic_primitives/proofs/sigma_ec_ddh.rs
 and is non-interactive via Fiat-Shamir transform of the Sigma protocol.
 
-The coin flipping to determine R actually uses this Diffie-Hellman NIZΚ instead of the schnorr NIZK used in the key generation (note that Diffie-Hellman proof is like a schnorr proof for two bases in parallel).
+The coin flipping to determine R actually uses this Diffie-Hellman NIZΚ instead of the Schnorr NIZK used in the key generation (note that Diffie-Hellman proof is like a Schnorr proof for two bases in parallel).
 The argument is that doing the Diffie-Hellman NIZK for knowledge of x s.t. f(x) = (g^x^, h^x^) where the prover doesn't know α s.t. h = g^α^ proves the statement under the "knowledge of exponent" assumption without having to apply rewinding techniques (i.e. using [forking lemma](https://en.wikipedia.org/wiki/Forking_lemma))
 This idea is suggested in <<Lindell17>> (section 4.3) as way to make the signing protocol in parallel without violating the security proofs (under the "knowledge of exponent" assumption).
 
