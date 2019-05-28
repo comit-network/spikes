@@ -34,19 +34,23 @@ When signing, like in <<Lindell17>>, P1 and P2 need to agree on a joint nonce R,
 First P2 sends g^α^ to P1.
 It is important to do this first to avoid breaking the simulation by letting P2 choose g^α^ adaptively.
 
-After that, P1 and P2 have exchange R~1~ = g^r~1~^ and R~2~ = g^r~2~^ via the usual simulatable Diffie-Hellman coin flipping in <<Lindell17>>.
+After that, P1 and P2 have exchange R~1~ = g^r~1~^ and R~2~ = g^r~2~^ via the usual simulatable Diffie-Hellman coin flipping in <<Lindell17>> (actually not see implementation note below)
 
 Next, P2 sends R~3~ = R~2~^α^ and a proof that (g^α^, R~2~, R~3~) is a valid Diffie-Hellman triple.
 Note, I think that he could actually just send this when he sends R~2~ during the coin flipping but I'm unsure whether the two things can happen in parallel without breaking the simulation.
 
-The proof for a valid Diffie-Hellman triple used in <<kzen_multi_hop_locks>> works by proving knowledge of a pre-image α for the one-way homomorphism h(α) = (g^α^, R~2~^α^) through the Sigma protocol.
+The proof for a valid Diffie-Hellman triple used in <<kzen_multi_hop_locks>> works by proving knowledge of a pre-image α for the one-way homomorphism f(α) = (g^α^, R~2~^α^) through the Sigma protocol.
 This proves that (g^α^, R~2~, R~3~) is a valid Diffie-Hellman triple.
 I found a nice explanation of this in <<Maurer09>> (section 6.6).
 
 === Implementation Notes
 
-The proof is implemented here: https://github.com/KZen-networks/curv/blob/18f0081a9a3025eafd49ad496e5032647edf4aa3/src/cryptographic_primitives/proofs/sigma_ec_ddh.rs
+The proof for a valid Diffie-Hellman triple is implemented here: https://github.com/KZen-networks/curv/blob/18f0081a9a3025eafd49ad496e5032647edf4aa3/src/cryptographic_primitives/proofs/sigma_ec_ddh.rs
 and is non-interactive via Fiat-Shamir transform of the Sigma protocol.
+
+The coin flipping to determine R actually uses this Diffie-Hellman NIZΚ instead of the schnorr NIZK used in the key generation (note that Diffie-Hellman proof is like a schnorr proof for two bases in parallel).
+The argument is that doing the Diffie-Hellman NIZK for knowledge of x s.t. f(x) = (g^x^, h^x^) where the prover doesn't know α s.t. h = g^α^ proves the statement under the "knowledge of exponent" assumption without having to apply rewinding techniques (i.e. using [forking lemma](https://en.wikipedia.org/wiki/Forking_lemma))
+This idea is suggested in <<Lindell17>> (section 4.3) as way to make the signing protocol in parallel without violating the security proofs (under the "knowledge of exponent" assumption).
 
 == Signing
 
