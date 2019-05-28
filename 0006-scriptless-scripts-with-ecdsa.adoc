@@ -57,7 +57,7 @@ P1 now sends s~1~ to P2.
 P2 can now finally calculate the final s from s~1~ using his knowledge of α.
 Specifically s = α^-1^(s~1~).
 
-When s is revealed to P1, she can extract α = (s(s~1~^-1^))^-1^.
+When s is revealed to P1, she can extract α = s^-1^s~1~ (note in <<Sanchez18a>> the paper it says α = (s(s~1~^-1^))^-1^ but this is slower).
 
 Well almost.
 The (R,s) signature that makes it into the Bitcoin or Ethereum blockhain isn't necessarily the one you will be able to extract α from directly.
