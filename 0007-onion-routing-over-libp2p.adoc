@@ -1,0 +1,74 @@
+= Improving privacy through onion routing over libp2p
+Daniel Karzel <daniel.karzel@coblox.tech>;
+:toc:
+:revdate: 2019-06-17
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/coblox/spikes/issues/8[Tor Support for COMIT]
+
+== Context
+
+Onion routing as implemented by the https://en.wikipedia.org/wiki/Tor_(anonymity_network)[Tor network] enables anonymous usage of the internet
+through end2end multi-time-encryption over multiple hops provided through relay nodes. Anybody in the network can set up a relay node in the network.
+
+Onion routing would help to create more privacy through anonymity in the comit network.
+
+
+== Research
+
+=== Onion Routing over libp2p
+
+==== IPFS issues tracking this topic
+
+IPFS is working on integrating onion routing over libp2p:
+
+- Discussion on the topic from the IPFS notes:
+  * https://github.com/ipfs/notes/issues/37
+
+- Resulting up-to-date issue "Anonymous IPFS"
+  * https://github.com/ipfs/go-ipfs/issues/6430
+
+We might run into similar issues as described in https://github.com/ipfs/go-ipfs/issues/6430[IPFS issue #6430].
+
+Might be a good idea to reach out to the IPFS team.
+
+==== Collection of implementations
+
+IMPORTANT: Most of the projects listed here are in a prototype/proof-of-concept stage. Decision needed on how to proceed with that.
+
+- OpenBazaar repo for onion routing on IPFS (go-lang):
+  * https://github.com/OpenBazaar/go-onion-transport/
+
+- Protoype POC implementation of onion routing over libp2p (go-lang):
+  * https://github.com/t-bast/go-libp2p-echalotte
+
+- Web3 Foundation is tacking the issue here:
+  * https://github.com/w3f/messaging
+  * Protocol requirement details here: https://github.com/w3f/messaging/blob/master/REQUIREMENTS.md
+  * The following entry (HOPR) is a result of this initiative
+
+ - HOPR by Validity labs:
+  * https://github.com/validitylabs/messagingProtocol
+  * includes payment for relay nodes, not sure if that would suit our needs
+
+=== Garlic routing as an alternative
+
+https://geti2p.net/en/about/intro[I2P] implements a variant of onion routing called https://en.wikipedia.org/wiki/Garlic_routing[garlic routing].
+
+Rust I2P engine:
+
+https://github.com/str4d/ire
+
+IMPORTANT: Work out the difference to onion routing, decision needed what is more suitable for comit.
+
+=== Open question collection:
+
+1. If comit implements onion routing: How many relays are actually needed in order to make this work in a meaningful way?
+2. Would it be possible to leverage the existing Tor network rather then just implementing onion routing in comit?
+(e.g. provide relays to the Tor network rather than implementing the protocol)
+
+=== Solution Proposal
+
+WARNING: To be filled out after more research was done.
+
