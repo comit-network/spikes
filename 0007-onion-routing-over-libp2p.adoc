@@ -19,7 +19,7 @@ Onion routing would help to create more privacy through anonymity in the comit n
 
 === Onion Routing over libp2p
 
-==== IPFS issues tracking this topic
+==== IPFS issues tracking onion routing over libp2p
 
 IPFS is working on integrating onion routing over libp2p:
 
@@ -33,7 +33,7 @@ We might run into similar issues as described in https://github.com/ipfs/go-ipfs
 
 Might be a good idea to reach out to the IPFS team.
 
-==== Collection of implementations
+===== Collection of implementations
 
 IMPORTANT: Most of the projects listed here are in a prototype/proof-of-concept stage. Decision needed on how to proceed with that.
 
@@ -62,13 +62,43 @@ https://github.com/str4d/ire
 
 IMPORTANT: Work out the difference to onion routing, decision needed what is more suitable for comit.
 
-=== Open question collection:
+=== libp2p extensions enabling onion routing
 
-1. If comit implements onion routing: How many relays are actually needed in order to make this work in a meaningful way?
-2. Would it be possible to leverage the existing Tor network rather then just implementing onion routing in comit?
-(e.g. provide relays to the Tor network rather than implementing the protocol)
+libp2p has two protocols in the making that will provide certain functionality that can be useful to enable onion routing:
+
+1. Rendezvous point
+  * https://github.com/libp2p/specs/blob/master/rendezvous/README.md
+2. Circuit relay
+  * https://github.com/libp2p/specs/blob/master/relay/README.md
+
+Relays are currently implemented in the js and the go version of libp2p only.
+
+=== libp2p as plugable transport for the Tor network
+
+This goes into the direction of sending libp2p TCP packages over the Tor network. Pluggable transport is a relatively
+new concept within the Tor community. How exactly this could be achieved with libp2p remains open.
+
+- Discussion on libp2p as pluggable transport for Tor (ticket stale since 2017)
+  * https://github.com/libp2p/libp2p/issues/17
+
+- Introduction to plugable transport in Tor:
+  * https://trac.torproject.org/projects/tor/wiki/doc/PluggableTransports
+
+
+=== Random other information
+
+Hackernews on relays in libp2p and Tor-meek (interesting reads, but somewhat unrelated)
+https://news.ycombinator.com/item?id=14295993
 
 === Solution Proposal
 
 WARNING: To be filled out after more research was done.
+
+==== Open question collection:
+
+1. If comit implements onion routing: How many relays are actually needed in order to make this work in a meaningful way?
+2. Would it be possible to leverage the existing Tor network rather then just implementing onion routing in comit?
+(e.g. provide relays to the Tor network rather than implementing the protocol)
+3. Both libp2p and Tor operate (not exclusively...) over TCP, but (how exactly) could they be brought together?
+
 
