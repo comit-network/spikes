@@ -88,7 +88,7 @@ It has to be evaluated how libp2p would react to this.
 - Discussion on channelling traffic through Tor's SOCKS port
   * https://www.reddit.com/r/TOR/comments/7mhlp9/how_to_route_an_arbitrary_application_through_the/
 
-==== libp2p as plugqable transport for the Tor network
+==== libp2p as pluggable transport for the Tor network
 
 Another possible way to achieve this could be pluggable transport, which is a relatively new concept within the Tor community.
 How exactly this could be achieved with libp2p remains open.
@@ -122,5 +122,5 @@ Does it work to just channel the complete traffic into Tor's SOCKS port?
 
 === Next steps:
 
-Test of channelling traffic through running onion services works with Comit using libp2p.
-Evaluate if that solution actually adds the level of anonymity we want to achieve.
+1. Test if channelling all traffic through running Tor's onion services works with Comit using libp2p.
+2. Evaluate if that solution actually adds the level of anonymity we want to achieve.
