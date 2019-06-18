@@ -52,17 +52,7 @@ IMPORTANT: Most of the projects listed here are in a prototype/proof-of-concept 
   * https://github.com/validitylabs/messagingProtocol
   * includes payment for relay nodes, not sure if that would suit our needs
 
-=== Garlic routing as an alternative
-
-https://geti2p.net/en/about/intro[I2P] implements a variant of onion routing called https://en.wikipedia.org/wiki/Garlic_routing[garlic routing].
-
-Rust I2P engine:
-
-https://github.com/str4d/ire
-
-IMPORTANT: Work out the difference to onion routing, decision needed what is more suitable for comit.
-
-=== libp2p extensions enabling onion routing
+==== libp2p extensions enabling onion routing
 
 libp2p has two protocols in the making that will provide certain functionality that can be useful to enable onion routing:
 
@@ -73,10 +63,35 @@ libp2p has two protocols in the making that will provide certain functionality t
 
 Relays are currently implemented in the js and the go version of libp2p only.
 
-=== libp2p as plugable transport for the Tor network
+=== Garlic routing and I2P as an alternative
 
-This goes into the direction of sending libp2p TCP packages over the Tor network. Pluggable transport is a relatively
-new concept within the Tor community. How exactly this could be achieved with libp2p remains open.
+https://geti2p.net/en/about/intro[I2P] implements a variant of onion routing called https://en.wikipedia.org/wiki/Garlic_routing[garlic routing].
+
+- Rust I2P engine:
+  * https://github.com/str4d/ire
+
+IMPORTANT: Work out the difference to onion routing, decision needed what is more suitable for comit.
+
+=== Channeling Comit traffic through Tor
+
+Sending libp2p TCP packages over the Tor network (transport layer).
+
+One possibility would be to start an instance of Tor (without the browser) together with Comit and route the Comit traffic through Tor.
+It has to be evaluated how libp2p would react to this.
+
+- Configuring an onion service:
+  * https://2019.www.torproject.org/docs/tor-onion-service.html.en
+
+- Tor manual startup options
+  * https://2019.www.torproject.org/docs/tor-manual.html.en
+
+- Discussion on channelling traffic through Tor's SOCKS port
+  * https://www.reddit.com/r/TOR/comments/7mhlp9/how_to_route_an_arbitrary_application_through_the/
+
+==== libp2p as plugqable transport for the Tor network
+
+Another possible way to achieve this could be pluggable transport, which is a relatively new concept within the Tor community.
+How exactly this could be achieved with libp2p remains open.
 
 - Discussion on libp2p as pluggable transport for Tor (ticket stale since 2017)
   * https://github.com/libp2p/libp2p/issues/17
@@ -90,6 +105,9 @@ new concept within the Tor community. How exactly this could be achieved with li
 Hackernews on relays in libp2p and Tor-meek (interesting reads, but somewhat unrelated)
 https://news.ycombinator.com/item?id=14295993
 
+Side-node on Tor and TLS:
+https://security.stackexchange.com/questions/75975/is-tls-in-tor-useless
+
 === Solution Proposal
 
 WARNING: To be filled out after more research was done.
@@ -100,5 +118,9 @@ WARNING: To be filled out after more research was done.
 2. Would it be possible to leverage the existing Tor network rather then just implementing onion routing in comit?
 (e.g. provide relays to the Tor network rather than implementing the protocol)
 3. Both libp2p and Tor operate (not exclusively...) over TCP, but (how exactly) could they be brought together?
+Does it work to just channel the complete traffic into Tor's SOCKS port?
 
+=== Next steps:
 
+Test of channelling traffic through running onion services works with Comit using libp2p.
+Evaluate if that solution actually adds the level of anonymity we want to achieve.
