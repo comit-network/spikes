@@ -11,4 +11,4 @@ List of spike outcomes for COMIT network.
 - [spike-0006](0006-scriptless-scripts-with-ecdsa.adoc) - Scriptless Scripts with ECDSA
 - [spike-0008](0007-secret-seed-storage-and-key-derivation.md) - Secret seed storage and key derivation
 
-For new spike outcomes, please use [template.md](template.md) as basis.
+For new spike outcomes, please use [template.adoc](template.adoc) as basis.
