@@ -1,4 +1,4 @@
-# Spike Outcomes
+# COMIT research outcomes
 
 List of spike outcomes for COMIT network.
 
