@@ -12,30 +12,55 @@ Tracking issue: https://github.com/coblox/spikes/issues/8[Tor Support for COMIT]
 Onion routing as implemented by the https://en.wikipedia.org/wiki/Tor_(anonymity_network)[Tor network] enables anonymous usage of the internet
 through end2end multi-time-encryption over multiple hops provided through relay nodes. Anybody in the network can set up a relay node in the network.
 
-Onion routing would help to create more privacy through anonymity in the comit network.
+The goal of an anonymous COMIT is to be able to run the comit-node in a way, so that the person running the comit-node cannot be discovered and it cannot be discovered with whom that person exchanges information over COMIT.
+Note that a person might not be concerned about the blockchain nodes, but only about COMIT.
 
+Since anonymity networks like Tor build on the fact that there are many people using it, it would not make much sense to just make the COMIT network anonymous by itself but rather channel the transport over an existing anonymity network like TOR or I2P.
+
+This spike sums up:
+
+1. How this could be achieved.
+2. Why it cannot be that easily achieved at the moment.
 
 == Research
 
-=== Onion Routing over libp2p
+=== Problem
 
-==== IPFS issues tracking onion routing over libp2p
+libp2p does currently not support neither Tor nor I2P out of the box.
 
-IPFS is working on integrating onion routing over libp2p:
+We identified two main problems:
 
-- Discussion on the topic from the IPFS notes:
-  * https://github.com/ipfs/notes/issues/37
+1. Discovery of e.g. `.onion` addresses is not available in libp2p, thus it is not possible to just use Tor over libp2p.
+2. Possible privacy concerns when using libp2p and e.g. Tor in combination. There are still discussions ongoing on how to actually achieve this in the "right" way.
 
-- Resulting up-to-date issue "Anonymous IPFS"
-  * https://github.com/ipfs/go-ipfs/issues/6430
+Both libp2p and Tor operate on the transport layer, Tor on TCP, libp2p on TCP and other protocols. libp2p aims for TCP socket connections between 2 distinct nodes. It has to be evaluated in detail how that approach can be married to the onion routing approach in Tor to ensure the level of privacy and security that we want to achieve.
 
-We might run into similar issues as described in https://github.com/ipfs/go-ipfs/issues/6430[IPFS issue #6430].
+=== Solution Proposal
 
-Might be a good idea to reach out to the IPFS team.
+Wait until rust-libp2p supports `.onion` addresses and discovery out of the box. This is not the most urgent feature for the comit-node, better wait will libp2p evolves.
 
-===== Collection of implementations
+If the rust-libp2p does not include Tor support until we deem this feature more important we aim for an implementation by ourselves.
 
-IMPORTANT: Most of the projects listed here are in a prototype/proof-of-concept stage. Decision needed on how to proceed with that.
+== Info collection for later research
+
+This section gives an overview of projects and discussions that are currently done
+Some of the projects and issues mentioned here might involve into a solution of our problem, thus they are recorded here. However, more research will be needed once we continue the research on the topic of anonymous COMIT.
+
+=== IPFS, Onion Routing and libp2p
+
+As libp2p comes originally from the IPFS this section elaborates on Tor support for IPFS and libp2p as tracked by the IPFS team.
+
+A request to add Tor support to IPFS (and libp2p) was first filed in 2015 and resulted in a https://github.com/ipfs/notes/issues/37[lengthy discussion]. The IPFS team decided that they would only officially enable this feature after a full security audit.
+
+The  https://github.com/ipfs/go-ipfs/issues/6430[resulting issue tracking "Anonymous IPFS"] mention that this would require more time for evaluation, so one should not expect this feature soon.
+
+It seems that there is an experimental setup for https://dweb-primer.ipfs.io/avenues-for-access/lessons/tor-transport.html[running IPFS using Tor transport] as well as https://dweb-primer.ipfs.io/avenues-for-access/lessons/tor-gateways.html[running IPFS using an IPFS Tor gateway]. This experimental setups were not tested for this spike.
+
+One result from the IPFS team looking into Tor support is
+
+==== Collection of implementations
+
+IMPORTANT: Most of the projects listed here were in a prototype/proof-of-concept stage when this spike was written.
 
 - OpenBazaar repo for onion routing on IPFS (go-lang):
   * https://github.com/OpenBazaar/go-onion-transport/
@@ -65,62 +90,8 @@ Relays are currently implemented in the js and the go version of libp2p only.
 
 === Garlic routing and I2P as an alternative
 
-https://geti2p.net/en/about/intro[I2P] implements a variant of onion routing called https://en.wikipedia.org/wiki/Garlic_routing[garlic routing].
+https://geti2p.net/en/about/intro[I2P] implements a variant of onion routing called https://en.wikipedia.org/wiki/Garlic_routing[garlic routing]. The I2P website provides a good https://geti2p.net/en/comparison/tor[comparison of I2P and Tor].
 
 - Rust I2P engine:
   * https://github.com/str4d/ire
 
-IMPORTANT: Work out the difference to onion routing, decision needed what is more suitable for comit.
-
-=== Channeling Comit traffic through Tor
-
-Sending libp2p TCP packages over the Tor network (transport layer).
-
-One possibility would be to start an instance of Tor (without the browser) together with Comit and route the Comit traffic through Tor.
-It has to be evaluated how libp2p would react to this.
-
-- Configuring an onion service:
-  * https://2019.www.torproject.org/docs/tor-onion-service.html.en
-
-- Tor manual startup options
-  * https://2019.www.torproject.org/docs/tor-manual.html.en
-
-- Discussion on channelling traffic through Tor's SOCKS port
-  * https://www.reddit.com/r/TOR/comments/7mhlp9/how_to_route_an_arbitrary_application_through_the/
-
-==== libp2p as pluggable transport for the Tor network
-
-Another possible way to achieve this could be pluggable transport, which is a relatively new concept within the Tor community.
-How exactly this could be achieved with libp2p remains open.
-
-- Discussion on libp2p as pluggable transport for Tor (ticket stale since 2017)
-  * https://github.com/libp2p/libp2p/issues/17
-
-- Introduction to plugable transport in Tor:
-  * https://trac.torproject.org/projects/tor/wiki/doc/PluggableTransports
-
-
-=== Random other information
-
-Hackernews on relays in libp2p and Tor-meek (interesting reads, but somewhat unrelated)
-https://news.ycombinator.com/item?id=14295993
-
-Side-node on Tor and TLS:
-https://security.stackexchange.com/questions/75975/is-tls-in-tor-useless
-
-=== Solution Proposal
-
-WARNING: To be filled out after more research was done.
-
-==== Open question collection:
-
-1. If comit implements onion routing: How many relays are actually needed in order to make this work in a meaningful way?
-2. Would it be possible to leverage the existing Tor network rather then just implementing onion routing in comit?
-(e.g. provide relays to the Tor network rather than implementing the protocol)
-3. Both libp2p and Tor operate (not exclusively...) over TCP, but (how exactly) could they be brought together?
-Does it work to just channel the complete traffic into Tor's SOCKS port?
-
-=== Next steps:
-
-1. Test if channelling all traffic through running Tor's onion services works with Comit using libp2p.
-2. Evaluate if that solution actually adds the level of anonymity we want to achieve.
