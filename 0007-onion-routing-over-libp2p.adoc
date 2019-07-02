@@ -9,8 +9,8 @@ Tracking issue: https://github.com/coblox/spikes/issues/8[Tor Support for COMIT]
 
 == Context
 
-Onion routing as implemented by the https://en.wikipedia.org/wiki/Tor_(anonymity_network)[Tor network] enables anonymous usage of the internet
-through end2end multi-time-encryption over multiple hops provided through relay nodes. Anybody in the network can set up a relay node in the network.
+Onion routing as implemented by the https://en.wikipedia.org/wiki/Tor_(anonymity_network)[Tor network] enables anonymous usage of the internet through end2end multi-time-encryption over multiple hops provided through relay nodes.
+Anybody in the network can set up a relay node in the network.
 
 The goal of an anonymous COMIT is to be able to run the comit-node in a way, so that the person running the comit-node cannot be discovered and it cannot be discovered with whom that person exchanges information over COMIT.
 Note that a person might not be concerned about the blockchain nodes, but only about COMIT.
@@ -22,7 +22,7 @@ This spike sums up:
 1. How this could be achieved.
 2. Why it cannot be that easily achieved at the moment.
 
-== Research
+== Research Summary
 
 === Problem
 
@@ -33,32 +33,44 @@ We identified two main problems:
 1. Discovery of e.g. `.onion` addresses is not available in libp2p, thus it is not possible to just use Tor over libp2p.
 2. Possible privacy concerns when using libp2p and e.g. Tor in combination. There are still discussions ongoing on how to actually achieve this in the "right" way.
 
-Both libp2p and Tor operate on the transport layer, Tor on TCP, libp2p on TCP and other protocols. libp2p aims for TCP socket connections between 2 distinct nodes. It has to be evaluated in detail how that approach can be married to the onion routing approach in Tor to ensure the level of privacy and security that we want to achieve.
+Both libp2p and Tor operate on the transport layer, Tor on TCP, libp2p on TCP and other protocols.
+Libp2p aims for TCP socket connections between 2 distinct nodes.
+It has to be evaluated in detail how that approach can be married to the onion routing approach in Tor to ensure the level of privacy and security that we want to achieve.
 
 === Solution Proposal
 
-Wait until rust-libp2p supports `.onion` addresses and discovery out of the box. This is not the most urgent feature for the comit-node, better wait will libp2p evolves.
+Wait until rust-libp2p supports `.onion` addresses and discovery out of the box.
+This is not the most urgent feature for the comit-node, better wait will libp2p evolves.
 
 If the rust-libp2p does not include Tor support until we deem this feature more important we aim for an implementation by ourselves.
 
 == Info collection for later research
 
 This section gives an overview of projects and discussions that are currently done
-Some of the projects and issues mentioned here might involve into a solution of our problem, thus they are recorded here. However, more research will be needed once we continue the research on the topic of anonymous COMIT.
+Some of the projects and issues mentioned here might involve into a solution of our problem, thus they are recorded here.
+However, more research will be needed once we continue the research on the topic of anonymous COMIT.
 
-=== IPFS, Onion Routing and libp2p
+=== Tor support in lightning and bitcoind
 
-As libp2p comes originally from the IPFS this section elaborates on Tor support for IPFS and libp2p as tracked by the IPFS team.
+https://github.com/ElementsProject/lightning/blob/master/doc/TOR.md[Lightning] and https://github.com/bitcoin/bitcoin/blob/master/doc/tor.md[Bitcoin] enable different ways to channel the node's traffic through Tor by supporting `.onion` addresses.
 
-A request to add Tor support to IPFS (and libp2p) was first filed in 2015 and resulted in a https://github.com/ipfs/notes/issues/37[lengthy discussion]. The IPFS team decided that they would only officially enable this feature after a full security audit.
+In order to achieve similar functionality for the comit-node we would need `.onion` address discovery in libp2p as it is our current library for transferring messages between comit-nodes.
+
+=== libp2p, Onion Routing and IPFS
+
+As libp2p was originally developed by the IPFS project this section elaborates on Tor support for IPFS and libp2p as tracked by the IPFS team.
+
+A request to add Tor support to IPFS (and libp2p) was first filed in 2015 and resulted in a https://github.com/ipfs/notes/issues/37[lengthy discussion].
+The IPFS team decided that they would only officially enable this feature after a full security audit.
 
 The  https://github.com/ipfs/go-ipfs/issues/6430[resulting issue tracking "Anonymous IPFS"] mention that this would require more time for evaluation, so one should not expect this feature soon.
 
-It seems that there is an experimental setup for https://dweb-primer.ipfs.io/avenues-for-access/lessons/tor-transport.html[running IPFS using Tor transport] as well as https://dweb-primer.ipfs.io/avenues-for-access/lessons/tor-gateways.html[running IPFS using an IPFS Tor gateway]. This experimental setups were not tested for this spike.
+It seems that there is an experimental setup for https://dweb-primer.ipfs.io/avenues-for-access/lessons/tor-transport.html[running IPFS using Tor transport] as well as https://dweb-primer.ipfs.io/avenues-for-access/lessons/tor-gateways.html[running IPFS using an IPFS Tor gateway].
+This experimental setups were not tested for this spike.
 
 One result from the IPFS team looking into Tor support is
 
-==== Collection of implementations
+==== Collection of prototype implementations
 
 IMPORTANT: Most of the projects listed here were in a prototype/proof-of-concept stage when this spike was written.
 
@@ -90,7 +102,8 @@ Relays are currently implemented in the js and the go version of libp2p only.
 
 === Garlic routing and I2P as an alternative
 
-https://geti2p.net/en/about/intro[I2P] implements a variant of onion routing called https://en.wikipedia.org/wiki/Garlic_routing[garlic routing]. The I2P website provides a good https://geti2p.net/en/comparison/tor[comparison of I2P and Tor].
+https://geti2p.net/en/about/intro[I2P] implements a variant of onion routing called https://en.wikipedia.org/wiki/Garlic_routing[garlic routing].
+The I2P website provides a good https://geti2p.net/en/comparison/tor[comparison of I2P and Tor].
 
 - Rust I2P engine:
   * https://github.com/str4d/ire
