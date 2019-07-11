@@ -56,7 +56,7 @@ This solution is similar to https://dweb-primer.ipfs.io/avenues-for-access/lesso
 
 Anonymous comit-node is currently not the most urgent feature.
 Thus, waiting for the implementation of Tor-support in libp2p is a good option.
-The IPFS community is already discussing https://github.com/libp2p/js-libp2p/issues/142[discussed in tickets] [Tor support in IPFS over libp2p], additionally there are already https://github.com/OpenBazaar/go-onion-transport[prototype implementations] out there.
+The IPFS community is already discussing https://github.com/libp2p/js-libp2p/issues/142[discussed in tickets Tor support in IPFS over libp2p], additionally there are already https://github.com/OpenBazaar/go-onion-transport[prototype implementations] out there.
 When this spike was written, there was no road map for adding this feature in libp2p-rust yet.
 
 We are planning to wait until rust-libp2p supports `.onion` addresses discovery out of the box.
