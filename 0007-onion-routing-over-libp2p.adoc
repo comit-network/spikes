@@ -24,7 +24,7 @@ This spike sums up:
 
 == Research
 
-The comit-node currently uses **libp2p** for messaging, and libp2p currently does not support neither Tor out of the box.
+The comit-node currently uses **libp2p** for messaging, and libp2p currently does not support Tor out of the box.
 
 Two problems were identified:
 
