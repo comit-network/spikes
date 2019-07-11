@@ -15,7 +15,7 @@ Anybody in the network can set up a relay node.
 The goal of an anonymous COMIT is to be able to run the comit-node in a way, so that the person running the comit-node cannot be discovered and it cannot be discovered with whom that person exchanges information over COMIT.
 Note that a person might not be concerned about the blockchain nodes, but only about COMIT.
 
-Since anonymity networks like Tor build on the fact that there are many people using it, it would not make much sense to just make the COMIT network anonymous by itself but rather channel the transport over an existing anonymity network like e.g. Tor.
+Since anonymity networks build on the fact that there are many people using them, it would not make much sense to just make the COMIT network anonymous by itself but rather channel the transport over an existing anonymity network, e.g. Tor.
 
 This spike sums up:
 
