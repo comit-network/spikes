@@ -1,0 +1,95 @@
+= Improving privacy through onion routing over libp2p
+Daniel Karzel <daniel.karzel@coblox.tech>;
+:toc:
+:revdate: 2019-06-17
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/coblox/spikes/issues/8[Tor Support for COMIT]
+
+== Context
+
+Onion routing as implemented by the https://en.wikipedia.org/wiki/Tor_(anonymity_network)[Tor network] enables anonymous usage of the internet through end2end multi-time-encryption over multiple hops provided through relay nodes.
+Anybody in the network can set up a relay node.
+
+The goal of an anonymous COMIT is to be able to run the comit-node in a way, so that the person running the comit-node cannot be discovered and it cannot be discovered with whom that person exchanges information over COMIT.
+Note that a person might not be concerned about the blockchain nodes, but only about COMIT.
+
+Since anonymity networks build on the fact that there are many people using them, it would not make much sense to just make the COMIT network anonymous by itself but rather channel the transport over an existing anonymity network, e.g. Tor.
+
+This spike sums up:
+
+1. Why anonymous comit-node does not work out of the box at the moment.
+2. How anonymous comit-node can be achieved.
+
+== Research
+
+The comit-node currently uses **libp2p** for messaging, and libp2p currently does not support Tor out of the box.
+
+Two problems were identified:
+
+1. Discovery of e.g. `.onion` addresses is not implemented in libp2p yet.
+2. libp2p does not support Tor transport yet.
+
+Discovery of `.onion` addresses in libp2p would be the most minimal feature to enable tunneling libp2p TCP packages through a Tor proxy.
+
+Two ways to use libp2p over Tor were identified:
+
+1. Run a Tor Proxy next to the comit-node and channel the comit-node (TCP) traffic through Tor.
+  * Requires: Discovery of `.onion` addresses in libp2p.
+2. Implementing Tor as transport protocol in libp2p.
+  * Requires: Implementing `libp2p-core.Transport` for Tor
+
+Option 1. would be similar to the Tor support in https://github.com/ElementsProject/lightning/blob/master/doc/TOR.md[Lightning] and https://github.com/bitcoin/bitcoin/blob/master/doc/tor.md[Bitcoin], but requires another dependency.
+Since our goal is to have the comit-node as one application we aim for an implementation of Tor as libp2p Transport.
+
+Option 2. would enable the comit-node to "speak Tor".
+It requires more coding but would be the way to go.
+It would enable anonymity in the comit-node through Tor out of the box without installing any other software.
+This solution is similar to https://dweb-primer.ipfs.io/avenues-for-access/lessons/tor-transport.html[running IPFS using Tor transport].
+
+Additionally there could be public comit-node that serves as a gateway.
+Users could then just download the Tor browser and talk to the comit-node setup as public gateway.
+This solution is similar to https://dweb-primer.ipfs.io/avenues-for-access/lessons/tor-gateways.html[accessing IPFS by using an IPFS Tor gateway].
+
+=== Solution Proposal
+
+Anonymous comit-node is currently not the most urgent feature.
+Thus, waiting for the implementation of Tor-support in libp2p is a good option.
+The IPFS community is already discussing https://github.com/libp2p/js-libp2p/issues/142[discussed in tickets Tor support in IPFS over libp2p], additionally there are already https://github.com/OpenBazaar/go-onion-transport[prototype implementations] out there.
+When this spike was written, there was no road map for adding this feature in libp2p-rust yet.
+
+We are planning to wait until rust-libp2p supports `.onion` addresses discovery out of the box.
+
+If the rust-libp2p does not Tor as Transport until we deem this feature more important we aim for an implementation by ourselves.
+
+== Interesting but unrelated
+
+==== IPFS and DHT
+
+IPFS faces additional problems with DHT and Tor, as described https://discuss.ipfs.io/t/anonymous-dht-proof-of-concept-using-libp2p-and-tor/3331[here]. This, however does not concern the comit-node as we don't have to use DHT.
+
+==== libp2p extensions enabling onion routing
+
+libp2p has two protocols in the making that will provide certain functionality that can be useful to enable onion routing:
+
+1. Rendezvous point
+  * https://github.com/libp2p/specs/blob/master/rendezvous/README.md
+2. Circuit relay
+  * https://github.com/libp2p/specs/blob/master/relay/README.md
+
+Relays are currently implemented in the js and the go version of libp2p only.
+
+This is unrelated to tunneling libp2p packages through Tor.
+However, e.g. support for Tor `.onion` addresses might be added as part of the implementation.
+
+=== Garlic routing and I2P as an alternative
+
+Besides Tor there are other anonymity networks out there.
+
+https://geti2p.net/en/about/intro[I2P] implements a variant of onion routing called https://en.wikipedia.org/wiki/Garlic_routing[garlic routing].
+The I2P website provides a good https://geti2p.net/en/comparison/tor[comparison of I2P and Tor].
+
+- Rust I2P engine:
+  * https://github.com/str4d/ire
+
