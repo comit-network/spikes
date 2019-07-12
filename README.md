@@ -10,5 +10,6 @@ List of spike outcomes for COMIT network.
 - [spike-0005](0005-kzen-two-party-ecdsa.adoc) - Kzen Two Party ECDSA Review
 - [spike-0006](0006-scriptless-scripts-with-ecdsa.adoc) - Scriptless Scripts with ECDSA
 - [spike-0007](0007-secret-seed-storage-and-key-derivation.md) - Secret seed storage and key derivation
+- [spike-0008](0008-onion-routing-over-libp2p.adoc) - Improving privacy through onion routing over libp2p
 
 For new spike outcomes, please use [template.adoc](template.adoc) as basis.
