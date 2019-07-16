@@ -60,6 +60,26 @@ https://docs.rs/pickledb/0.4.0/pickledb/
 
 - - Not very popular (only 31 stars at the time of writing)
 
+=== unqlite
+
+https://crates.io/crates/unqlite
+
+- + Promises many features (UnQLite is a in-process software library which implements a self-contained, serverless, zero-configuration, transactional NoSQL database engine. UnQLite is a document store database similar to MongoDB, Redis, CouchDB etc. as well a standard Key/Value store similar to BerkeleyDB, LevelDB, etc.)
+
+- - Written in C and hence needs bindings to use in Rust (the crate linked above)
+- - Claims to be actively maintained but not much happening on the repository (could also be due to being considered feature-complete)
+
+=== leveldb
+
+https://crates.io/crates/leveldb
+
+- + Popular embedded DB written by Google
+
+- - Very low-level interface
+- - Written in C++ and Rust bindings are not complete
+
+There is a re-write of leveldb in Rust here[https://crates.io/crates/rusty-leveldb] but that is not yet complete unfortunately.
+
 == WASM consideration
 
 The decision of this spike does not affect any future WASM plans since we will have to provide a different storage layer implementation anyway.
@@ -69,5 +89,10 @@ WASM by itself doesn't provide native storage so that needs to be taken care of 
 
 Generally, I'd say a pure Rust implementation is preferable over a lib that has bindings to C++ or C.
 However, the only feasilbe, pure Rust DB is `seld`, which doesn't have a stable binary format at this stage.
-Hence, I'd recommend to use `rocksdb` for now.
+I'd recommend to use `rocksdb` for now because it maintained by a popular entity (Facebook) and has wide usage across the ecosystem.
 Once, `sled` is stable, we can think of a migration plan if we want to.
+
+== Sources
+
+- List of Rust database engines: https://users.rust-lang.org/t/embeddable-db-in-rust/22100/4
+- Packages tagged with `database`: https://libraries.io/search?keywords=database&languages=Rust
