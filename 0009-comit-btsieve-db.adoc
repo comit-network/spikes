@@ -5,7 +5,7 @@ Thomas Eizinger <thomas@coblox.tech>;
 
 NOTE: Author: {authors} +
 Date: {revdate} +
-Tracking issue: [#1060]https://github.com/comit-network/comit-rs/issues/1060
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1060[#1060]
 
 == Context
 
@@ -78,7 +78,7 @@ https://crates.io/crates/leveldb
 - - Very low-level interface
 - - Written in C++ and Rust bindings are not complete
 
-There is a re-write of leveldb in Rust here[https://crates.io/crates/rusty-leveldb] but that is not yet complete unfortunately.
+There is a re-write of leveldb in Rust https://crates.io/crates/rusty-leveldb[here] but that is not yet complete unfortunately.
 
 == WASM consideration
 
