@@ -1,0 +1,73 @@
+= Persistent database for comit_node and btsieve
+Thomas Eizinger <thomas@coblox.tech>;
+:toc:
+:revdate: 2019-07-12
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: [#1060]https://github.com/comit-network/comit-rs/issues/1060
+
+== Context
+
+Currently, `comit_node` as-well as `btsieve` store all of their data just in-memory, which means it is lost as soon as the process stops.
+This is obviously not acceptable for software that deals with money and where the state being stored (transient keypairs, pre-images, etc) is crucial in accessing it.
+
+== Goals
+
+1. No separate process
+
+One of the core development goals of COMIT is to be as easily accessible as possible.
+Hence, any solution that involves running a _separate_ process for persistently storing data is not considered.
+All the solutions proposed here need to be embeddable into `comit_node` and `btsieve`.
+
+2. Atomic access
+
+Data integrity is key to our software.
+Hence, all access to the data needs be done in an atomic fashion.
+
+== Approach
+
+Given the above goals, we need to find an embeddable Rust database engine that supports atomic reads and writes.
+The research will therefore focus on checking the ecosystem and making a recommendation for one of the surveyed libraries.
+
+== Research
+
+Research resulted in the following database engines to be found:
+
+=== seld
+
+https://crates.io/crates/sled/0.24.1
+
+- + Written in pure Rust
+- + Actively developed
+
+- - alpha state (not yet 1.0, changing binary format between versions)
+
+=== rocksdb
+
+https://crates.io/crates/rocksdb/0.12.2
+
+- + RocksDB is developed by Facebook
+- + Popular (Parity uses it for substrate f.e.)
+
+- - Written C++ with Rust bindings
+
+=== pickledb
+
+https://docs.rs/pickledb/0.4.0/pickledb/
+
+- + Written in pure Rust
+
+- - Not very popular (only 31 stars at the time of writing)
+
+== WASM consideration
+
+The decision of this spike does not affect any future WASM plans since we will have to provide a different storage layer implementation anyway.
+WASM by itself doesn't provide native storage so that needs to be taken care of by the host system & language (the browser for example).
+
+== Recommendation
+
+Generally, I'd say a pure Rust implementation is preferable over a lib that has bindings to C++ or C.
+However, the only feasilbe, pure Rust DB is `seld`, which doesn't have a stable binary format at this stage.
+Hence, I'd recommend to use `rocksdb` for now.
+Once, `sled` is stable, we can think of a migration plan if we want to.
