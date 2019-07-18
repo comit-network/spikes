@@ -31,11 +31,20 @@ In order to decide on the best library/solution for storing data in `comit_node`
 
 === At the time of writing, we want to store the following things:
 
+==== `comit_node`
+
 - A list of queries created on `btsieve`
 - A list of swaps +
 This sounds more trivial than it is.
 The data structure for a swap is different for each protocol (rfc003 has expiry fields, secret hash etc).
 In addition, each swap might have different ledgers which in turn have different parameters and hence a different shape.
+
+==== `btsieve`
+
+- The list of created queries
+- Retrieved blocks (probably at maximum for the last 24h?)
+- Metadata related to each blockchain +
+For example, the latest blockhash at the time of startup and probably other stuff I can't think of right now.
 
 === Things that we may want to store in the future:
 
@@ -196,6 +205,12 @@ For example, `ejdb` has support for transactions
 An `SQL`-based backend would have the advantage that we could use `diesel` which would do the heavy lifting of crafting the correct SQL-statements for us.
 Additionally, it provides a type-safe interface for interacting with the database.
 It is also a fairly popular library in the Rust ecosystem (4k stars).
+
+=== Storing blocks for `btsieve`
+
+Blockchain blocks are binary blobs that contain no private information.
+Storing them is (for our usecase) mostly interesting for performance reasons so that we have them available after restarts of `btsieve`.
+They could easily also be stored on disks in regular files and would not have to go into a database.
 
 === Recommendation
 
