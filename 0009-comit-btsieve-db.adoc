@@ -25,6 +25,71 @@ All the solutions proposed here need to be embeddable into `comit_node` and `bts
 Data integrity is key to our software.
 Hence, all access to the data needs be done in an atomic fashion.
 
+== What do we want to store?
+
+In order to decide on the best library/solution for storing data in `comit_node` and `btsieve` we need to know, what data we want to store and how we would like to store/access it.
+
+=== At the time of writing, we want to store the following things:
+
+- A list of queries created on `btsieve`
+- A list of swaps +
+This sounds more trivial than it is.
+The data structure for a swap is different for each protocol (rfc003 has expiry fields, secret hash etc).
+In addition, each swap might have different ledgers which in turn have different parameters and hence a different shape.
+
+=== Things that we may want to store in the future:
+
+- Addresses and PeerIDs of peers we have already seen in the past
+- PeerIDs we don't want to communicate with (banned/blocked bc of bad behaviour)
+- Our own external address as observed by other parties
+
+=== Key/Value vs SQL vs document storage
+
+Before diving in the comparison of the different database engines, let's have a look at what we would have to do in order for the three main types of storage APIs:
+
+==== Key/Value
+
+This is the most basic type of interface for a storage backend.
+Key/Value stores usually expose a `schema-on-read` kind of interface, that is, you can store whatever you want under a given key and you need to know the schema of the data upon retrieval.
+To use this for our needs, we would have to create our own namespacing when creating the keys.
+For the swaps for example, we would have to something along the lines of:
+```
+key: "swaps.rfc003.<swapId>"
+value: bytes of the JSON serialization of the swap struct
+```
+This + the metadata of the swap would allow us to know the shape of the value upfront.
+
+To summarize, for all Key/Value based storage solutions, we would have to:
+
+- decide on a namespacing scheme that allows us to separate values of different shape from each other (kind of mimicing SQL tables)
+- decide on a serialization format for the values (Key/Value stores usually only provide a `bytes` -> `bytes` kind of mapping, i.e. the key aswell as the value are arbitrary `bytes`)
+
+==== SQL
+
+SQL based storage backends are quite popular and out of the three different types the only ones that enforce `schema-on-write`.
+
+If we were to go for an SQL-backed storage, I would recommend to use `diesel` as an OR-mapping solution so that we don't have to do that by hand.
+
+If we assume the use of `diesel`, we would need to:
+
+- create special structs representing our data model in order to separate it from our core domain model.
+This is equivalent to the decision on the serialization format from a `Key/Value` backend.
+(In fact, even for a `Key/Value` backend, it would probably be smart to have a dedicated data model in the form of structs in order to not accidentially break something with refactorings)
+
+==== Document storage
+
+Document-based storage engines are similar to `Key/Value` stores but offer additional functionality usually in the form of "collections".
+Collections are usually used to group together documents of the same kind, i.e. we could have a collection for all swaps using the `rfc003` protocol.
+Within those collections, documents usually have a kind of primary key or index that allows you to retrieve a single document out of the collection.
+
+This is more or less semantically equivalent to the namespacing solution proposed in the `Key/Value` backend.
+In fact, it would be fairly trivial to build our own document-based storage on top of a `Key/Value` stores that implements a particular namespacing algorithm.
+
+For a document-based storage backend, we would have to:
+
+- decide on which collections we want
+- decide how to serialize our structs (JSON, YML, etc)
+
 == Approach
 
 Given the above goals, we need to find an embeddable Rust database engine that supports atomic reads and writes.
@@ -36,6 +101,7 @@ Research resulted in the following database engines to be found:
 
 === seld
 
+Type: `Key/Value` +
 https://crates.io/crates/sled/0.24.1
 
 - + Written in pure Rust
@@ -45,32 +111,31 @@ https://crates.io/crates/sled/0.24.1
 
 === rocksdb
 
+Type: `Key/Value` +
 https://crates.io/crates/rocksdb/0.12.2
 
 - + RocksDB is developed by Facebook
 - + Popular (Parity uses it for substrate f.e.)
 
-- - Written C++ with Rust bindings
-
 === pickledb
 
+Type: `Key/Value` +
 https://docs.rs/pickledb/0.4.0/pickledb/
-
-- + Written in pure Rust
 
 - - Not very popular (only 31 stars at the time of writing)
 
 === unqlite
 
+Type: `Key/Value` & `Document` +
 https://crates.io/crates/unqlite
 
 - + Promises many features (UnQLite is a in-process software library which implements a self-contained, serverless, zero-configuration, transactional NoSQL database engine. UnQLite is a document store database similar to MongoDB, Redis, CouchDB etc. as well a standard Key/Value store similar to BerkeleyDB, LevelDB, etc.)
 
-- - Written in C and hence needs bindings to use in Rust (the crate linked above)
 - - Claims to be actively maintained but not much happening on the repository (could also be due to being considered feature-complete)
 
 === leveldb
 
+Type: `Key/Value` +
 https://crates.io/crates/leveldb
 
 - + Popular embedded DB written by Google
@@ -80,17 +145,84 @@ https://crates.io/crates/leveldb
 
 There is a re-write of leveldb in Rust https://crates.io/crates/rusty-leveldb[here] but that is not yet complete unfortunately.
 
+=== sqlite
+
+Type: `SQL` +
+https://crates.io/crates/rusqlite
+
+- + actively maintained
+- + quite popular (500 stars)
+- + optionally comes with a bundled version of the `sqlite`-source code to build it in environemnts that don't have it installed
+- + sqlite supports transactions
+
+=== ejdb
+
+Type: `Document` +
+https://crates.io/crates/ejdb
+
+- + actively maintained
+- + supports transactions: EJDB provides atomic and durable non parallel and read-uncommitted collection level transactions, i.e., There is only one transaction for collection is active for a single point in a time. The data written in a transaction is visible for other non transactional readers. EJDB transaction system utilizes write ahead logging to provide consistent transaction rollbacks.
+
+=== paenkoDB
+
+Type: `Document` +
+https://github.com/paenko/paenkodb
+
+- - unmainted
+
 == WASM consideration
 
 The decision of this spike does not affect any future WASM plans since we will have to provide a different storage layer implementation anyway.
 WASM by itself doesn't provide native storage so that needs to be taken care of by the host system & language (the browser for example).
 
-== Recommendation
+== Conclusion
 
-Generally, I'd say a pure Rust implementation is preferable over a lib that has bindings to C++ or C.
-However, the only feasilbe, pure Rust DB is `seld`, which doesn't have a stable binary format at this stage.
-I'd recommend to use `rocksdb` for now because it maintained by a popular entity (Facebook) and has wide usage across the ecosystem.
-Once, `sled` is stable, we can think of a migration plan if we want to.
+=== Native Rust vs bindings to C/C++
+
+I gave a `+` for all pure-Rust implementations because it makes the build process slightly easier.
+However, not being a pure-Rust library is not a show-stopper at all, hence I didn't record it as a `-` if a library is written in a different language (actually, most of them are).
+
+=== Type of storage backend
+
+I'd say there is generally little advantage of having a `Document`-based storage vs having a `Key/Value`-based one.
+The challenges in terms of integration will be roughly the same:
+
+- which collections to we want? (similar to deciding on a namespacing-strategy)
+- how do we want to serialize the data?
+
+Some `Document`-based solutions provide additional features though which might be useful.
+For example, `ejdb` has support for transactions
+
+An `SQL`-based backend would have the advantage that we could use `diesel` which would do the heavy lifting of crafting the correct SQL-statements for us.
+Additionally, it provides a type-safe interface for interacting with the database.
+It is also a fairly popular library in the Rust ecosystem (4k stars).
+
+=== Recommendation
+
+Independently of the actual storage backend, it would very likely be smart to implement an extra layer of types behind the storage interface that we expose to our application core.
+This would allow us to evolve the domain model in the application's core in the way we see fit without directly affecting the storage model.
+
+We have to keep in mind that every change in the storage model's structure needs to be accomodated by a migration strategy once `cnd` is released and used by people.
+(Alternatively we may not make any guarantees about the data before a certain version i.e. 1.0 and always delete the database and start from scratch.
+In the end, only historical data will be lost, assuming the user doesn't upgrade COMIT whilest having an on-going SWAP.)
+
+Let's assume we have such a dedicated layer of models:
+
+For all solutions, we would have to build a small mapping layer that translates between the different models.
+Given that we can do that by passing on ownership, this should be pretty efficient.
+
+- If we were to use `diesel`, we would only have to add a `custom-derive` + a couple of annotations to these models.
+The actual queries would be a few chained calls of the `diesel` API: https://github.com/diesel-rs/diesel/blob/e319bd1fc730bb882372b686ebf2496049d0edb1/examples/postgres/getting_started_step_1/src/bin/show_posts.rs#L12-L16
+
+- For any `Key/Value` or `Document` store, we would have to come up with our way of serializing the data in order to fit it into the DB. Very likely, this would involve deriving `Serialize`/`Deserialize` for serde and then passing the data on to the respective library.
+
+Given that, I would actually recommend using `sqlite` and `diesel`:
+
+- `sqlite` is battle-tested, being the most-used embedded database in the world
+- `diesel` provides a great, type-safe API
+- `diesel` comes with a built-in support for migrations and even allows you to embed them: https://docs.rs/diesel/0.12.0/diesel/macro.embed_migrations.html
+- an `SQL`-based database can easily be opened using external tooling
+- `sqlite` has support for extensions that implement encryption (f.e. https://github.com/resilar/sqleet). If we want that we would need to investigate, how this works together with the rust bindings.
 
 == Sources
 
