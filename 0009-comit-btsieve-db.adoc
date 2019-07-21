@@ -111,9 +111,9 @@ Research resulted in the following database engines to be found:
 === seld
 
 Type: `Key/Value` +
+Language: Rust +
 https://crates.io/crates/sled/0.24.1
 
-- + Written in pure Rust
 - + Actively developed
 
 - - alpha state (not yet 1.0, changing binary format between versions)
@@ -121,6 +121,7 @@ https://crates.io/crates/sled/0.24.1
 === rocksdb
 
 Type: `Key/Value` +
+Language: C++ +
 https://crates.io/crates/rocksdb/0.12.2
 
 - + RocksDB is developed by Facebook
@@ -129,6 +130,7 @@ https://crates.io/crates/rocksdb/0.12.2
 === pickledb
 
 Type: `Key/Value` +
+Language: Rust +
 https://docs.rs/pickledb/0.4.0/pickledb/
 
 - - Not very popular (only 31 stars at the time of writing)
@@ -136,6 +138,7 @@ https://docs.rs/pickledb/0.4.0/pickledb/
 === unqlite
 
 Type: `Key/Value` & `Document` +
+Language: C +
 https://crates.io/crates/unqlite
 
 - + Promises many features (UnQLite is a in-process software library which implements a self-contained, serverless, zero-configuration, transactional NoSQL database engine. UnQLite is a document store database similar to MongoDB, Redis, CouchDB etc. as well a standard Key/Value store similar to BerkeleyDB, LevelDB, etc.)
@@ -145,28 +148,31 @@ https://crates.io/crates/unqlite
 === leveldb
 
 Type: `Key/Value` +
+Language: C++ +
 https://crates.io/crates/leveldb
 
 - + Popular embedded DB written by Google
 
 - - Very low-level interface
-- - Written in C++ and Rust bindings are not complete
+- - Rust bindings are not complete
 
 There is a re-write of leveldb in Rust https://crates.io/crates/rusty-leveldb[here] but that is not yet complete unfortunately.
 
 === sqlite
 
 Type: `SQL` +
+Language: C +
 https://crates.io/crates/rusqlite
 
 - + actively maintained
 - + quite popular (500 stars)
 - + optionally comes with a bundled version of the `sqlite`-source code to build it in environemnts that don't have it installed
-- + sqlite supports transactions
+- + sqlite supports transactions (open/commit/rollback as known from the SQL world)
 
 === ejdb
 
 Type: `Document` +
+Language: C +
 https://crates.io/crates/ejdb
 
 - + actively maintained
@@ -175,9 +181,10 @@ https://crates.io/crates/ejdb
 === paenkoDB
 
 Type: `Document` +
+Language: Rust +
 https://github.com/paenko/paenkodb
 
-- - unmainted
+- - not maintained
 
 == WASM consideration
 
@@ -188,8 +195,9 @@ WASM by itself doesn't provide native storage so that needs to be taken care of 
 
 === Native Rust vs bindings to C/C++
 
-I gave a `+` for all pure-Rust implementations because it makes the build process slightly easier.
-However, not being a pure-Rust library is not a show-stopper at all, hence I didn't record it as a `-` if a library is written in a different language (actually, most of them are).
+A library written in pure Rust makes the build process slightly easier.
+However, not being a pure-Rust library is not a show-stopper at all.
+Hence, the actual language is not _that_ important for our usecase as long as the bindings are complete and not super awkward.
 
 === Type of storage backend
 
