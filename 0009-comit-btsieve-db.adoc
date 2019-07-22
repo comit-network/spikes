@@ -176,7 +176,9 @@ Language: C +
 https://crates.io/crates/ejdb
 
 - + actively maintained
-- + supports transactions: EJDB provides atomic and durable non parallel and read-uncommitted collection level transactions, i.e., There is only one transaction for collection is active for a single point in a time. The data written in a transaction is visible for other non transactional readers. EJDB transaction system utilizes write ahead logging to provide consistent transaction rollbacks.
+- + supports transactions: EJDB provides atomic and durable non-parallel and read-uncommitted collection level transactions i.e., only one transaction for collection is active for a single point in time.
+The data written in a transaction is visible for other non transactional readers.
+EJDB transaction system utilizes write ahead logging to provide consistent transaction rollbacks.
 
 === paenkoDB
 
