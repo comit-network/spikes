@@ -206,7 +206,7 @@ Hence, the actual language is not _that_ important for our usecase as long as th
 I'd say there is generally little advantage of having a `Document`-based storage vs having a `Key/Value`-based one.
 The challenges in terms of integration will be roughly the same:
 
-- which collections to we want? (similar to deciding on a namespacing-strategy)
+- which collections do we want? (similar to deciding on a namespacing-strategy)
 - how do we want to serialize the data?
 
 Some `Document`-based solutions provide additional features though which might be useful.
