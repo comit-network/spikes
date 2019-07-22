@@ -9,7 +9,7 @@ Tracking issue: https://github.com/comit-network/comit-rs/issues/1060[#1060]
 
 == Context
 
-Currently, `comit_node` as-well as `btsieve` store all of their data just in-memory, which means it is lost as soon as the process stops.
+Currently, `comit_node` as well as `btsieve` store all of their data just in-memory, which means it is lost as soon as the process stops.
 This is obviously not acceptable for software that deals with money and where the state being stored (transient keypairs, pre-images, etc.) is crucial in accessing it.
 
 == Goals
