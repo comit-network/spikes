@@ -35,7 +35,7 @@ In order to decide on the best library/solution for storing data in `comit_node`
 
 - A list of queries created on `btsieve`
 - A list of swaps +
-This sounds less trivial than it is.
+This is more difficult than it sounds.
 The data structure for a swap is different for each protocol (rfc003 has expiry fields, secret hash etc.).
 In addition, each swap might have different ledgers which in turn have different parameters and hence a different shape.
 
