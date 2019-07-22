@@ -10,7 +10,7 @@ Tracking issue: https://github.com/comit-network/comit-rs/issues/1060[#1060]
 == Context
 
 Currently, `comit_node` as-well as `btsieve` store all of their data just in-memory, which means it is lost as soon as the process stops.
-This is obviously not acceptable for software that deals with money and where the state being stored (transient keypairs, pre-images, etc) is crucial in accessing it.
+This is obviously not acceptable for software that deals with money and where the state being stored (transient keypairs, pre-images, etc.) is crucial in accessing it.
 
 == Goals
 
@@ -36,7 +36,7 @@ In order to decide on the best library/solution for storing data in `comit_node`
 - A list of queries created on `btsieve`
 - A list of swaps +
 This sounds less trivial than it is.
-The data structure for a swap is different for each protocol (rfc003 has expiry fields, secret hash etc).
+The data structure for a swap is different for each protocol (rfc003 has expiry fields, secret hash etc.).
 In addition, each swap might have different ledgers which in turn have different parameters and hence a different shape.
 
 ==== `btsieve`
@@ -97,7 +97,7 @@ In fact, it would be fairly trivial to build our own document-based storage on t
 For a document-based storage backend, we would have to:
 
 - decide on which collections we want
-- decide how to serialize our structs (JSON, YML, etc)
+- decide how to serialize our structs (JSON, YML, etc.)
 
 == Approach
 
