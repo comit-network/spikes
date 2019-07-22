@@ -210,7 +210,7 @@ The challenges in terms of integration will be roughly the same:
 - how do we want to serialize the data?
 
 Some `Document`-based solutions provide additional features though which might be useful.
-For example, `ejdb` has support for transactions
+For example, `ejdb` has support for transactions.
 
 An `SQL`-based backend would have the advantage that we could use `diesel` which would do the heavy lifting of crafting the correct SQL-statements for us.
 Additionally, it provides a type-safe interface for interacting with the database.
