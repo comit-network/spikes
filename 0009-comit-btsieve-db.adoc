@@ -49,7 +49,7 @@ For example, the latest blockhash at the time of startup and probably other stuf
 === Things that we may want to store in the future:
 
 - Addresses and PeerIDs of peers we have already seen in the past
-- PeerIDs we don't want to communicate with (banned/blocked bc of bad behaviour)
+- PeerIDs we don't want to communicate with (banned/blocked because of bad behaviour)
 - Our own external address as observed by other parties
 
 === Key/Value vs SQL vs document storage
