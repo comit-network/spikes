@@ -27,7 +27,7 @@ Hence, all access to the data needs be done in an atomic fashion.
 
 == What do we want to store?
 
-In order to decide on the best library/solution for storing data in `comit_node` and `btsieve` we need to know, what data we want to store and how we would like to store/access it.
+In order to decide on the best library/solution for storing data in `comit_node` and `btsieve` we need to know what data we want to store and how we would like to store/access it.
 
 === At the time of writing, we want to store the following things:
 
