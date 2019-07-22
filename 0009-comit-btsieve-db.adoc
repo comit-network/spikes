@@ -54,7 +54,7 @@ For example, the latest blockhash at the time of startup and probably other stuf
 
 === Key/Value vs SQL vs document storage
 
-Before diving in the comparison of the different database engines, let's have a look at what we would have to do in order for the three main types of storage APIs:
+Before diving in the comparison of the different database engines let's have a look at what we would have to do in order for the three main types of storage APIs:
 
 ==== Key/Value
 
