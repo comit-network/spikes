@@ -14,3 +14,8 @@ Tracking issue: [#?]link-to-corresponding-spike
 == Research
 
 [Documentation of steps followed and findings]
+[Lay out the situation as clearly and objectively as possible]
+
+== Recommendation
+
+[Based on the research, try to make a recommendation for one of the proposed solution. If you can't, call in a meeting to decide on an outcome]
