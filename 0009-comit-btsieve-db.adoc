@@ -9,8 +9,8 @@ Tracking issue: https://github.com/comit-network/comit-rs/issues/1060[#1060]
 
 == Context
 
-Currently, `comit_node` as-well as `btsieve` store all of their data just in-memory, which means it is lost as soon as the process stops.
-This is obviously not acceptable for software that deals with money and where the state being stored (transient keypairs, pre-images, etc) is crucial in accessing it.
+Currently, `comit_node` as well as `btsieve` store all of their data just in-memory, which means it is lost as soon as the process stops.
+This is obviously not acceptable for software that deals with money and where the state being stored (transient keypairs, pre-images, etc.) is crucial in accessing it.
 
 == Goals
 
@@ -27,7 +27,7 @@ Hence, all access to the data needs be done in an atomic fashion.
 
 == What do we want to store?
 
-In order to decide on the best library/solution for storing data in `comit_node` and `btsieve` we need to know, what data we want to store and how we would like to store/access it.
+In order to decide on the best library/solution for storing data in `comit_node` and `btsieve` we need to know what data we want to store and how we would like to store/access it.
 
 === At the time of writing, we want to store the following things:
 
@@ -35,8 +35,8 @@ In order to decide on the best library/solution for storing data in `comit_node`
 
 - A list of queries created on `btsieve`
 - A list of swaps +
-This sounds less trivial than it is.
-The data structure for a swap is different for each protocol (rfc003 has expiry fields, secret hash etc).
+This is more difficult than it sounds.
+The data structure for a swap is different for each protocol (rfc003 has expiry fields, secret hash etc.).
 In addition, each swap might have different ledgers which in turn have different parameters and hence a different shape.
 
 ==== `btsieve`
@@ -49,12 +49,12 @@ For example, the latest blockhash at the time of startup and probably other stuf
 === Things that we may want to store in the future:
 
 - Addresses and PeerIDs of peers we have already seen in the past
-- PeerIDs we don't want to communicate with (banned/blocked bc of bad behaviour)
+- PeerIDs we don't want to communicate with (banned/blocked because of bad behaviour)
 - Our own external address as observed by other parties
 
 === Key/Value vs SQL vs document storage
 
-Before diving in the comparison of the different database engines, let's have a look at what we would have to do in order for the three main types of storage APIs:
+Before diving in the comparison of the different database engines let's have a look at what we would have to do in order for the three main types of storage APIs:
 
 ==== Key/Value
 
@@ -97,7 +97,7 @@ In fact, it would be fairly trivial to build our own document-based storage on t
 For a document-based storage backend, we would have to:
 
 - decide on which collections we want
-- decide how to serialize our structs (JSON, YML, etc)
+- decide how to serialize our structs (JSON, YML, etc.)
 
 == Approach
 
@@ -176,7 +176,9 @@ Language: C +
 https://crates.io/crates/ejdb
 
 - + actively maintained
-- + supports transactions: EJDB provides atomic and durable non parallel and read-uncommitted collection level transactions, i.e., There is only one transaction for collection is active for a single point in a time. The data written in a transaction is visible for other non transactional readers. EJDB transaction system utilizes write ahead logging to provide consistent transaction rollbacks.
+- + supports transactions: EJDB provides atomic and durable non-parallel and read-uncommitted collection level transactions i.e., only one transaction for collection is active for a single point in time.
+The data written in a transaction is visible for other non transactional readers.
+EJDB transaction system utilizes write ahead logging to provide consistent transaction rollbacks.
 
 === paenkoDB
 
@@ -204,11 +206,11 @@ Hence, the actual language is not _that_ important for our usecase as long as th
 I'd say there is generally little advantage of having a `Document`-based storage vs having a `Key/Value`-based one.
 The challenges in terms of integration will be roughly the same:
 
-- which collections to we want? (similar to deciding on a namespacing-strategy)
+- which collections do we want? (similar to deciding on a namespacing-strategy)
 - how do we want to serialize the data?
 
 Some `Document`-based solutions provide additional features though which might be useful.
-For example, `ejdb` has support for transactions
+For example, `ejdb` has support for transactions.
 
 An `SQL`-based backend would have the advantage that we could use `diesel` which would do the heavy lifting of crafting the correct SQL-statements for us.
 Additionally, it provides a type-safe interface for interacting with the database.
