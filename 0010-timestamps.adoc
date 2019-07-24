@@ -1,0 +1,78 @@
+= Event timestamps =
+Tobin C. Harding <tobin.harding@coblox.tech>;
+:toc:
+:revdate: 2019-07-24
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1044
+
+== Context
+
+Currently events that occur during COMIT protocol interactions are not timestamped.
+It would be nice to have time information added to events as they occur - for this we can use timestamps.
+
+== Assumptions
+
+It is assumed that time is from the perspective of the cnd i.e., events are ordered as they appear to have occurred to the cnd.
+This implies that the ordering of events is only of use to agents that interface with cnd via the HTTP API and possibly to the cnd.
+
+== Definition
+
+A timestamp is a sequence of characters or encoded information identifying when a certain event occurred ^1^.
+Timestamps are described by the ISO 8601 standard ^2^.
+
+* ^1^ https://en.wikipedia.org/wiki/Timestamp
+* ^2^ https://en.wikipedia.org/wiki/ISO_8601
+
+== Format
+
+Any representation of time will suffice.
+Considerations are:
+
+ - granularity
+ - representation i.e., wall clock time, seconds since epoch.
+
+== Events to timestamp
+
+Events that could potentially be timestamped.
+
+=== Events from Alice's perspective
+
+==== happy swap
+- swap accept received (fund available)
+- Alpha ledger funded (refund available)
+- Beta ledger funded (redeem available)
+- Beta asset redeemed (by herself)
+- Alpha asset redeemed (by Bob)
+
+==== swap declined
+- swap request sent
+- swap decline received
+
+=== Events from Bob's perspective
+
+==== happy swap
+- swap request received
+- swap accept sent
+- Alpha ledger funded (fund available)
+- Beta ledger funded (refund available)
+- Beta asset redeemed (by Alice, redeem available)
+- Alpha asset redeemed (by himself)
+
+====  decline swap
+- swap request received
+- swap decline sent
+
+== Suggestions
+
+I suggest we timestamp the events above using seconds since epoch.
+Example Rust code to generate such a timestamp
+
+[source]
+----
+ let now = SystemTime::now()
+     .duration_since(SystemTime::UNIX_EPOCH)
+     .unwrap();
+ println!("current time: {:?}", now.as_secs());
+----
