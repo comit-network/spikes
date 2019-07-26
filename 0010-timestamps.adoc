@@ -65,6 +65,7 @@ Highlighted events are different sequence paths.
 
 == Suggestions
 
+I suggest that all timestamps are created by the cnd since they are only useful to the cnd I feel it adds no real benefit to get verified times from the blockchain.
 I suggest we timestamp the events above using seconds since epoch.
 Example Rust code to generate such a timestamp
 
