@@ -37,32 +37,31 @@ Considerations are:
 
 Events that could potentially be timestamped.
 
+Key: Non-highlighted events for the sequence of events for a successful swap.
+Highlighted events are different sequence paths.
+
 === Events from Alice's perspective
 
-==== happy swap
+- swap request sent
+- *swap decline received*
 - swap accept received (fund available)
 - Alpha ledger funded (refund available)
 - Beta ledger funded (redeem available)
+- *Beta asset refunded (by Bob)*
 - Beta asset redeemed (by herself)
 - Alpha asset redeemed (by Bob)
-
-==== swap declined
-- swap request sent
-- swap decline received
 
 === Events from Bob's perspective
 
 ==== happy swap
 - swap request received
+- *swap decline sent*
 - swap accept sent
 - Alpha ledger funded (fund available)
 - Beta ledger funded (refund available)
+- *Beta asset refunded (by himself)*
 - Beta asset redeemed (by Alice, redeem available)
 - Alpha asset redeemed (by himself)
-
-====  decline swap
-- swap request received
-- swap decline sent
 
 == Suggestions
 
