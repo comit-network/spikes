@@ -5,7 +5,7 @@ Satoshi Nakamoto <satoshi.nakamoto@coblox.tech>;
 
 NOTE: Author: {authors} +
 Date: {revdate} +
-Tracking issue: [#?]link-to-corresponding-spike
+Tracking issue: link-to-corresponding-spike[#?]
 
 == Context
 
