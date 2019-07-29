@@ -1,0 +1,231 @@
+= Release Strategy
+Franck Royer <franck@coblox.tech>;
+:toc:
+:revdate: 2019-07-29
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1050[#1050]
+
+== Context
+
+[Short description of the context]
+
+== Scope
+
+Scope:
+
+ - comit-rs repo (cnd and btsieve)
+ - comit-i repo
+
+Out of scope:
+
+- Maintenance window/versions that are supported
+- What would happen if btsieve/cnd become libraries
+
+== Considerations
+
+* [x] Versioning phases
+** [x] No phase, start at 1.0.0 and increment from there
+** [x] Two phases versioning: Alpha/Beta then stable (start at 0.1.0, Keep 0.Y.Z until considered stable and it becomes 1.0.0)
+* [x] Metacrate
+** [x] Whether or not to version crates in comit-rs (cnd, btsieve, etc)
+* [x] What triggers a release publication? e.g.:
+** [x] Time frequency (monthly, etc)
+** [x] Major feature (OKR achievement, accumulation of features)
+** [x] Breaking change (on http api, comit api, CLI interface, internal API such as btsieve http api)
+** [x] Bug fixed (all bugs, only security bugs)
+** [x] Embed new comit-i version
+* [x] When to increment the major/minor/patch number e.g.:
+** [x] COMIT protocol breaking change
+** [x] HTTP API breaking change
+** [x] Embedded comit-i version upgrade
+** [x] security bugs
+** [x] "major features"
+* [ ]  What validation should be do before releasing? e.g.:
+** [ ] No added validatio
+** [ ] Run release binaries against e2e test suite
+** [ ] Run other platforms (not supported by CI such as Mac OS or Windows) against e2e test suite
+** [ ] Embed (release) latest comit-i
+** [ ] comit-i/comit-rs full compatibility (manual or automated checks)
+** [ ] do a testnet swap
+** [ ] Valgrind/memory/performance run
+* [ ] If versioning phases, What is the trigger for 1.0.0?
+** [ ] When it is mainnet ready?
+* [ ] Release naming? (Ubuntu style)
+* [ ] Crate publication?
+* [ ] Rust practices
+* [x] Release early, release often motto
+
+== Research
+
+=== Documentation
+
+Rust guidelines: https://doc.rust-lang.org/cargo/reference/manifest.html
+
+=== Phasing
+
+By phasing we mean having a different version system now versus later.
+The Rust practice is to have pre-1.0.0 (0.Y.Z) and post 1.0.0 (X.Y.Z).
+
+If we were to adopt phasing then it would make sense to follow the Rust practice.
+
+There is a strong organic milestone that COMIT software hasn't yet reached: the green light to use it on mainnet.
+This _green light_ comes with a number of assumptions: recovery is possible and easy, bugs are ironed out, no known security issues, etc.
+We, CoBloX, know that COMIT is not ready for mainnet and what needs to be done to make it ready.
+
+Hence, it would make sense to keep versions at 0.Y.Z until we consider the software ready for mainnet.
+Once ready, this version would be flagged 1.0.0
+
+==== Recommendation
+
+Use 0.Y.Z versions now, starting at 0.1.0 as per Rust convention.
+
+Release 1.0.0 once we consider COMIT mainnet ready.
+
+=== Release trigger Comparison
+
+There are 2 common strategies to release:
+1. Time-bound: Release every X weeks/months/quarter
+2. Feature driven: Release once a number of interesting features are ready and stable
+
+We will review both strategies pros and cons below:
+
+.Release trigger comparison table
+[%header, cols=4]
+|===
+2+| 1. Time-bound
+2+| 2. Feature Driven
+
+|Pros
+|Cons
+|Pros
+|Cons
+
+| - Predictable (for users, for us as part of sprint planning)
+
+- Straightforward decision making
+
+- Easy to implement _release early, release often motto_
+
+
+| - Can create work overhead (focus on getting release ready)
+
+ - Can lead to complex release strategy as part of stabilisation
+
+ - May not make sense if a release does not contain any stable/new features
+
+ - Need ad-hoc releasing strategy for security bugs
+
+| - More flexibility
+
+- Can focus on meaningful releases
+
+- Less work overhead
+
+| - Decision making process needed to decide when we release (hopefully this document will help with that)
+
+- May fall in a "one more" pattern (let's merge this PR before we release, ok now this PR, etc)
+
+- Need discipline to ensure we _release early, release often_
+
+- Need to not forgot at sprint planning that we are releasing (depending on how much work it means)
+
+|===
+
+==== Recommendation
+
+Considering the current status of our software, the fact that we are pre-mainnet with scarce users, the release process should not be an added burden that creates overhead.
+For this reason, I recommend that we release feature based.
+In the next section, let's review what could be the _rule of thumbs_ of when to release.
+
+=== Metacrate version-ing (comit-rs only)
+
+The comit-rs repo contains a number of crates:
+- cnd
+- btsieve
+- vendors/*
+
+The Rust dependency graph looks like that:
+
+----
+cnd -> vendors <- btsieve
+----
+
+The functioning (due to REST APIs) dependency graph looks like that:
+----
+cnd -> vendors
+  \       ^
+   \      |
+    \-> btsieve
+----
+
+Which means that:
+- a breaking REST API change in btsieve involves updating cnd
+- a breaking lib API change in vendors involves updating cnd and/or btsieve
+
+If we were to version every subcrate, then we would need to come up with a strategy (Similar to https://github.com/testcontainers/testcontainers-rs/blob/master/RELEASING.md) to know how:
+- What is the semantic version of the sub-crates
+- How is tied to the semantic version of the meta crate comit-rs
+
+Currently comit-rs only make sense in its whole:
+
+- We do not want to consider a user that would only use a subcrate of comit-rs (ie, btsieve) at this stage.
+- If a crate makes sense by itself and should be extracted as its own crate (or contributed to an existing crate), then this should happen first before considering users of such crate
+
+==== Recommendation
+
+Coming up with a meta releasing strategy is added worked with little added value.
+Users do not import the sub-crates and use them (in comparison with test-containers) and only use comit-rs as a binary.
+
+For these reasons, I recommend to keep all sub-crate at 0.1.0 and only increase the meta crate version as a whole.
+
+
+=== Release Trigger Guidelines - Recommendation
+
+This is an attempt to consider and review what could be the reason to trigger a release.
+Inline is the author's recommendation
+
+[cols="1,1,1,2"]
+|===
+| Repo (comit-?)| Description | Triggers a release? | Reason
+
+| i/rs | Security bug fix | Yes | We don't want people to lose funds
+| i/rs | Feature that resolves a quaterly KR | Yes | Mark the achievement and consider it done
+| i/rs | Code refactoring | No | Does not bring value to the user
+| i/rs | Test improvement | No | Does not bring value to the user
+| i/rs | UX Feature | Yes | As it bring value to the user
+| rs | Breaking HTTP API Change | Yes | To force us to (hopefully) align the embedded comit-i as part of the release validation process
+| i | Adapt to comit-rs HTTP API Change | Yes | To make it easier to work on comit-rs with the embedded comit-i
+| rs | Breaking COMIT API Change | Yes | To migrate the "network" to the latest API fast and reduce the number of user using a deprecated API
+| rs | Internal API (btsieve REST API) | No | Does not bring value to the user
+| rs | CLI API | Depends | Whether it fits under the _UX Feature_ category
+| rs | Embedded comit-i | Depends | Whether the comit-i changes fits in any other categories above
+| i/rs | Any other change | Soft No | A new feature that does not fit in any category above should not trigger a release, except if the team think it should (ie, ad-hoc discussion)
+
+|===
+
+Author note: Let me know if I forgot something
+
+=== When to increment major/minor/patch number - Recommendation
+
+If a release contains several changes then we should increment the heaviest number (with patch < minor < major).
+The list below only contains elements from section <<Release Trigger Guidelines - Recommendation>> (because you don't need to think how to increment the version if you don't do a release for such change).
+
+
+[cols="1,1,1,1,2"]
+|===
+| repo (comit-?) | Change | Pre-1.0.0 | Post-1.0.0 | Comment
+
+| i/rs | Security bug fix | Patch | Patch |
+| i/rs | Feature that resolves a quaterly KR | Minor | Minor |
+| i/rs | UX Feature | Minor | Major/Minor | Team decides depending how ground-breaking the feature is, e.g, how much users will have to re-learn to use COMIT
+| i/rs | Breaking HTTP API Change | Minor | Major | If someone were to create a client on cnd, they need to know that they can upgrade minor versions without risk
+| i | Adapt to comit-rs HTTP API Change | Minor | Major |
+| rs | Breaking COMIT API Change | Minor | Major | To express non-backward compatibility between two cnd
+| rs | CLI API | Minor | Minor |
+| rs | Embedded comit-i | Minor | Major/Minor | Depending on whether the comit-i changes fits in any other categories above
+
+|===
+
+
