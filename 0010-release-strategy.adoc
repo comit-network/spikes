@@ -21,7 +21,7 @@ Scope:
 Out of scope:
 
 * Maintenance window/versions that are supported
-* What would happen if btsieve/cnd become libraries
+* What would happen if btsieve/cnd became libraries
 
 == Considerations
 
@@ -52,8 +52,8 @@ Out of scope:
 ** [x] Valgrind/memory/performance run
 * [x] If versioning phases, What is the trigger for 1.0.0?
 ** [x] When is it mainnet ready?
-* [ ] Release naming? (Ubuntu style)
-* [ ] Crate publication?
+* [x] Release naming? (Ubuntu style)
+* [x] Crate publication?
 * [x] Rust practices
 * [x] Release early, release often motto
 
@@ -63,7 +63,7 @@ Rust guidelines: https://doc.rust-lang.org/cargo/reference/manifest.html
 
 == Phasing
 
-By phasing we mean having a different version system now versus later.
+By phasing I mean having a different version schema now versus later.
 The Rust practice is to have pre-1.0.0 (0.Y.Z) and post 1.0.0 (X.Y.Z).
 
 If we were to adopt phasing then it would make sense to follow the Rust practice.
@@ -99,6 +99,7 @@ ____
 == Release trigger Comparison
 
 There are 2 common strategies to release:
+
 1. Time-bound: Release every X weeks/months/quarter
 2. Feature driven: Release once a number of interesting features are ready and stable
 
@@ -115,7 +116,7 @@ We will review both strategies pros and cons below:
 |Pros
 |Cons
 
-| - Predictable (for users, for us as part of sprint planning)
+| - Predictable (for users to know when is the next release, for us as part of sprint planning)
 
 - Straightforward decision making
 
@@ -150,11 +151,12 @@ We will review both strategies pros and cons below:
 
 Considering the current status of our software, the fact that we are pre-mainnet with scarce users, the release process should not be an added burden that creates overhead.
 For this reason, I recommend that we release feature based.
-In the next section, let's review what could be the _rule of thumbs_ of when to release.
+In <<Release Trigger Guidelines - Recommendation>>, let's review what could be the _rule of thumbs_ of when to release.
 
 == Metacrate version-ing (comit-rs only)
 
 The comit-rs repo contains a number of crates:
+
 - cnd
 - btsieve
 - vendors/*
@@ -165,7 +167,7 @@ The Rust dependency graph looks like that:
 cnd -> vendors <- btsieve
 ----
 
-The functioning (due to REST APIs) dependency graph looks like that:
+The functional (due to REST APIs) dependency graph looks like that:
 ----
 cnd -> vendors
   \       ^
@@ -174,10 +176,12 @@ cnd -> vendors
 ----
 
 Which means that:
+
 - a breaking REST API change in btsieve involves updating cnd
 - a breaking lib API change in vendors involves updating cnd and/or btsieve
 
 If we were to version every subcrate, then we would need to come up with a strategy (Similar to https://github.com/testcontainers/testcontainers-rs/blob/master/RELEASING.md) to know how:
+
 - What is the semantic version of the sub-crates
 - How is tied to the semantic version of the meta crate comit-rs
 
@@ -203,14 +207,14 @@ Inline is the author's recommendation
 |===
 | Repo (comit-?)| Description | Triggers a release? | Reason
 
-| i/rs | Security bug fix | Yes | We don't want people to lose funds
+| i/rs | Security bug fix | Yes | We don't want users to lose funds
 | i/rs | Feature that resolves a quaterly KR | Yes | Mark the achievement and consider it done
 | i/rs | Code refactoring | No | Does not bring value to the user
 | i/rs | Test improvement | No | Does not bring value to the user
 | i/rs | UX Feature | Yes | As it bring value to the user
 | rs | Breaking HTTP API Change | Yes | To force us to (hopefully) align the embedded comit-i as part of the release validation process
 | i | Adapt to comit-rs HTTP API Change | Yes | To make it easier to work on comit-rs with the embedded comit-i
-| rs | Breaking COMIT API Change | Yes | To migrate the "network" to the latest API fast and reduce the number of user using a deprecated API
+| rs | Breaking COMIT API Change | Yes | To migrate the "network" to the latest API fast and reduce the number of user using a deprecated API; To be able to easily differentiate both protocols
 | rs | Internal API (btsieve REST API) | No | Does not bring value to the user
 | rs | CLI API | Depends | Whether it fits under the _UX Feature_ category
 | rs | Embedded comit-i | Depends | Whether the comit-i changes fits in any other categories above
@@ -223,30 +227,30 @@ Author note: Let me know if I forgot something
 == When to increment major/minor/patch number - Recommendation
 
 If a release contains several changes then we should increment the heaviest number (with patch < minor < major).
-The list below only contains elements from section <<Release Trigger Guidelines - Recommendation>> (because you don't need to think how to increment the version if you don't do a release for such change).
+The list below only contains elements from section <<Release Trigger Guidelines - Recommendation>> (because you don't need to increment the version if you don't do a release for such change).
 
 
 [cols="1,1,1,1,2"]
 |===
 | repo (comit-?) | Change | Pre-1.0.0 | Post-1.0.0 | Comment
 
-| i/rs | Security bug fix | Patch | Patch |
-| i/rs | Feature that resolves a quaterly KR | Minor | Minor |
+| i/rs | Security bug fix | Patch | Patch | As per standard guidelines
+| i/rs | Feature that resolves a quaterly KR | Minor | Minor | Except if it fits in another category
 | i/rs | UX Feature | Minor | Major/Minor | Team decides depending how ground-breaking the feature is, e.g, how much users will have to re-learn to use COMIT
 | i/rs | Breaking HTTP API Change | Minor | Major | If someone were to create a client on cnd, they need to know that they can upgrade minor versions without risk
 | i | Adapt to comit-rs HTTP API Change | Minor | Major |
 | rs | Breaking COMIT API Change | Minor | Major | To express non-backward compatibility between two cnd
-| rs | CLI API | Minor | Minor |
+| rs | Breaking CLI API | Minor | Major | While this is unlikely to happen, you don't want user to discover that their systemd scripts are broken by surprise
 | rs | Embedded comit-i | Minor | Major/Minor | Depending on whether the comit-i changes fits in any other categories above
 
 |===
 
 == Validation
 
-As part of the release process we could run a number of validation steps, in addition to the CI run done at each PR, before releasing.
+As part of the release process we could run a number of validation steps before releasng, in addition to the CI run done at each PR merge.
 If any of the steps were to fail then a decision would need to be made: release anyway, fix urgently, or fix non-urgently.
 
-We will review a number of validation steps that could be added and then review what strategy should be employed we do decide to have validation steps.
+We will review a number of validation steps that could be added and then review what strategy should be employed if we do decide to have validation steps.
 
 I was not able to come up with extra validation steps for comit-i so everything below is for comit-rs.
 
@@ -267,6 +271,15 @@ Steps:
 * e2e Typescript check
 * Rust tests on debug build
 * e2e tests on debug build
+
+=== Run CI on master
+
+Currently, Circle CI only runs the tests on the branch to merge and not on the branch merged against master.
+Which means that we could end up with a broken build on  master
+
+==== Recommendation
+
+Due to the reason above, a CI run on master should be done before releasing.
 
 === Validation against release build
 
@@ -294,10 +307,10 @@ Due the fact that we encountered issues in the past, I would recommend that we i
 The comit-i CI run is done against stubs of the cnd HTTP API.
 Hence, it does not provides any guarantee that comit-i is fully compatible with any version of cnd (master or otherwise).
 
-In comit-rs CI run, only the fact that comit-i is actually embedded is tested.
+In the comit-rs CI run, only the fact that comit-i is actually embedded and served is tested.
 There are no functional test done on comit-i.
 
-There is several possibility to ensure that the embedded comit-i is compatible with cnd:
+There are several possibilities to ensure that the embedded comit-i is compatible with cnd:
 
 |===
 | Description | Pros | Cons
@@ -308,14 +321,18 @@ There is several possibility to ensure that the embedded comit-i is compatible w
 
 | 2. Add comit-i tests as part of comit-rs CI
 | No time spent at release time, little manual intervention once setup is done
-| Need to manage: the possible duplication of tests between comit-i and comit-rs CI, breaking change on cnd HTTP API
+| Need to manage:
+
+* the possible duplication of tests between comit-i and comit-rs CI
+
+* breaking change on cnd HTTP API
 
 | 3. Do 1. but locally, meaning that comit-i tests are run against cnd instead of some stubs
 | Not as heavy than 1 & 2
 | Needs to do some scripting to make it easy enough (if possible)
 
 | 4. Run manual test
-| Simpler than trying to hack the test frameworks
+| Simpler than trying to hack the test frameworks/Make the CI runs longer/more brittle
 | It is a manual and heavy step at release time
 
 | 5. Do heavy JSON/API contract validation as part of both CI, meaning all cnd API responses and all comit-i stubs are validated as part of the CI. The schema/contract should be hosted in a separate common repo to avoid discrepancies/mistakes.
@@ -329,9 +346,11 @@ This is a difficult one that would need a team discussion in any case.
 I think we should look into 5. as a first step, this should help avoid most bugs.
 Once we reach a level of complexity where more validation is needed, we could review.
 
+Please note I recommend 4. as part of the <<Testnet swap>> (contradicting myself on purpose).
+
 === Profiling & fuzz testing
 
-The following performance checks could be added where a high number of swaps are being handled at the same time:
+The following performance checks could be added where a high number of swaps are being injected:
 
 - Memory performance (& leaking but may not be applicable to Rust)
 - CPU performance (ie, CPU usage)
@@ -340,14 +359,15 @@ The following performance checks could be added where a high number of swaps are
 
 ==== Recommendation
 
-This topic should be discussed in a dedicated forum where we could decide whether it should be part of the PR CI or pre-release validation
+This topic should be discussed in a dedicated forum where we could decide whether it should be part of the PR CI or pre-release validation.
+As part of this spike resolution we could open an issue and start to track it.
 
 === Testnet swap
 
 Perform a testnet swap:
 
-- With 2 or more assets, directions
-- With our without refund
+- With 2 or more assets, one or both directions
+- With or without refund
 
 There has been some unexpect different of behaviour between mainnet and https://github.com/comit-network/comit-rs/issues/762[regtest] with bitcoind.
 Doing such check would allow to avoid such issues.
@@ -363,6 +383,16 @@ While it would be interesting to be able to run the end-to-end tests against tes
 
 Hence, I recommend we do a testnet swap using comit-i.
 Knowing that it should not be too hard if we just used our testnet bobtimus (and connect to the same testnet nodes).
+The test should be exhaustive enough to cover all existing assets (e.g, ETH->BTC and BTC->ERC20 is enough) for both redeem and refund.
+
+Ideally, we should rotate (one release we do ETH->BTC, BTC->ERC20 and the next time BTC-ETH, ERC20->BTC).
+
+The release candidate should be used on bobtimus side.
+At this stage, I would not consider necessary to test the release candidate with the previous release. This could be reviewed post-1.0.0.
+
+=== Stabilisation strategy
+
+TODO
 
 == Release naming
 
@@ -385,7 +415,7 @@ Because we intend to provide binary releases, then there would be no added value
 
 ==== vendor crates
 
-There is an [ongoing/future effort]https://github.com/comit-network/comit-rs/issues/626 to remove the vendor crates by either:
+There is an https://github.com/comit-network/comit-rs/issues/626[ongoing/future effort] to remove the vendor crates by either:
 
 1. contributing code back to relevant existing crates (e.g. bitcoin_support to rust-bitcoin)
 2. moving the code back into the binary crate (cnd/btsieve)
