@@ -42,7 +42,7 @@ Out of scope:
 ** [x] Embedded comit-i version upgrade
 ** [x] security bugs
 ** [x] "major features"
-* [ ]  What validation should be do before releasing? e.g.:
+* [x]  What validation should be do before releasing? e.g.:
 ** [x] No added validation
 ** [x] Run release binaries against e2e test suite
 ** [x] Run other platforms (not supported by CI such as Mac OS or Windows) against e2e test suite
@@ -57,13 +57,11 @@ Out of scope:
 * [x] Rust practices
 * [x] Release early, release often motto
 
-== Research
-
-=== Documentation
+== Documentation
 
 Rust guidelines: https://doc.rust-lang.org/cargo/reference/manifest.html
 
-=== Phasing
+== Phasing
 
 By phasing we mean having a different version system now versus later.
 The Rust practice is to have pre-1.0.0 (0.Y.Z) and post 1.0.0 (X.Y.Z).
@@ -77,13 +75,13 @@ We, CoBloX, know that COMIT is not ready for mainnet and what needs to be done t
 Hence, it would make sense to keep versions at 0.Y.Z until we consider the software ready for mainnet.
 Once ready, this version would be flagged 1.0.0
 
-==== Recommendation
+=== Recommendation
 
 Use 0.Y.Z versions now, starting at 0.1.0 as per Rust convention.
 
 Release 1.0.0 once we consider COMIT mainnet ready.
 
-=== When is mainnet ready?
+== When is mainnet ready? - Recommendation
 
 The previous <<Phasing,Recommendation>> suggest that we should move to 1.0.0 once comit-rs is mainnet ready.
 
@@ -98,7 +96,7 @@ We are not aware of any issue that would lead a user to lose their funds and hav
 ____
 
 
-=== Release trigger Comparison
+== Release trigger Comparison
 
 There are 2 common strategies to release:
 1. Time-bound: Release every X weeks/months/quarter
@@ -148,13 +146,13 @@ We will review both strategies pros and cons below:
 
 |===
 
-==== Recommendation
+=== Recommendation
 
 Considering the current status of our software, the fact that we are pre-mainnet with scarce users, the release process should not be an added burden that creates overhead.
 For this reason, I recommend that we release feature based.
 In the next section, let's review what could be the _rule of thumbs_ of when to release.
 
-=== Metacrate version-ing (comit-rs only)
+== Metacrate version-ing (comit-rs only)
 
 The comit-rs repo contains a number of crates:
 - cnd
@@ -188,7 +186,7 @@ Currently comit-rs only make sense in its whole:
 - We do not want to consider a user that would only use a subcrate of comit-rs (ie, btsieve) at this stage.
 - If a crate makes sense by itself and should be extracted as its own crate (or contributed to an existing crate), then this should happen first before considering users of such crate
 
-==== Recommendation
+=== Recommendation
 
 Coming up with a meta releasing strategy is added worked with little added value.
 Users do not import the sub-crates and use them (in comparison with test-containers) and only use comit-rs as a binary.
@@ -196,7 +194,7 @@ Users do not import the sub-crates and use them (in comparison with test-contain
 For these reasons, I recommend to keep all sub-crate at 0.1.0 and only increase the meta crate version as a whole.
 
 
-=== Release Trigger Guidelines - Recommendation
+== Release Trigger Guidelines - Recommendation
 
 This is an attempt to consider and review what could be the reason to trigger a release.
 Inline is the author's recommendation
@@ -222,7 +220,7 @@ Inline is the author's recommendation
 
 Author note: Let me know if I forgot something
 
-=== When to increment major/minor/patch number - Recommendation
+== When to increment major/minor/patch number - Recommendation
 
 If a release contains several changes then we should increment the heaviest number (with patch < minor < major).
 The list below only contains elements from section <<Release Trigger Guidelines - Recommendation>> (because you don't need to think how to increment the version if you don't do a release for such change).
@@ -243,7 +241,7 @@ The list below only contains elements from section <<Release Trigger Guidelines 
 
 |===
 
-=== Validation
+== Validation
 
 As part of the release process we could run a number of validation steps, in addition to the CI run done at each PR, before releasing.
 If any of the steps were to fail then a decision would need to be made: release anyway, fix urgently, or fix non-urgently.
@@ -270,28 +268,28 @@ Steps:
 * Rust tests on debug build
 * e2e tests on debug build
 
-==== Validation against release build
+=== Validation against release build
 
 Currently, all tests are done against the debug build, the default `cargo build`.
 It could be of value to run the e2e test suite against the release build to ensure that the behaviour is as expected.
 
-===== Recommendation
+==== Recommendation
 
 Considering that, except for tests, there are no attributes in the code base that implement a given behaviour for a specific type of build only, this could be considered redundant.
 Hence, I would suggest we do not include this to the pre-release validation.
 
-==== Validation against non-Linux build
+=== Validation against non-Linux build
 
 Currently, the CI is ran against a Linux environment.
 However, we aim to support both Mac OS and Linux platform.
 
 https://github.com/comit-network/comit-rs/issues/925[In the past], there has been issues specific to Mac due the difference on the network layer.
 
-===== Recommendation
+==== Recommendation
 
 Due the fact that we encountered issues in the past, I would recommend that we include a full run (Rust tests and e2e tests) on a Mac OS platform before proceeding with a release.
 
-==== Validation of embedded comit-i compatibility
+=== Validation of embedded comit-i compatibility
 
 The comit-i CI run is done against stubs of the cnd HTTP API.
 Hence, it does not provides any guarantee that comit-i is fully compatible with any version of cnd (master or otherwise).
@@ -325,13 +323,13 @@ There is several possibility to ensure that the embedded comit-i is compatible w
 | Does not provide all guarantees
 |===
 
-===== Recommendation
+==== Recommendation
 
 This is a difficult one that would need a team discussion in any case.
 I think we should look into 5. as a first step, this should help avoid most bugs.
 Once we reach a level of complexity where more validation is needed, we could review.
 
-==== Profiling & fuzz testing
+=== Profiling & fuzz testing
 
 The following performance checks could be added where a high number of swaps are being handled at the same time:
 
@@ -340,11 +338,11 @@ The following performance checks could be added where a high number of swaps are
 - Speed performance: taking in account specific resources limits (disk I/O, available cpu & memory)
 - Fuzz testing (of the exposed APIs being cnd HTTP and COMIT)
 
-===== Recommendation
+==== Recommendation
 
 This topic should be discussed in a dedicated forum where we could decide whether it should be part of the PR CI or pre-release validation
 
-==== Testnet swap
+=== Testnet swap
 
 Perform a testnet swap:
 
@@ -359,9 +357,38 @@ It would also force us to use our software and iron out/notice any UX issue with
 
 The test could also be automated by slightly changing our e2e tests and using testnet nodes instead of regtest/dev nodes as part of the pre-release validation.
 
-===== Recommendation
+==== Recommendation
 
 While it would be interesting to be able to run the end-to-end tests against testnet/dev nodes, I think that there is a number of other advantage to run this manually: confirm comit-i compatibility and test our UX.
 
 Hence, I recommend we do a testnet swap using comit-i.
 Knowing that it should not be too hard if we just used our testnet bobtimus (and connect to the same testnet nodes).
+
+== Release naming
+
+Some software (e.g. Ubuntu) name their release to make it easier to refer to them.
+
+=== Recommendation
+
+In the case of comit-rs, as we would not want/expect to have too many releases living in the ecosystem at the same time I think this practice would be futile.
+
+== Publishing on crates.io
+
+In the Rust ecosystem, it is possible to publish crates to crates.io (or other repository) to allow other users to finally access those crates (and use them as part of their software).
+
+=== Recommendation
+
+==== cnd & btsieve
+
+cnd & btsieve are binary and hence it is not expected for other developers to add them to their project dependencies.
+Because we intend to provide binary releases, then there would be no added value to publish these crates to crates.io
+
+==== vendor crates
+
+There is an [ongoing/future effort]https://github.com/comit-network/comit-rs/issues/626 to remove the vendor crates by either:
+
+1. contributing code back to relevant existing crates (e.g. bitcoin_support to rust-bitcoin)
+2. moving the code back into the binary crate (cnd/btsieve)
+3. considering the crate as a valid standalone library and move it to its own repo (e.g. blockchain_contracts)
+
+Because of this, I think each vendor should be reviewed separately and the crates that fit 3. can be published to crates.io once they are in their own repo.
