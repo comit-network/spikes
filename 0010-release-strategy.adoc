@@ -438,6 +438,43 @@ By Stabilisation I mean, wwhat should we do if we found a bug as part of the val
 
 I recommend 4. (the pros and cons are already in the table) :)
 
+=== Releasing actions
+
+What should actually happen when releasing? Let's list below (I love tables)
+
+[cols="1,2"]
+|===
+|What |Why
+
+| Do the release validation
+| See <<Validation>>
+
+| Git tag the commit
+| Fits GitHub workflow, allow to checkout given tag to compile ourselves or investigate reported bugs or use a stable version when working on/with a client
+
+| Do a GitHub Release
+| Makes it easy to find the releases
+
+| Hook to create binaries and attach them to GitHub Release
+| Makes it easy to manage binary releases
+
+| Crawl PRs since last merge and create a changelog
+| Changelogs are good
+
+| Tweet about the release
+| Why creating a changelog if nobody reads it
+
+| Mention it in the next blog post
+| Ditto.
+
+| Drink 🍾
+| Celebrations are important
+|===
+
+==== Recommendation
+
+Do it all.
+
 == Release naming
 
 Some software (e.g. Ubuntu) name their release to make it easier to refer to them.
