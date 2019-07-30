@@ -392,7 +392,51 @@ At this stage, I would not consider necessary to test the release candidate with
 
 === Stabilisation strategy
 
-TODO
+By Stabilisation I mean, wwhat should we do if we found a bug as part of the validation process? We could agree now on a rule of thumb on how to deal with such bug:
+
+
+|===
+| Strategy | Pros | Cons
+
+| 1. The blocking issue is flagged as a bug and hence need to be done next sprint, release is halted until it's fixed
+| * Simple and straightforward handling
+
+* Fits our current process
+| * Delays release
+
+* Risk of introducing more bugs until the blocking bug is fixed
+
+| 2. The blocking issue is flagged as a bug and breaks the current sprint scope, release is halted until it's fixed
+| * Simple and straightforward handling
+
+* Faster release than 1.
+
+* Less chance to introduce more bugs than 1.
+| * Delay release
+
+* Still Risk of introducing more bugs until the blocking bug is fixed
+| 3. Same than 2. but no other PR can be merged before the bug is fixed and release done
+| * Faster release than 1 & 2.
+
+* Totally remove the chance of more changes slowing done the release
+| * Impact all devs (frustrating)
+
+* Jeopardize sprint work commitment
+
+| 4. If there is a blocking bug, a candidate branch is created where the bug fix will be pushed and from which the release will be done
+| Same efficiency than 3 but none of the cons
+| * Creates some overhead
+
+* Create risk of forgetting to push the bug fix to master
+
+| 5. Same than 4 but a candidate release branch is always created
+| * Consistent approach, more straightforward and clear for the team
+| * Always added overhead
+|===
+
+==== Recommendation
+
+I recommend 4. (the pros and cons are already in the table) :)
 
 == Release naming
 
