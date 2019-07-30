@@ -15,13 +15,13 @@ Tracking issue: https://github.com/comit-network/comit-rs/issues/1050[#1050]
 
 Scope:
 
- - comit-rs repo (cnd and btsieve)
- - comit-i repo
+* comit-rs repo (cnd and btsieve)
+* comit-i repo
 
 Out of scope:
 
-- Maintenance window/versions that are supported
-- What would happen if btsieve/cnd become libraries
+* Maintenance window/versions that are supported
+* What would happen if btsieve/cnd become libraries
 
 == Considerations
 
@@ -43,18 +43,18 @@ Out of scope:
 ** [x] security bugs
 ** [x] "major features"
 * [ ]  What validation should be do before releasing? e.g.:
-** [ ] No added validatio
-** [ ] Run release binaries against e2e test suite
-** [ ] Run other platforms (not supported by CI such as Mac OS or Windows) against e2e test suite
-** [ ] Embed (release) latest comit-i
-** [ ] comit-i/comit-rs full compatibility (manual or automated checks)
-** [ ] do a testnet swap
-** [ ] Valgrind/memory/performance run
-* [ ] If versioning phases, What is the trigger for 1.0.0?
-** [ ] When it is mainnet ready?
+** [x] No added validation
+** [x] Run release binaries against e2e test suite
+** [x] Run other platforms (not supported by CI such as Mac OS or Windows) against e2e test suite
+** [x] Embed (release) latest comit-i
+** [x] comit-i/comit-rs full compatibility (manual or automated checks)
+** [x] do a testnet swap
+** [x] Valgrind/memory/performance run
+* [x] If versioning phases, What is the trigger for 1.0.0?
+** [x] When is it mainnet ready?
 * [ ] Release naming? (Ubuntu style)
 * [ ] Crate publication?
-* [ ] Rust practices
+* [x] Rust practices
 * [x] Release early, release often motto
 
 == Research
@@ -82,6 +82,21 @@ Once ready, this version would be flagged 1.0.0
 Use 0.Y.Z versions now, starting at 0.1.0 as per Rust convention.
 
 Release 1.0.0 once we consider COMIT mainnet ready.
+
+=== When is mainnet ready?
+
+The previous <<Phasing,Recommendation>> suggest that we should move to 1.0.0 once comit-rs is mainnet ready.
+
+While I do not think this document should dictate when we must consider comit-rs _mainnet ready_, I thought it would feel incomplete if it were not mentioned at all.
+
+The team consensus seems to be that comit-rs is mainnet ready once this it becomes _unlikely_ that a user would lose funds using it.
+
+I would define _unlikely_ by saying that:
+
+____
+We are not aware of any issue that would lead a user to lose their funds and have taken a number of steps (tests, recovery strategy) to ensure that what we don't know cannot lead to fund loss.
+____
+
 
 === Release trigger Comparison
 
@@ -228,4 +243,125 @@ The list below only contains elements from section <<Release Trigger Guidelines 
 
 |===
 
+=== Validation
 
+As part of the release process we could run a number of validation steps, in addition to the CI run done at each PR, before releasing.
+If any of the steps were to fail then a decision would need to be made: release anyway, fix urgently, or fix non-urgently.
+
+We will review a number of validation steps that could be added and then review what strategy should be employed we do decide to have validation steps.
+
+I was not able to come up with extra validation steps for comit-i so everything below is for comit-rs.
+
+To help understanding the validation steps, below is a summary of what is already validated by the CI before each PR merge.
+
+Conditions:
+
+* CI is run against the PR branch (not against the branch merged in master, so master could still fail)
+* CI is run on Linux environment
+
+Steps:
+
+* Rust format check
+* Cargo.toml format check
+* Rust compilation
+* Rust linter (clippy)
+* e2e Typescript format
+* e2e Typescript check
+* Rust tests on debug build
+* e2e tests on debug build
+
+==== Validation against release build
+
+Currently, all tests are done against the debug build, the default `cargo build`.
+It could be of value to run the e2e test suite against the release build to ensure that the behaviour is as expected.
+
+===== Recommendation
+
+Considering that, except for tests, there are no attributes in the code base that implement a given behaviour for a specific type of build only, this could be considered redundant.
+Hence, I would suggest we do not include this to the pre-release validation.
+
+==== Validation against non-Linux build
+
+Currently, the CI is ran against a Linux environment.
+However, we aim to support both Mac OS and Linux platform.
+
+https://github.com/comit-network/comit-rs/issues/925[In the past], there has been issues specific to Mac due the difference on the network layer.
+
+===== Recommendation
+
+Due the fact that we encountered issues in the past, I would recommend that we include a full run (Rust tests and e2e tests) on a Mac OS platform before proceeding with a release.
+
+==== Validation of embedded comit-i compatibility
+
+The comit-i CI run is done against stubs of the cnd HTTP API.
+Hence, it does not provides any guarantee that comit-i is fully compatible with any version of cnd (master or otherwise).
+
+In comit-rs CI run, only the fact that comit-i is actually embedded is tested.
+There are no functional test done on comit-i.
+
+There is several possibility to ensure that the embedded comit-i is compatible with cnd:
+
+|===
+| Description | Pros | Cons
+
+| 1. Add tests against cnd as part of comit-i CI
+| No time spent at release time, little manual intervention once setup is done
+| Need to add the full (blockchain nodes, btsieve, etc) comit-rs setup as part of comit-i CI
+
+| 2. Add comit-i tests as part of comit-rs CI
+| No time spent at release time, little manual intervention once setup is done
+| Need to manage: the possible duplication of tests between comit-i and comit-rs CI, breaking change on cnd HTTP API
+
+| 3. Do 1. but locally, meaning that comit-i tests are run against cnd instead of some stubs
+| Not as heavy than 1 & 2
+| Needs to do some scripting to make it easy enough (if possible)
+
+| 4. Run manual test
+| Simpler than trying to hack the test frameworks
+| It is a manual and heavy step at release time
+
+| 5. Do heavy JSON/API contract validation as part of both CI, meaning all cnd API responses and all comit-i stubs are validated as part of the CI. The schema/contract should be hosted in a separate common repo to avoid discrepancies/mistakes.
+| Correct way to do testing, not bending frameworks, should not be too hard
+| Does not provide all guarantees
+|===
+
+===== Recommendation
+
+This is a difficult one that would need a team discussion in any case.
+I think we should look into 5. as a first step, this should help avoid most bugs.
+Once we reach a level of complexity where more validation is needed, we could review.
+
+==== Profiling & fuzz testing
+
+The following performance checks could be added where a high number of swaps are being handled at the same time:
+
+- Memory performance (& leaking but may not be applicable to Rust)
+- CPU performance (ie, CPU usage)
+- Speed performance: taking in account specific resources limits (disk I/O, available cpu & memory)
+- Fuzz testing (of the exposed APIs being cnd HTTP and COMIT)
+
+===== Recommendation
+
+This topic should be discussed in a dedicated forum where we could decide whether it should be part of the PR CI or pre-release validation
+
+==== Testnet swap
+
+Perform a testnet swap:
+
+- With 2 or more assets, directions
+- With our without refund
+
+There has been some unexpect different of behaviour between mainnet and https://github.com/comit-network/comit-rs/issues/762[regtest] with bitcoind.
+Doing such check would allow to avoid such issues.
+Moreover, this can be a _two birds, one stone_ practice if we were to use comit-i as part of this process (see <<Validation of embedded comit-i compatibility>>).
+
+It would also force us to use our software and iron out/notice any UX issue with it.
+
+The test could also be automated by slightly changing our e2e tests and using testnet nodes instead of regtest/dev nodes as part of the pre-release validation.
+
+===== Recommendation
+
+While it would be interesting to be able to run the end-to-end tests against testnet/dev nodes, I think that there is a number of other advantage to run this manually: confirm comit-i compatibility and test our UX.
+
+Hence, I recommend we do a testnet swap using comit-i.
+Knowing that it should not be too hard if we just used our testnet bobtimus (and connect to the same testnet nodes).
