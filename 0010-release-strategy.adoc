@@ -395,7 +395,7 @@ At this stage, I would not consider necessary to test the release candidate with
 
 === Stabilisation strategy
 
-By Stabilisation I mean, wwhat should we do if we found a bug as part of the validation process? We could agree now on a rule of thumb on how to deal with such bug:
+By Stabilisation I mean, what should we do if we found a bug as part of the validation process? We could agree now on a rule of thumb on how to deal with such bug:
 
 
 |===
