@@ -212,6 +212,7 @@ Inline is the author's recommendation
 | i/rs | Security bug fix | Yes | We don't want users to lose funds
 | i/rs | Feature that resolves a quaterly KR | Yes | Mark the achievement and consider it done
 | i/rs | Code refactoring | No | Does not bring value to the user
+| rs | Rust API breaking change | No | This is a binary crate hence nobody is supposed to use our Rust API
 | i/rs | Test improvement | No | Does not bring value to the user
 | i/rs | UX Feature | Yes | As it bring value to the user
 | rs | Breaking HTTP API Change | Yes | To force us to (hopefully) align the embedded comit-i as part of the release validation process
