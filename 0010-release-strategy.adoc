@@ -108,23 +108,15 @@ There are 2 common strategies to release:
 We will review both strategies pros and cons below:
 
 .Release trigger comparison table
-[%header, cols=4]
 |===
-2+| 1. Time-bound
-2+| 2. Feature Driven
+|Strategy | Pros | Cons
 
-|Pros
-|Cons
-|Pros
-|Cons
-
+|Time-bound
 | - Predictable (for users to know when is the next release, for us as part of sprint planning)
 
 - Straightforward decision making
 
 - Easy to implement _release early, release often motto_
-
-
 | - Can create work overhead (focus on getting release ready)
 
  - Can lead to complex release strategy as part of stabilisation
@@ -133,6 +125,7 @@ We will review both strategies pros and cons below:
 
  - Need ad-hoc releasing strategy for security bugs
 
+| Feature Driven
 | - More flexibility
 
 - Can focus on meaningful releases
@@ -146,7 +139,6 @@ We will review both strategies pros and cons below:
 - Need discipline to ensure we _release early, release often_
 
 - Need to not forgot at sprint planning that we are releasing (depending on how much work it means)
-
 |===
 
 === Recommendation
