@@ -9,7 +9,8 @@ Tracking issue: https://github.com/comit-network/comit-rs/issues/1050[#1050]
 
 == Context
 
-[Short description of the context]
+As part of our quaterly OKRs we aimed to provide binary releases of comit-rs (cnd & btsieve).
+This means that we need to version our releases and because we like to put thoughts into things, here's a spike about it.
 
 == Scope
 
@@ -60,6 +61,7 @@ Out of scope:
 == Documentation
 
 Rust guidelines: https://doc.rust-lang.org/cargo/reference/manifest.html
+Semantic versioning: https://semver.org/
 
 == Phasing
 
