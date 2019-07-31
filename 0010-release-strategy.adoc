@@ -160,7 +160,7 @@ Considering the current status of our software, the fact that we are pre-mainnet
 For this reason, I recommend that we release feature based.
 In <<Release Trigger Guidelines - Recommendation>>, let's review what could be the _rule of thumbs_ of when to release.
 
-== Metacrate version-ing (comit-rs only)
+== Handle multi-crate version-ing (comit-rs only)
 
 The comit-rs repo contains a number of crates:
 
@@ -184,25 +184,33 @@ cnd -> vendors
 
 Which means that:
 
-- a breaking REST API change in btsieve involves updating cnd
-- a breaking lib API change in vendors involves updating cnd and/or btsieve
+* a breaking REST API change in btsieve involves updating cnd
+* a breaking lib API change in vendors involves updating cnd and/or btsieve
 
-If we were to version every subcrate, then we would need to come up with a strategy (Similar to https://github.com/testcontainers/testcontainers-rs/blob/master/RELEASING.md) to know how:
-
-- What is the semantic version of the sub-crates
-- How is tied to the semantic version of the meta crate comit-rs
-
-Currently comit-rs only make sense in its whole:
-
-- We do not want to consider a user that would only use a subcrate of comit-rs (ie, btsieve) at this stage.
-- If a crate makes sense by itself and should be extracted as its own crate (or contributed to an existing crate), then this should happen first before considering users of such crate
+1. If we were to version every crate, then we would need to come up with a strategy (Similar to https://github.com/testcontainers/testcontainers-rs/blob/master/RELEASING.md) to know how:
+** What is the semantic version of the sub-crates;
+** How is tied to the semantic version of the meta crate comit-rs.
+2. If we only consider comit-rs has a whole:
+** We would not need to worry about managing dependency between crates (e.g, ensuring that users use cnd version 0.5.0 with btsieve 0.6.0 or above);
+** vendor crates that make sense own their own can have their own version once they are in their own repo.
+3. If we were to not version vendor crate but only version cnd and btsieve crates:
+** Not as complex as versioning all crates;
+** Still a bit awkward around releasing comit-rs: we would actually release cnd or btsieve that would have their own version or tags;
+** We would end up releasing a version of btsieve that does not have a compatible cnd yet (if we break the http API);
+The positive effect is that we would not need to wait for a change to be in cnd to release it (and consider it done) in btsieve.
+** We may consider doing version check-ing as part of cnd start up by ending an endpoint on btsieve side that expose the version and checking at cnd start that a compatible version of btsieve is used;
+** We may consider attaching a compatible btsieve binary at each cnd release (and this could even be automated based on the previous point)
 
 === Recommendation
 
-Coming up with a meta releasing strategy is added worked with little added value.
-Users do not import the sub-crates and use them (in comparison with test-containers) and only use comit-rs as a binary.
+Coming up with a releasing strategy that takes all crates (including vendor) in consideration is added work with little added value.
+Users do not import the sub-crates and use them (in comparison with test-containers) and only use comit-rs as two binaries.
 
-For these reasons, I recommend to keep all sub-crate at 0.1.0 and only increase the meta crate version as a whole.
+After reconsideration, strategy 3 may provide the best of both world: a versioning system that makes sense (each binary as it's own version) and a lightweight to still manage dependency across versions.
+
+For strategy 3., if btsieve were to because a library used by cnd, then we would only need to continue cnd versioning as it is and stop binary release for btsieve that can continue its own version path in its own repo.
+
+Hence, I recommend strategy 3: version cnd and btsieve separately and keen vendor crates at 0.1.0.
 
 
 == Release Trigger Guidelines - Recommendation
