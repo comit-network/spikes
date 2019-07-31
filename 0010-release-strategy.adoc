@@ -308,7 +308,7 @@ Due the fact that we encountered issues in the past, I would recommend that we i
 === Validation of embedded comit-i compatibility
 
 The comit-i CI run is done against stubs of the cnd HTTP API.
-Hence, it does not provides any guarantee that comit-i is fully compatible with any version of cnd (master or otherwise).
+Hence, it does not provide any guarantee that comit-i is fully compatible with any version of cnd (master or otherwise).
 
 In the comit-rs CI run, only the fact that comit-i is actually embedded and served is tested.
 There are no functional test done on comit-i.
