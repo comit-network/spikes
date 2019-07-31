@@ -104,14 +104,18 @@ There are 2 common strategies to release:
 
 1. Time-bound: Release every X weeks/months/quarter
 2. Feature driven: Release once a number of interesting features are ready and stable
+3. Hybrid (based on https://github.com/comit-network/spikes/pull/26#issuecomment-516635115[Tobin's comment]): Each PR that implements a feature worth release bumps the version number as it should (as per 2.).
+However, binary/GitHub releases is only done on a pre-defined frequence (as per 1.).
+The version in the code could be considered as a _release candidate_ version until a version is chosen for a release.
+In this case, it is likely that a number of versions are never released (e.g. in the code we go 0.1.0, 0.2.0, 0.2.1, 0.3.0 and then release 0.3.0 because it's time).
 
-We will review both strategies pros and cons below:
+We will review all strategies pros and cons below:
 
 .Release trigger comparison table
 |===
 |Strategy | Pros | Cons
 
-|Time-bound
+|1. Time-bound
 | - Predictable (for users to know when is the next release, for us as part of sprint planning)
 
 - Straightforward decision making
@@ -125,7 +129,7 @@ We will review both strategies pros and cons below:
 
  - Need ad-hoc releasing strategy for security bugs
 
-| Feature Driven
+| 2. Feature Driven
 | - More flexibility
 
 - Can focus on meaningful releases
@@ -139,6 +143,15 @@ We will review both strategies pros and cons below:
 - Need discipline to ensure we _release early, release often_
 
 - Need to not forgot at sprint planning that we are releasing (depending on how much work it means)
+
+| 3. Hybrid
+| - All 1. Pros
+
+- Slightly less overhead than 1. as it is should be easy to extract the changelog (all PRs that bump the version)
+
+| - Still difficult to decide a good frequency (too often and we will skip releases, not often enough and the validation may fail)
+
+-  The time-based frequency make it so that it could be bad timing (middle of a big change) meaning that we would need to decide whether we tag (and validate) an older or postpone the release
 |===
 
 === Recommendation
