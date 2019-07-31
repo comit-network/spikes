@@ -260,7 +260,7 @@ Author's note: This table only contain the "Yes" and "Depends" values of the <<t
 
 == Validation
 
-As part of the release process we could run a number of validation steps before releasng, in addition to the CI run done at each PR merge.
+As part of the release process we could run a number of validation steps before releasing, in addition to the CI run done at each PR merge.
 If any of the steps were to fail then a decision would need to be made: release anyway, fix urgently, or fix non-urgently.
 
 We will review a number of validation steps that could be added and then review what strategy should be employed if we do decide to have validation steps.
@@ -284,6 +284,9 @@ Steps:
 * e2e Typescript check
 * Rust tests on debug build
 * e2e tests on debug build
+
+Note that some validation could be make conditional on what is bumped (ie, only do such or such validation for major version increment).
+At this stage, I do not recommend to do any conditional validation and hence do not mention it in my recommendations.
 
 === Run CI on master
 
