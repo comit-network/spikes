@@ -205,6 +205,8 @@ For these reasons, I recommend to keep all sub-crate at 0.1.0 and only increase 
 This is an attempt to consider and review what could be the reason to trigger a release.
 Inline is the author's recommendation
 
+[[table-anchor-1]]
+.What should trigger a release
 [cols="1,1,1,2"]
 |===
 | Repo (comit-?)| Description | Triggers a release? | Reason
@@ -225,7 +227,13 @@ Inline is the author's recommendation
 
 |===
 
-Author note: Let me know if I forgot something
+Author's note:
+
+* Let me know if I forgot something
+* Be sure to spend sometimes looking at the table above and think on how it would look like.
+The main driver is the "resolve a quaterly Key Result" (not the whole OKR, just one of the KR).
+If we end up accumulating a lot of changes then it means that we may not be working towards our OKR as efficiently as we should.
+If we do end up releasing every day then maybe we should be more clever and time efficient.
 
 == When to increment major/minor/patch number - Recommendation
 
@@ -247,6 +255,8 @@ The list below only contains elements from section <<Release Trigger Guidelines 
 | rs | Embedded comit-i | Minor | Major/Minor | Depending on whether the comit-i changes fits in any other categories above
 
 |===
+
+Author's note: This table only contain the "Yes" and "Depends" values of the <<table-anchor-1,previous table>>.
 
 == Validation
 
