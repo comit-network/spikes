@@ -105,7 +105,7 @@ There are 2 common strategies to release:
 1. Time-bound: Release every X weeks/months/quarter
 2. Feature driven: Release once a number of interesting features are ready and stable
 3. Hybrid (based on https://github.com/comit-network/spikes/pull/26#issuecomment-516635115[Tobin's comment]): Each PR that implements a feature worth release bumps the version number as it should (as per 2.).
-However, binary/GitHub releases is only done on a pre-defined frequence (as per 1.).
+However, binary/GitHub releases are only done on a pre-defined frequency (as per 1.).
 The version in the code could be considered as a _release candidate_ version until a version is chosen for a release.
 In this case, it is likely that a number of versions are never released (e.g. in the code we go 0.1.0, 0.2.0, 0.2.1, 0.3.0 and then release 0.3.0 because it's time).
 
@@ -187,12 +187,12 @@ Which means that:
 * a breaking REST API change in btsieve involves updating cnd
 * a breaking lib API change in vendors involves updating cnd and/or btsieve
 
-1. If we were to version every crate, then we would need to come up with a strategy (Similar to https://github.com/testcontainers/testcontainers-rs/blob/master/RELEASING.md) to know how:
+1. If we were to version every crate, then we would need to come up with a strategy (Similar to https://github.com/testcontainers/testcontainers-rs/blob/master/RELEASING.md) to know:
 ** What is the semantic version of the sub-crates;
-** How is tied to the semantic version of the meta crate comit-rs.
-2. If we only consider comit-rs has a whole:
-** We would not need to worry about managing dependency between crates (e.g, ensuring that users use cnd version 0.5.0 with btsieve 0.6.0 or above);
-** vendor crates that make sense own their own can have their own version once they are in their own repo.
+** How the crate version is tied to the semantic version of the meta crate comit-rs.
+2. If we only consider comit-rs as a whole:
+** We would not need to worry about managing dependencies between crates (e.g, ensuring that users use cnd version 0.5.0 with btsieve 0.6.0 or above);
+** vendor crates that make sense on their own can have their own version once they are in their own repo.
 3. If we were to not version vendor crate but only version cnd and btsieve crates:
 ** Not as complex as versioning all crates;
 ** Still a bit awkward around releasing comit-rs: we would actually release cnd or btsieve that would have their own version or tags;
@@ -206,11 +206,11 @@ The positive effect is that we would not need to wait for a change to be in cnd 
 Coming up with a releasing strategy that takes all crates (including vendor) in consideration is added work with little added value.
 Users do not import the sub-crates and use them (in comparison with test-containers) and only use comit-rs as two binaries.
 
-After reconsideration, strategy 3 may provide the best of both world: a versioning system that makes sense (each binary as it's own version) and a lightweight to still manage dependency across versions.
+After reconsideration, strategy 3 may provide the best of both world: a versioning system that makes sense (each binary has it's own version) and a lightweight solution to still manage dependency across versions.
 
-For strategy 3., if btsieve were to because a library used by cnd, then we would only need to continue cnd versioning as it is and stop binary release for btsieve that can continue its own version path in its own repo.
+For strategy 3., if btsieve were to become a library used by cnd, then we would only need to continue cnd versioning as it is and stop binary release for btsieve that can continue its own version path in its own repo.
 
-Hence, I recommend strategy 3: version cnd and btsieve separately and keen vendor crates at 0.1.0.
+Hence, I recommend strategy 3: version cnd and btsieve separately and keep vendor crates at 0.1.0.
 
 
 == Release Trigger Guidelines - Recommendation
@@ -398,7 +398,7 @@ Perform a testnet swap:
 - With 2 or more assets, one or both directions
 - With or without refund
 
-There has been some unexpect different of behaviour between mainnet and https://github.com/comit-network/comit-rs/issues/762[regtest] with bitcoind.
+There has been some unexpected differences of behaviour between mainnet and https://github.com/comit-network/comit-rs/issues/762[regtest] with bitcoind.
 Doing such check would allow to avoid such issues.
 Moreover, this can be a _two birds, one stone_ practice if we were to use comit-i as part of this process (see <<Validation of embedded comit-i compatibility>>).
 
@@ -521,7 +521,7 @@ In the Rust ecosystem, it is possible to publish crates to crates.io (or other r
 ==== cnd & btsieve
 
 cnd & btsieve are binary and hence it is not expected for other developers to add them to their project dependencies.
-Because we intend to provide binary releases, then there would be no added value to publish these crates to crates.io
+Because we intend to provide binary releases, there is no added value to publish these crates to crates.io
 
 ==== vendor crates
 
