@@ -1,0 +1,76 @@
+= Event timestamps =
+Tobin C. Harding <tobin.harding@coblox.tech>;
+:toc:
+:revdate: 2019-07-24
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1044
+
+== Context
+
+Currently events that occur during COMIT protocol interactions are not timestamped.
+It would be nice to have time information added to events as they occur - for this we can use timestamps.
+
+== Assumptions/scope
+
+It is assumed that time is from the perspective of the cnd i.e., events are ordered as they appear to have occurred to the cnd.
+This implies that the ordering of events is only of use to agents that interface with cnd via the HTTP API and possibly to the cnd.
+We are not interested in ordering events as they occur on two cnd nodes.
+
+== Definition
+
+A timestamp is a sequence of characters or encoded information identifying when a certain event occurred ^1^.
+Timestamps are described by the ISO 8601 standard ^2^.
+
+* ^1^ https://en.wikipedia.org/wiki/Timestamp
+* ^2^ https://en.wikipedia.org/wiki/ISO_8601
+
+== Format
+
+Any representation of time will suffice.
+Considerations are:
+
+ - granularity
+ - representation i.e., wall clock time, seconds since epoch.
+
+=== Recommendation
+
+
+I suggest we timestamp the events above using seconds since epoch.
+Example Rust code to generate such a timestamp
+
+[source]
+----
+ let now = SystemTime::now()
+     .duration_since(SystemTime::UNIX_EPOCH)
+     .unwrap();
+ println!("current time: {:?}", now.as_secs());
+----
+
+== Events to timestamp
+
+Events that occur on a ledger have two times associated with them.
+The first is the time of the event occurs i.e., the ledger timestamp.
+The second is the time cnd is notified of the event (cnd is not guaranteed to be running when the event occurs).
+
+- swap request sent/received
+- swap decline sent/received
+- swap accept sent/received
+- Alpha ledger funded (refund available) - (ledger + cnd)
+- Beta ledger funded (redeem available) - (ledger + cnd)
+- Beta asset refunded - (ledger + cnd)
+- Beta asset redeemed  - (ledger + cnd)
+- Alpha asset redeemed - (ledger + cnd)
+- Alpha asset refunded - (ledger + cnd)
+
+== Recommendations
+
+Recommend adding a timestamp for each of the events listed above.
+Moreover, for each event that occurs as a ledger transaction cnd should record two timestamps.
+The first is the time the transaction is included in the ledger and  comes from the ledger.
+The second is the time cnd becomes aware of the above time, typically these times will be as good as identical, suggest that if the events are within some threshold then the events are said to happen at the same time (this removes considerations of different time on different machines).
+No recommend as to the size of the threshold.
+All timestamps should be made available to comit-i.
+
+
