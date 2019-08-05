@@ -43,7 +43,7 @@ Out of scope:
 ** [x] Embedded comit-i version upgrade
 ** [x] security bugs
 ** [x] "major features"
-* [x]  What validation should be do before releasing? e.g.:
+* [x]  What validation should be done before releasing? e.g.:
 ** [x] No added validation
 ** [x] Run release binaries against e2e test suite
 ** [x] Run other platforms (not supported by CI such as Mac OS or Windows) against e2e test suite
