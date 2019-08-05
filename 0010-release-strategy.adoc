@@ -89,7 +89,7 @@ The previous <<Phasing,Recommendation>> suggest that we should move to 1.0.0 onc
 
 While I do not think this document should dictate when we must consider comit-rs _mainnet ready_, I thought it would feel incomplete if it were not mentioned at all.
 
-The team consensus seems to be that comit-rs is mainnet ready once this it becomes _unlikely_ that a user would lose funds using it.
+The team consensus seems to be that comit-rs is mainnet ready once it becomes _unlikely_ that a user would lose funds using it.
 
 I would define _unlikely_ by saying that:
 
