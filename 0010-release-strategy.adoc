@@ -198,7 +198,7 @@ Which means that:
 ** Still a bit awkward around releasing comit-rs: we would actually release cnd or btsieve that would have their own version or tags;
 ** We would end up releasing a version of btsieve that does not have a compatible cnd yet (if we break the http API);
 The positive effect is that we would not need to wait for a change to be in cnd to release it (and consider it done) in btsieve.
-** We may consider doing version check-ing as part of cnd start up by ending an endpoint on btsieve side that expose the version and checking at cnd start that a compatible version of btsieve is used;
+** We may consider doing version checking as part of cnd start-up by adding an endpoint to btsieve that exposes the version and checking at cnd start that a compatible version of btsieve is used;
 ** We may consider attaching a compatible btsieve binary at each cnd release (and this could even be automated based on the previous point)
 
 === Recommendation
