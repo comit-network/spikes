@@ -306,11 +306,14 @@ At this stage, I do not recommend to do any conditional validation and hence do 
 ==== Run CI on master
 
 Currently, Circle CI only runs the tests on the branch to merge and not on the branch merged against master.
-Which means that we could end up with a broken build on  master
+Which means that we could end up with a broken build on master.
+
+We do have regular build on masters.
 
 ===== Recommendation
 
-Due to the reason above, a CI run on master should be done before releasing.
+Due to the reasons above, we should check that the commit we want to release had a successful build on master.
+If not, we should trigger one.
 
 ==== Validation against release build
 
@@ -555,7 +558,7 @@ For crate releases:
 
 Validation before releasing:
 
-* A CI run on master/commit candidate should be done before releasing.
+* Confirm there was a successful CI run on master for the commit candidate, if not, trigger one.
 * Full run of e2e tests on Mac OS platform (debug release)
 * Come up with a common contract validations strategy to ensure compatibility between cnd and its clients
 * Do some swaps on testnet using comit-i and bobtimus
