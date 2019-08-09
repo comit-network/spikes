@@ -587,3 +587,5 @@ Handling blocking bug due to pre-release validation:
 If there is a blocking bug, a candidate branch is created where the bug fix will be pushed and from which the release will be done.
 
 What to do when releasing: <<Releasing actions>>.
+
+Use the https://keepachangelog.com/en/1.0.0/ strategy to manage our changelog.
