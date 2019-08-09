@@ -1,0 +1,591 @@
+= Release Strategy
+Franck Royer <franck@coblox.tech>;
+:toc:
+:revdate: 2019-07-29
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1050[#1050]
+
+== Context
+
+As part of our quaterly OKRs we aimed to provide binary releases of comit-rs (cnd & btsieve).
+This means that we need to version our releases and because we like to put thoughts into things, here's a spike about it.
+
+== Scope
+
+Scope:
+
+* comit-rs repo (cnd and btsieve)
+* comit-i repo
+
+Out of scope:
+
+* Maintenance window/versions that are supported
+* What would happen if btsieve/cnd became libraries
+
+== Considerations
+
+* [x] Versioning phases
+** [x] No phase, start at 1.0.0 and increment from there
+** [x] Two phases versioning: Alpha/Beta then stable (start at 0.1.0, Keep 0.Y.Z until considered stable and it becomes 1.0.0)
+* [x] Metacrate
+** [x] Whether or not to version crates in comit-rs (cnd, btsieve, etc)
+* [x] What triggers a release publication? e.g.:
+** [x] Time frequency (monthly, etc)
+** [x] Major feature (OKR achievement, accumulation of features)
+** [x] Breaking change (on http api, comit api, CLI interface, internal API such as btsieve http api)
+** [x] Bug fixed (all bugs, only security bugs)
+** [x] Embed new comit-i version
+* [x] When to increment the major/minor/patch number e.g.:
+** [x] COMIT protocol breaking change
+** [x] HTTP API breaking change
+** [x] Embedded comit-i version upgrade
+** [x] security bugs
+** [x] "major features"
+* [x]  What validation should be done before releasing? e.g.:
+** [x] No added validation
+** [x] Run release binaries against e2e test suite
+** [x] Run other platforms (not supported by CI such as Mac OS or Windows) against e2e test suite
+** [x] Embed (release) latest comit-i
+** [x] comit-i/comit-rs full compatibility (manual or automated checks)
+** [x] do a testnet swap
+** [x] Valgrind/memory/performance run
+* [x] If versioning phases, What is the trigger for 1.0.0?
+** [x] When is it mainnet ready?
+* [x] Release naming? (Ubuntu style)
+* [x] Crate publication?
+* [x] Rust practices
+* [x] Release early, release often motto
+
+== Documentation
+
+Rust guidelines: https://doc.rust-lang.org/cargo/reference/manifest.html
+Semantic versioning: https://semver.org/
+
+== Research
+
+=== Phasing
+
+By phasing I mean having a different version schema now versus later.
+The Rust practice is to have pre-1.0.0 (0.Y.Z) and post 1.0.0 (X.Y.Z).
+
+If we were to adopt phasing then it would make sense to follow the Rust practice.
+
+There is a strong organic milestone that COMIT software hasn't yet reached: the green light to use it on mainnet.
+This _green light_ comes with a number of assumptions: recovery is possible and easy, bugs are ironed out, no known security issues, etc.
+We, CoBloX, know that COMIT is not ready for mainnet and what needs to be done to make it ready.
+
+Hence, it would make sense to keep versions at 0.Y.Z until we consider the software ready for mainnet.
+Once ready, this version would be flagged 1.0.0
+
+==== Recommendation
+
+Use 0.Y.Z versions now, starting at 0.1.0 as per Rust convention.
+
+Release 1.0.0 once we consider COMIT mainnet ready.
+
+=== When is mainnet ready? - Recommendation
+
+The previous <<Phasing,Recommendation>> suggest that we should move to 1.0.0 once comit-rs is mainnet ready.
+
+While I do not think this document should dictate when we must consider comit-rs _mainnet ready_, I thought it would feel incomplete if it were not mentioned at all.
+
+The team consensus seems to be that comit-rs is mainnet ready once it becomes _unlikely_ that a user would lose funds using it.
+
+I would define _unlikely_ by saying that:
+
+____
+We are not aware of any issue that would lead a user to lose their funds and have taken a number of steps (tests, recovery strategy) to ensure that what we don't know cannot lead to fund loss.
+____
+
+
+=== Release trigger Comparison
+
+There are 2 common strategies to release:
+
+1. Time-bound: Release every X weeks/months/quarter
+2. Feature driven: Release once a number of interesting features are ready and stable
+3. Hybrid (based on https://github.com/comit-network/spikes/pull/26#issuecomment-516635115[Tobin's comment]): Each PR that implements a feature worth release bumps the version number as it should (as per 2.).
+However, binary/GitHub releases are only done on a pre-defined frequency (as per 1.).
+The version in the code could be considered as a _release candidate_ version until a version is chosen for a release.
+In this case, it is likely that a number of versions are never released (e.g. in the code we go 0.1.0, 0.2.0, 0.2.1, 0.3.0 and then release 0.3.0 because it's time).
+
+We will review all strategies pros and cons below:
+
+.Release trigger comparison table
+|===
+|Strategy | Pros | Cons
+
+|1. Time-bound
+| - Predictable (for users to know when is the next release, for us as part of sprint planning)
+
+- Straightforward decision making
+
+- Easy to implement _release early, release often motto_
+| - Can create work overhead (focus on getting release ready)
+
+ - Can lead to complex release strategy as part of stabilisation
+
+ - May not make sense if a release does not contain any stable/new features
+
+ - Need ad-hoc releasing strategy for security bugs
+
+| 2. Feature Driven
+| - More flexibility
+
+- Can focus on meaningful releases
+
+- Less work overhead
+
+| - Decision making process needed to decide when we release (hopefully this document will help with that)
+
+- May fall in a "one more" pattern (let's merge this PR before we release, ok now this PR, etc)
+
+- Need discipline to ensure we _release early, release often_
+
+- Need to not forgot at sprint planning that we are releasing (depending on how much work it means)
+
+| 3. Hybrid
+| - All 1. Pros
+
+- Slightly less overhead than 1. as it is should be easy to extract the changelog (all PRs that bump the version)
+
+| - Still difficult to decide a good frequency (too often and we will skip releases, not often enough and the validation may fail)
+
+-  The time-based frequency make it so that it could be bad timing (middle of a big change) meaning that we would need to decide whether we tag (and validate) an older or postpone the release
+|===
+
+==== Recommendation
+
+Considering the current status of our software, the fact that we are pre-mainnet with scarce users, the release process should not be an added burden that creates overhead.
+For this reason, I recommend that we release feature based.
+In <<Release Trigger Guidelines - Recommendation>>, let's review what could be the _rule of thumbs_ of when to release.
+
+=== Handle multi-crate version-ing (comit-rs only)
+
+The comit-rs repo contains a number of crates:
+
+- cnd
+- btsieve
+- vendors/*
+
+The Rust dependency graph looks like that:
+
+----
+cnd -> vendors <- btsieve
+----
+
+The functional (due to REST APIs) dependency graph looks like that:
+----
+cnd -> vendors
+  \       ^
+   \      |
+    \-> btsieve
+----
+
+Which means that:
+
+* a breaking REST API change in btsieve involves updating cnd
+* a breaking lib API change in vendors involves updating cnd and/or btsieve
+
+1. If we were to version every crate, then we would need to come up with a strategy (Similar to https://github.com/testcontainers/testcontainers-rs/blob/master/RELEASING.md) to know:
+** What is the semantic version of the sub-crates;
+** How the crate version is tied to the semantic version of the meta crate comit-rs.
+2. If we only consider comit-rs as a whole:
+** We would not need to worry about managing dependencies between crates (e.g, ensuring that users use cnd version 0.5.0 with btsieve 0.6.0 or above);
+** vendor crates that make sense on their own can have their own version once they are in their own repo.
+3. If we were to not version vendor crate but only version cnd and btsieve crates:
+** Not as complex as versioning all crates;
+** Still a bit awkward around releasing comit-rs: we would actually release cnd or btsieve that would have their own version or tags;
+** We would end up releasing a version of btsieve that does not have a compatible cnd yet (if we break the http API);
+The positive effect is that we would not need to wait for a change to be in cnd to release it (and consider it done) in btsieve.
+** We may consider doing version checking as part of cnd start-up by adding an endpoint to btsieve that exposes the version and checking at cnd start that a compatible version of btsieve is used;
+** We may consider attaching a compatible btsieve binary at each cnd release (and this could even be automated based on the previous point)
+
+==== Recommendation
+
+Coming up with a releasing strategy that takes all crates (including vendor) in consideration is added work with little added value.
+Users do not import the sub-crates and use them (in comparison with test-containers) and only use comit-rs as two binaries.
+
+After reconsideration, strategy 3 may provide the best of both world: a versioning system that makes sense (each binary has it's own version) and a lightweight solution to still manage dependency across versions.
+
+For strategy 3., if btsieve were to become a library used by cnd, then we would only need to continue cnd versioning as it is and stop binary release for btsieve that can continue its own version path in its own repo.
+
+Hence, I recommend strategy 3: version cnd and btsieve separately and keep vendor crates at 0.1.0.
+
+
+=== Release Trigger Guidelines - Recommendation
+
+This is an attempt to consider and review what could be the reason to trigger a release.
+Inline is the author's recommendation
+
+[[table-anchor-1]]
+.What should trigger a release
+[cols="1,1,1,2"]
+|===
+| Repo (comit-?)| Description | Triggers a release? | Reason
+
+| i/rs | Security bug fix | Yes | We don't want users to lose funds
+| i/rs | Feature that resolves a quaterly KR | Yes | Mark the achievement and consider it done
+| i/rs | Code refactoring | No | Does not bring value to the user
+| rs | Rust API breaking change | No | This is a binary crate hence nobody is supposed to use our Rust API
+| i/rs | Test improvement | No | Does not bring value to the user
+| i/rs | UX Feature | Yes | As it bring value to the user
+| rs | Breaking HTTP API Change | Yes | To force us to (hopefully) align the embedded comit-i as part of the release validation process
+| i | Adapt to comit-rs HTTP API Change | Yes | To make it easier to work on comit-rs with the embedded comit-i
+| rs | Breaking COMIT API Change | Yes | To migrate the "network" to the latest API fast and reduce the number of user using a deprecated API; To be able to easily differentiate both protocols
+| rs | Internal API (btsieve REST API) | No | Does not bring value to the user
+| rs | CLI API | Depends | Whether it fits under the _UX Feature_ category
+| rs | Embedded comit-i | Depends | Whether the comit-i changes fits in any other categories above
+| i/rs | Any other change | Soft No | A new feature that does not fit in any category above should not trigger a release, except if the team think it should (ie, ad-hoc discussion)
+
+|===
+
+Author's note:
+
+* Let me know if I forgot something
+* Be sure to spend sometimes looking at the table above and think on how it would look like.
+The main driver is the "resolve a quaterly Key Result" (not the whole OKR, just one of the KR).
+If we end up accumulating a lot of changes then it means that we may not be working towards our OKR as efficiently as we should.
+If we do end up releasing every day then maybe we should be more clever and time efficient.
+
+=== When to increment major/minor/patch number - Recommendation
+
+If a release contains several changes then we should increment the heaviest number (with patch < minor < major).
+The list below only contains elements from section <<Release Trigger Guidelines - Recommendation>> (because you don't need to increment the version if you don't do a release for such change).
+
+
+[cols="1,1,1,1,2"]
+|===
+| repo (comit-?) | Change | Pre-1.0.0 | Post-1.0.0 | Comment
+
+| i/rs | Security bug fix | Patch | Patch | As per standard guidelines
+| i/rs | Feature that resolves a quaterly KR | Minor | Minor | Except if it fits in another category
+| i/rs | UX Feature | Minor | Major/Minor | Team decides depending how ground-breaking the feature is, e.g, how much users will have to re-learn to use COMIT
+| i/rs | Breaking HTTP API Change | Minor | Major | If someone were to create a client on cnd, they need to know that they can upgrade minor versions without risk
+| i | Adapt to comit-rs HTTP API Change | Minor | Major |
+| rs | Breaking COMIT API Change | Minor | Major | To express non-backward compatibility between two cnd
+| rs | Breaking CLI API | Minor | Major | While this is unlikely to happen, you don't want user to discover that their systemd scripts are broken by surprise
+| rs | Embedded comit-i | Minor | Major/Minor | Depending on whether the comit-i changes fits in any other categories above
+
+|===
+
+Author's note: This table only contain the "Yes" and "Depends" values of the <<table-anchor-1,previous table>>.
+
+=== Validation
+
+As part of the release process we could run a number of validation steps before releasing, in addition to the CI run done at each PR merge.
+If any of the steps were to fail then a decision would need to be made: release anyway, fix urgently, or fix non-urgently.
+
+We will review a number of validation steps that could be added and then review what strategy should be employed if we do decide to have validation steps.
+
+I was not able to come up with extra validation steps for comit-i so everything below is for comit-rs.
+
+To help understanding the validation steps, below is a summary of what is already validated by the CI before each PR merge.
+
+Conditions:
+
+* CI is run against the PR branch (not against the branch merged in master, so master could still fail)
+* CI is run on Linux environment
+
+Steps:
+
+* Rust format check
+* Cargo.toml format check
+* Rust compilation
+* Rust linter (clippy)
+* e2e Typescript format
+* e2e Typescript check
+* Rust tests on debug build
+* e2e tests on debug build
+
+Note that some validation could be make conditional on what is bumped (ie, only do such or such validation for major version increment).
+At this stage, I do not recommend to do any conditional validation and hence do not mention it in my recommendations.
+
+==== Run CI on master
+
+Currently, Circle CI only runs the tests on the branch to merge and not on the branch merged against master.
+Which means that we could end up with a broken build on master.
+
+We do have regular build on masters.
+
+===== Recommendation
+
+Due to the reasons above, we should check that the commit we want to release had a successful build on master.
+If not, we should trigger one.
+
+==== Validation against release build
+
+Currently, all tests are done against the debug build, the default `cargo build`.
+It could be of value to run the e2e test suite against the release build to ensure that the behaviour is as expected.
+
+===== Recommendation
+
+Considering that, except for tests, there are no attributes in the code base that implement a given behaviour for a specific type of build only, this could be considered redundant.
+Hence, I would suggest we do not include this to the pre-release validation.
+
+==== Validation against non-Linux build
+
+Currently, the CI is ran against a Linux environment.
+However, we aim to support both Mac OS and Linux platform.
+
+https://github.com/comit-network/comit-rs/issues/925[In the past], there has been issues specific to Mac due the difference on the network layer.
+
+===== Recommendation
+
+Due the fact that we encountered issues in the past, I would recommend that we include a full run (Rust tests and e2e tests) on a Mac OS platform before proceeding with a release.
+
+==== Validation of embedded comit-i compatibility
+
+The comit-i CI run is done against stubs of the cnd HTTP API.
+Hence, it does not provide any guarantee that comit-i is fully compatible with any version of cnd (master or otherwise).
+
+In the comit-rs CI run, only the fact that comit-i is actually embedded and served is tested.
+There are no functional test done on comit-i.
+
+There are several possibilities to ensure that the embedded comit-i is compatible with cnd:
+
+|===
+| Description | Pros | Cons
+
+| 1. Add tests against cnd as part of comit-i CI
+| No time spent at release time, little manual intervention once setup is done
+| Need to add the full (blockchain nodes, btsieve, etc) comit-rs setup as part of comit-i CI
+
+| 2. Add comit-i tests as part of comit-rs CI
+| No time spent at release time, little manual intervention once setup is done
+| Need to manage:
+
+* the possible duplication of tests between comit-i and comit-rs CI
+
+* breaking change on cnd HTTP API
+
+| 3. Do 1. but locally, meaning that comit-i tests are run against cnd instead of some stubs
+| Not as heavy than 1 & 2
+| Needs to do some scripting to make it easy enough (if possible)
+
+| 4. Run manual test
+| Simpler than trying to hack the test frameworks/Make the CI runs longer/more brittle
+| It is a manual and heavy step at release time
+
+| 5. Do heavy JSON/API contract validation as part of both CI, meaning all cnd API responses and all comit-i stubs are validated as part of the CI. The schema/contract should be hosted in a separate common repo to avoid discrepancies/mistakes.
+| Correct way to do testing, not bending frameworks, should not be too hard
+| Does not provide all guarantees
+|===
+
+===== Recommendation
+
+This is a difficult one that would need a team discussion in any case.
+I think we should look into 5. as a first step, this should help avoid most bugs.
+Once we reach a level of complexity where more validation is needed, we could review.
+
+Please note I recommend 4. as part of the <<Testnet swap>> (contradicting myself on purpose).
+
+==== Profiling & fuzz testing
+
+The following performance checks could be added where a high number of swaps are being injected:
+
+- Memory performance (& leaking but may not be applicable to Rust)
+- CPU performance (ie, CPU usage)
+- Speed performance: taking in account specific resources limits (disk I/O, available cpu & memory)
+- Fuzz testing (of the exposed APIs being cnd HTTP and COMIT)
+
+===== Recommendation
+
+This topic should be discussed in a dedicated forum where we could decide whether it should be part of the PR CI or pre-release validation.
+As part of this spike resolution we could open an issue and start to track it.
+
+==== Testnet swap
+
+Perform a testnet swap:
+
+- With 2 or more assets, one or both directions
+- With or without refund
+
+There has been some unexpected differences of behaviour between mainnet and https://github.com/comit-network/comit-rs/issues/762[regtest] with bitcoind.
+Doing such check would allow to avoid such issues.
+Moreover, this can be a _two birds, one stone_ practice if we were to use comit-i as part of this process (see <<Validation of embedded comit-i compatibility>>).
+
+It would also force us to use our software and iron out/notice any UX issue with it.
+
+The test could also be automated by slightly changing our e2e tests and using testnet nodes instead of regtest/dev nodes as part of the pre-release validation.
+
+===== Recommendation
+
+While it would be interesting to be able to run the end-to-end tests against testnet/dev nodes, I think that there is a number of other advantage to run this manually: confirm comit-i compatibility and test our UX.
+
+Hence, I recommend we do a testnet swap using comit-i.
+Knowing that it should not be too hard if we just used our testnet bobtimus (and connect to the same testnet nodes).
+The test should be exhaustive enough to cover all existing assets (e.g, ETH->BTC and BTC->ERC20 is enough) for both redeem and refund.
+
+Ideally, we should rotate (one release we do ETH->BTC, BTC->ERC20 and the next time BTC-ETH, ERC20->BTC).
+
+The release candidate should be used on bobtimus side.
+At this stage, I would not consider necessary to test the release candidate with the previous release. This could be reviewed post-1.0.0.
+
+==== Stabilisation strategy
+
+By Stabilisation I mean, what should we do if we found a bug as part of the validation process? We could agree now on a rule of thumb on how to deal with such bug:
+
+
+|===
+| Strategy | Pros | Cons
+
+| 1. The blocking issue is flagged as a bug and hence need to be done next sprint, release is halted until it's fixed
+| * Simple and straightforward handling
+
+* Fits our current process
+| * Delays release
+
+* Risk of introducing more bugs until the blocking bug is fixed
+
+| 2. The blocking issue is flagged as a bug and breaks the current sprint scope, release is halted until it's fixed
+| * Simple and straightforward handling
+
+* Faster release than 1.
+
+* Less chance to introduce more bugs than 1.
+| * Delay release
+
+* Still Risk of introducing more bugs until the blocking bug is fixed
+| 3. Same than 2. but no other PR can be merged before the bug is fixed and release done
+| * Faster release than 1 & 2.
+
+* Totally remove the chance of more changes slowing done the release
+| * Impact all devs (frustrating)
+
+* Jeopardize sprint work commitment
+
+| 4. If there is a blocking bug, a candidate branch is created where the bug fix will be pushed and from which the release will be done
+| Same efficiency than 3 but none of the cons
+| * Creates some overhead
+
+* Create risk of forgetting to push the bug fix to master
+
+| 5. Same than 4 but a candidate release branch is always created
+| * Consistent approach, more straightforward and clear for the team
+| * Always added overhead
+|===
+
+===== Recommendation
+
+I recommend 4. (the pros and cons are already in the table) :)
+
+==== Releasing actions
+
+What should actually happen when releasing? Let's list below (I love tables)
+
+[cols="1,2"]
+|===
+|What |Why
+
+| Do the release validation
+| See <<Validation>>
+
+| Git tag the commit
+| Fits GitHub workflow, allow to checkout given tag to compile ourselves or investigate reported bugs or use a stable version when working on/with a client
+
+| Do a GitHub Release
+| Makes it easy to find the releases
+
+| Hook to create binaries and attach them to GitHub Release
+| Makes it easy to manage binary releases
+
+| Crawl PRs since last merge and create a changelog
+| Changelogs are good
+
+| Tweet about the release
+| Why creating a changelog if nobody reads it
+
+| Mention it in the next blog post
+| Ditto.
+
+| Drink 🍾
+| Celebrations are important
+|===
+
+===== Recommendation
+
+Do it all.
+
+=== Release naming
+
+Some software (e.g. Ubuntu) name their release to make it easier to refer to them.
+
+==== Recommendation
+
+In the case of comit-rs, as we would not want/expect to have too many releases living in the ecosystem at the same time I think this practice would be futile.
+
+=== Publishing on crates.io
+
+In the Rust ecosystem, it is possible to publish crates to crates.io (or other repository) to allow other users to finally access those crates (and use them as part of their software).
+
+==== Recommendation
+
+===== cnd & btsieve
+
+cnd & btsieve are binary and hence it is not expected for other developers to add them to their project dependencies.
+Because we intend to provide binary releases, there is no added value to publish these crates to crates.io
+
+===== vendor crates
+
+There is an https://github.com/comit-network/comit-rs/issues/626[ongoing/future effort] to remove the vendor crates by either:
+
+1. contributing code back to relevant existing crates (e.g. bitcoin_support to rust-bitcoin)
+2. moving the code back into the binary crate (cnd/btsieve)
+3. considering the crate as a valid standalone library and move it to its own repo (e.g. blockchain_contracts)
+
+Because of this, I think each vendor should be reviewed separately and the crates that fit 3. can be published to crates.io once they are in their own repo.
+
+=== Changelog
+
+Each release should be accompanied with a changelog.
+This is to allow developers and users to understand whether they should upgrade, if there are any breaking changes and what features or bug fixes were included.
+
+Changelog management can be cumbersome if the person releasing has to go through all the Pull Requests merged since the last release and combines them in a changelog.
+
+==== Recommendation
+
+Use the https://keepachangelog.com/en/1.0.0/ strategy:
+
+* CHANGELOG.md files stored in cnd and btsieve crates.
+* CHANGELOG.md is updated at each Pull Request with the change done in an *unreleased* section.
+* When releasing, the *unreleased* section is titled with the new release
+* Content of the CHANGELOG.md should be as per the keepachangelog.com recommendation
+
+
+== Recommendation Summary
+
+=== Versioning
+
+Use 0.Y.Z versions now, starting at 0.1.0 as per Rust convention.
+Release 1.0.0 once we consider COMIT mainnet ready.
+
+Release feature based, see <<Release Trigger Guidelines - Recommendation>> to know what features should trigger a new release.
+
+For crate releases:
+
+* Do not version vendor/internal crates
+* Version cnd and btsieve crates
+* When releasing cnd, also attached btsieve bin
+* When releasing btsieve, releast by itself even if latest cnd is not yet compatible
+* Expose btsieve version on its REST API
+* cnd to check version of btsieve at start-up and confirm compatibility
+
+Validation before releasing:
+
+* Confirm there was a successful CI run on master for the commit candidate, if not, trigger one.
+* Full run of e2e tests on Mac OS platform (debug release)
+* Come up with a common contract validations strategy to ensure compatibility between cnd and its clients
+* Do some swaps on testnet using comit-i and bobtimus
+** The test should be exhaustive enough to cover all existing assets (e.g, ETH->BTC and BTC->ERC20 is enough) for both redeem and refund.
+** Ideally, we should rotate (one release we do ETH->BTC, BTC->ERC20 and the next time BTC-ETH, ERC20->BTC)
+** Have the release candidate locally and keep previous version on bobtimus (except if not backward compatible)
+
+Handling blocking bug due to pre-release validation:
+If there is a blocking bug, a candidate branch is created where the bug fix will be pushed and from which the release will be done.
+
+What to do when releasing: <<Releasing actions>>.
+
+Use the https://keepachangelog.com/en/1.0.0/ strategy to manage our changelog.
