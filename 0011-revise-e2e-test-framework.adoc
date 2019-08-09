@@ -1,0 +1,74 @@
+= Revise e2e test framework
+Tobin C. Harding <tobin.harding@coblox.tech>
+:toc:
+:revdate: 2019-07-29
+
+* Authors(s): {authors}
+* Date: {revdate}
+
+Issue: https://github.com/comit-network/comit-rs/issues/897[#985]
+
+== Context
+
+No one is happy with the current state of the end to end tests.
+This spike will attempt to ascertain what exactly is wrong with the current end to end tests.
+
+== Issues
+
+These are the issues distilled from talking with all team members (excluding Lucas).
+
+=== General
+
+* Tests are not independent.
+* As a developer, I want to be able to run a test against a comit_node/btsieve/docker container that I started myself (e.g. I attached a debugger to cnd), without having to change JS code.
+
+=== Framework
+
+* Not overly happy with mocha but not unhappy either, no real specifics.
+* We do not fully utilise mocha.
+
+=== Code issues
+
+* Too much boilerplate code duplication.
+* Current tests do not cleanly show what they are testing i.e., it is not immediately apparent from the test code what is being tested.
+* Happy path, edge cases, and negative test case paths
+** Tests are biased towards the happy path.
+** We test the happy path too much i.e., for each ledger/asset.
+** Negative test case code is too hard to write.
+
+=== Test execution
+
+* Should be able to easily run a single e2e test:
+** from the command line.
+** from within an IDE.
+* Tests should be faster.
+** Each test should be able to be run in parallel.
+
+
+=== Output
+
+Current output for failing tests is lacking because:
+* It is not clear what went wrong.
+* There is no information on the state of the two nodes.
+* One needs to know the comit protocol to understand what went wrong.
+* Blockchain errors are hard to understand.
+* Not all errors point to the cause i.e., blockchain errors can be caused by an incorrect configuration file.
+
+
+== Suggestions
+
+While the purpose of this spike was to figure out exactly what is wrong with the current end to end tests some valuable suggestions came up, it would be a shame to waste these so adding here for future reference.
+
+* Have the test framework count assertions per test and fail if they don't all run.
+* We may only need to test the happy path for one asset/ledger pair then rely on integration tests for edge cases.
+* Dockerise the tests and run in parallel.
+* Have a tool that shows lines of code touched / not touched during run of the e2e tests (useful for checking that newly added code is exercised).
+* Test harness should be called by each test not the other way around (this is probably needed to run tests individually i.e., from an IDE).
+* Consider using testing theory that states individual tests should cleanly: (see Thomas for more information)
+ 1. do setup
+ 2. do stuff
+ 3. make assertions
+* Unit test coverage should be checked as part of a PR, new code requiring before it can be merged.
+* e2e tests should be so clear that outsiders can open them up and see how to code a COMIT bot.
+* Assert the casing of JSON keys in all payloads (middleware?) #1138
+* Consider using jest JS framework: https://jestjs.io/.

@@ -17,7 +17,7 @@ Instead of immediately locking in and settling the htlc when the payment arrives
 At that point, it is not possible anymore for the sender to revoke the payment, but the receiver still can choose whether to settle or cancel the htlc and invoice.
 ____
 
-This allows us to trade Bitcoin on the Lightning Network (LN) for an asset _X_ on a different ledger where LN is the _alpha ledger_ as per the definition in https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md[RFC003].
+This allows us to trade Bitcoin on the Lightning Network (LN) for an asset _X_ on a different ledger where LN is the _alpha ledger_ as per the definition in https://github.com/comit-network/RFCs/blob/master/RFC-002-SWAP.md[RFC002].
 For the other way around, Bitcoin on the Lightning Network is the _beta asset/ledger_, we can make use of `createinvoice` as Alice would instantly release the secret by settling Bob's LN payment, or we can follow the same approach as described below.
 
 NOTE: Within this spike we only focus on LN as the Alpha Ledger using https://github.com/lightningnetwork/lnd/[LND].
@@ -30,12 +30,12 @@ ____
 Assumption: Alice wants to pay Bob _X_ Bitcoin using the LN but Bob does not generate the preimage - Alice does it.
 ____
 
-1) Alice generates a secret preimage `p` and sends the hash of it `h(p)` to Bob.
-2) Bob calls `addholdinvoice` with an amount `X` and the hashed preimage `h(p)` (https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L142[more details]).
-3) Bob sends the generated invoice to Alice.
-4) Alice now can pay the invoice using `sendpayment`.
-5) As soon as Alice is happy (because she is in a good mood), she tells Bob the secret (or he learns it otherwise, see below).
-6) Bob settles the payment by calling `settleInvoice` (https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L53[more details]).
+1. Alice generates a secret preimage `p` and sends the hash of it `h(p)` to Bob.
+2. Bob calls `addholdinvoice` with an amount `X` and the hashed preimage `h(p)` (https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L142[more details]).
+3. Bob sends the generated invoice to Alice.
+4. Alice now can pay the invoice using `sendpayment`.
+5. As soon as Alice is happy (because she is in a good mood), she tells Bob the secret (or he learns it otherwise, see below).
+6. Bob settles the payment by calling `settleInvoice` (https://github.com/lightningnetwork/lnd/blob/aa1cd04dbf07a9195d5ada752f383988d8d01fa7/cmd/lncli/invoicesrpc_active.go#L53[more details]).
 
 The payment is complete.
 
@@ -228,13 +228,14 @@ If a trade involves LN using LND we can approach these things differently:
 * Invoker
     ** User through comit-i (or another user-facing tool)
 * Description
-    ** `addholdinvoice` is available as a RPC command or through the LND CLI. Although dealing with this is rather cumbersome, to keep the autonomy with the user, and to not introduce LND dependency into the comit-node, we this should be possible through comit-i.
+    ** `addholdinvoice` is available as a RPC command or through the LND CLI. Although dealing with this is rather cumbersome, to keep the autonomy with the user, and to not introduce LND dependency into the comit-node, this should be possible through comit-i.
 * Conclusion:
     ** comit-i needs LND support. However, in order to do this, we will need to introduce a new action which is meant to be executed prior accepting a swap request:
-    *** Bob receives a swap request from Alice (an learns about the hashed secret)
+    *** Bob receives a swap request from Alice (and learns about the hashed secret)
     *** *Action 1:* Bob creates a hold invoice through comit-i
-    *** *Action 2:* Bob accepts the swap requests by posting the newly generated invoice ID back to comit-rs
-    A quick research showed that LN payments can be done with the browser extension: https://lightningjoule.com/[Joule] and requests to a LND node can be done through the browser.
+    *** *Action 2:* Bob accepts the swap request by posting the newly generated invoice ID back to comit-rs
+    
+A quick research showed that LN payments can be done with the browser extension: https://lightningjoule.com/[Joule] and requests to a LND node can be done through the browser.
 
 ---
 
