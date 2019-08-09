@@ -538,6 +538,23 @@ There is an https://github.com/comit-network/comit-rs/issues/626[ongoing/future 
 
 Because of this, I think each vendor should be reviewed separately and the crates that fit 3. can be published to crates.io once they are in their own repo.
 
+=== Changelog
+
+Each release should be accompanied with a changelog.
+This is to allow developers and users to understand whether they should upgrade, if there are any breaking changes and what features or bug fixes were included.
+
+Changelog management can be cumbersome if the person releasing has to go through all the Pull Requests merged since the last release and combines them in a changelog.
+
+==== Recommendation
+
+Use the https://keepachangelog.com/en/1.0.0/ strategy:
+
+* CHANGELOG.md files stored in cnd and btsieve crates.
+* CHANGELOG.md is updated at each Pull Request with the change done in an *unreleased* section.
+* When releasing, the *unreleased* section is titled with the new release
+* Content of the CHANGELOG.md should be as per the keepachangelog.com recommendation
+
+
 == Recommendation Summary
 
 === Versioning
