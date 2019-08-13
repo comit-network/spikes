@@ -12,7 +12,8 @@ List of spike outcomes for COMIT network.
 - [spike-0007](0007-secret-seed-storage-and-key-derivation.md) - Secret seed storage and key derivation
 - [spike-0008](0008-onion-routing-over-libp2p.adoc) - Improving privacy through onion routing over libp2p
 - [spike-0009](0009-comit-btsieve-db.adoc) - Persistent database for comit_node and btsieve
-- [spike-0010](0010-release-strategy.adoc) - Release Strategy
+- [spike-0010](0010-timestamps.adoc) - Event timestamps
 - [spike-0011](0011-revise-e2e-test-framework.adoc) - Revise e2e test framework
+- [spike-0012](0012-release-strategy.adoc) - Release Strategy
 
 For new spike outcomes, please use [template.adoc](template.adoc) as basis.
