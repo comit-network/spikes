@@ -1,0 +1,85 @@
+= Securing the `cnd` HTTP API
+
+Tobin C. Harding <tobin.harding@coblox.tech>
+:toc:
+:revdate: 2019-08-13
+
+* Authors(s): {authors}
+* Date: {revdate}
+
+Issue: https://github.com/comit-network/comit-rs/issues/897[#477]
+
+== Context
+
+Currently the HTTP API served by cnd has no security features, all data is sent as plain text.
+This opens an opportunity for a man-in-the-middle attacker to get in between cnd and a client consuming the API e.g., `comit-i`.
+While not critical this is still a security concern, if we are trying to write best practice software we should consider securing the HTTP API.
+
+== Research
+
+First, research how this problem is solved in the wild.
+Read a bunch of stack overflow posts and blog posts, see reference section below for blog post wrapping up this knowledge.
+
+Conclude that in order to fully secure the HTTP API we would need to use some form of encryption and some form of client/server verification.
+The requirement for encryption is self evident and is the primary focus of this spike, all communication between cnd and a client should be encrypted.
+
+The topic of authentication is not so clear cut.
+Authentication is actually out of scope for this spike but briefly considering here for completeness.
+
+Client authentication refers to three things:
+* Identity – who claims to be making an API request?
+* Authentication – are they really who they say they are?
+* Authorization – are they allowed to do what they are trying to do?
+
+At the moment only the first two are of interest to us, all users are allowed to do anything.
+
+Considerations:
+* API key
+* username/password
+* Basic authentication with TLS
+* OAuth
+** Oauth1.Oa
+** OAuth2
+
+Recommend to leave authentication out of scope and only consider encryption.
+
+=== Recap on TLS
+
+The industry standard for encrypting traffic over a network is Transport Layer Security (TLS).
+
+What TLS gives us and whether we need it:
+* Authentication of cnd - needed, allows client to verify it is connecting to the correct cnd.
+* Data confidentiality - needed, protects against attacker learning the secret.
+* Date integrity - needed, protects against modification of the data i.e. changing the redeem address.
+* Replay protection - not needed, replay attack vector currently non-existent for cnd.
+* Sequence protection - no obvious need.
+
+== Implementing TLS for cnd and comit-i
+
+=== cnd (i.e TLS in Rust)
+
+Adding TLS to cnd should be straightforward.
+TLS is supported by Warp (the web server framework we use).
+The only real consideration is the TLS keypair (key and certificate) and selfsigning the certificate.
+We can provide a default keypair so that cnd works out of the box with TLS.
+This can be done in a few ways:
+* Put the keys in the repository - bad, private keys should be private.
+* Write a standalone tool to generate a new key.
+* Add code to cnd to generate a new keypair if one is not found i.e. in the default place or via a config option `--key=/path/to/key`and `--cert=/path/to/cert`.
+
+=== comit-i
+
+Request content for this section to be written by team member who is familiar with `comit-i` and/or React.
+
+== Recommendation
+
+Recommendations are as follows:
+* Implement TLS for cnd using Warp's TLS support.
+** Enable TLS by default, add option `--no-tls` to disable it.
+** Look for keypair in well known location, configurable via configuration file and command line options.
+
+== Reference
+
+* https://stormpath.com/blog/secure-your-rest-api-right-way
+* Warp docs: https://docs.rs/warp/0.1.18/warp/
+* Warp TLS example: https://github.com/seanmonstar/warp/blob/master/examples/tls.rs
