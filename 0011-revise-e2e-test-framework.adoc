@@ -43,16 +43,15 @@ These are the issues distilled from talking with all team members (excluding Luc
 * Tests should be faster.
 ** Each test should be able to be run in parallel.
 
-
 === Output
 
-.Current output for failing tests is lacking because:
+Current output for failing tests is lacking because:
+
 * It is not clear what went wrong.
 * There is no information on the state of the two nodes.
 * One needs to know the comit protocol to understand what went wrong.
 * Blockchain errors are hard to understand.
 * Not all errors point to the cause i.e., blockchain errors can be caused by an incorrect configuration file.
-
 
 == Suggestions
 
@@ -64,10 +63,301 @@ While the purpose of this spike was to figure out exactly what is wrong with the
 * Have a tool that shows lines of code touched / not touched during run of the e2e tests (useful for checking that newly added code is exercised).
 * Test harness should be called by each test not the other way around (this is probably needed to run tests individually i.e., from an IDE).
 * Consider using testing theory that states individual tests should cleanly: (see Thomas for more information)
- 1. do setup
- 2. do stuff
- 3. make assertions
+1. do setup
+2. do stuff
+3. make assertions
 * Unit test coverage should be checked as part of a PR, new code requiring before it can be merged.
 * e2e tests should be so clear that outsiders can open them up and see how to code a COMIT bot.
 * Assert the casing of JSON keys in all payloads (middleware?) #1138
 * Consider using jest JS framework: https://jestjs.io/.
+
+== Technical design
+
+The proposal of the technical design will be structured into two main parts:
+
+- Part 1 is going to deal with the framework choice, the structure of the tests and performance aspects (like parallelism).
+- Part 2 is going to deal with the code issues and how we want to write the actual tests.
+
+=== Part 1
+
+Before a technical design can be created and proposed, we have to put some constraints in place, like which test-executor to use because it influences the design pretty heavily.
+
+==== Testing library
+
+For the test executor, I'll settle with `jest` because
+
+- the team already has experience with it
+- it is well maintained
+- it has good defaults
+
+==== Performance
+
+In order to have a test suite that is fast and _stays_ fast, we will need to run tests in parallel.
+Given that, we have two choices:
+
+1. Each tests sets up its own dependencies (cnd, btsieve, blockchain nodes)
+2. The tests re-use the same nodes but don't share any state on those dependencies and can hence be executed in parallel
+
+I'll settle with option (2) because:
+
+- it should give us slightly better performance
+- I don't have to mangle with different ports/configuration files
+- our software should allow us to use it in parallel (swaps are independent from other)
+- we get it for free that the previous statement is actually true
+
+==== Test structure
+
+With jest, we have **files** that contain one or more **describe**-functions (representing a suite of tests) with each containing one or more **test**-functions with each being a single **test**.
+These tests are run in parallel by jest.
+Each test should therefore be a self-contained unit that conforms to the three test phases: arrange, act assert.
+
+If we assume that tests don't need to set up their own dependencies because they can reuse existing ones, then a testfile could potentially look like this:
+
+[source,js]
+----
+describe("happy path", () => {
+
+    beforeAll(async () => {
+        await ensureBitcoind();
+        await ensureParity();
+        await ensureCnd();
+        await ensureBtsieve();
+    });
+
+    test("btc eth", () => {
+
+    });
+
+    test("eth btc", () => {
+
+    });
+
+    test("btc erc20", () => {
+
+    });
+})
+----
+
+This test file would assume the following things:
+
+1. the `ensure*` functions track if they already started the requested dependency and immediately return if that is the case (which allows jest to start executing the tests):
+
+- use lock-files to make sure each dependency is only started once: https://www.npmjs.com/package/proper-lockfile
+- use consistent names for the docker images we want to use and simply always issue `docker start cnd_e2e_test_bitcoind` under the assumption that docker is going to only start it once.
+Poll the logs after that to wait until the container is actually up.
+If that assumption doesn't hold, also use lockfiles for the docker containers.
+
+2. there is **NO** teardown at the end of the `describe` block
+
+The first assumption (1) guarantees that
+
+- the setup is fast if the dependencies are already running
+- the setup is still executed even if we only run a single test
+
+The second assumption (2) guarantees that one test suite (`describe`-block) doesn't shut down the dependencies after it is done and thereby breaks another test that is still running.
+Even if all the tests are executed in parallel, some of them will be slower, some will be faster.
+
+In order to eventually shutdown all the tests, we can make use of jest's `globalTeardown` hook.
+`globalTeardown` is a function that will be called by jest after all the tests finished.
+We can shut down all dependencies in there.
+This will very likely imply that the implementation of the `ensure*` functions will need to use the filesystem or some other globally available component to store, which dependencies have been started.
+Lock/PID-files should serve this purpose perfectly fine.
+
+The approach outlined above actually gives us another feature:
+We can slice our tests into files that have different dependencies and hence, if we only run a certain set of tests, we are only starting what is absolutely necessary.
+
+==== Running tests from CLI/IDE
+
+Jest's CLI by default runs all tests it finds.
+Optionally, one can pass a regular expression to only run particular tests.
+This regular expression is applied to name of `describe`-functions and `test`-functions.
+IDEs like CLion pick up these `describe` and `test` functions and allow you to execute them right away by calling out to Jest's CLI.
+
+File names don't play a role here, hence we'd recommend to have a single `describe`-function per file with the name of the `describe`-function saying what is tested.
+That can/should also be reflected in the filename.
+
+==== Running tests against already started btsieve/cnd/blockchain_nodes
+
+We propose to use environment variables for this which bypasses the whole process of starting the given dependency (this env variable is read by the `ensure*` functions mentioned above):
+
+.Usage of the `NO_START` environment variable
+[cols=".^d,a"]
+|===
+|Command |Effect
+
+|`$ NO_START=cnd yarn test`
+| - Don't start any `cnd` +
+- Start `btsieve` for all "required" actors +
+- Start blockchain nodes for all "required actors" +
+
+|`$ NO_START=btsieve_bob yarn test`
+| - Start `cnd` for all "required" actors +
+- Don't start `btsieve` for Bob +
+- Start blockchain nodes for all "required" actors +
+
+|`$ NO_START=btsieve_bob,cnd_alice yarn test`
+| - Don't start `cnd` for Alice +
+- Don't start `btsieve` for Bob +
+- Start blockchain nodes for all "required" actors +
+
+|===
+
+==== Other features of jest
+
+- Jest allows you to specify the number of expected assertions: https://jestjs.io/docs/en/expect#expectassertionsnumber
+
+=== Part 2
+
+==== The ideal test
+
+[source,js]
+----
+describe("happy path", () => {
+
+    beforeAll(async () => {
+        await ensureBitcoind();
+        await ensureParity();
+        await ensureCnd();
+        await ensureBtsieve();
+    });
+
+    test("bitcoin ether", () => {
+        let {alice, bob} = createActors();
+
+        alice.sendRequest("bitcoin", "ether");
+        bob.accept();
+        alice.fund();
+        bob.fund();
+        alice.redeem();
+        bob.redeem();
+
+        alice.assertSwapped();
+        bob.assertSwapped();
+    });
+});
+----
+
+==== The ideal test on steroids with `describe.each`
+
+From the documentation of Jest:
+
+> Use `describe.each` if you keep duplicating the same test suites with different data.
+`describe.each` allows you to write the test suite once and pass data in.
+
+[source,js]
+----
+describe.each([ ["bitcoin", "ether"], ["ether", "bitcoin"], ["bitcoin", "erc20"] ])('happy path',  (alpha, beta) => {
+    test(`${alpha} ${beta}`, () => {
+        let {alice, bob} = createActors();
+
+        alice.sendRequest({alpha, beta});
+        bob.accept();
+        alice.fund();
+        bob.fund();
+        alice.redeem();
+        bob.redeem();
+
+        alice.assertSwapped();
+        bob.assertSwapped();
+    });
+  },
+);
+----
+
+==== Philosophy
+
+The underlying idea of the test framework above can be summarized as: "smart defaults".
+
+Usually, a test will need two actors:
+Alice and Bob.
+Hence, the functions `ensureCnd` and `ensureBtsieve` will default to spawning two instances.
+If a different setup is needed, a list of required actors could be passed to those functions: `await ensureCnd(["alice", "bob", "charlie"])`
+Depending on the name of passed actor, the function `createActors` will return an object with properties according to those names.
+
+NOTE: This is probably impossible to implement in a fully generic way but we don't expect to have to scale much, 4-5 hardcoded actors names is probably fine.
+
+Similarily, all the "action"-functions have default parameters which could also be passed explicitly if a different behaviour is desired:
+
+[source,js]
+----
+let {alice, bob, charlie} = createActors();
+
+alice.sendRequest("bitcoin", "ether", {
+    to: charlie // <1>
+})
+----
+<1> Override, who we are sending the swap request to.
+
+[source,js]
+----
+let {alice, bob} = createActors();
+
+alice.sendRequest({beta: "bitcoin"}) // <1>
+----
+<1> We don't care about the alpha asset, will be replaced with a compatible default (not bitcoin).
+
+==== Output
+
+1. Use a proper logging framework instead of `console.log`
+2. Log useful stuff as part of the test execution: this is expected to grow and improve as we use the new test framework (i.e. add log statements and commit them if you debug a failing test).
+This includes:
+- requests and responses to cnd
+- requests and responses to blockchain nodes
+- any kind of dynamically generated data (keys, addresses, amounts, timeouts, etc)
+3. Don't rely on the assertion message to debug what went wrong, instead check the logs for failing tests
+4. Split up logs into individual files per test: Use https://github.com/Jezorko/smack-my-jasmine-up to initialize the log framework with a different log file per test. PoC:
+
+[source,js]
+----
+const JasmineSmacker = require('smack-my-jasmine-up');
+
+function createActors() {
+    console.log("I am called from test:", JasmineSmacker.getCurrentSpec().result.fullName)
+}
+
+describe("happy path", () => {
+    it("btc eth", () => {
+        createActors();
+    });
+
+    it("eth btc", () => {
+        createActors();
+    });
+
+    it("btc erc20", () => {
+        createActors();
+    });
+})
+----
+
+Produces the following output:
+
+[source]
+----
+------------------------------------------------------------
+~/tmp/yarn-test » yarn test
+yarn run v1.16.0
+$ jest
+ PASS  ./test.spec.js
+  happy path
+    ✓ btc eth (3ms)
+    ✓ eth btc (1ms)
+    ✓ btc erc20
+
+  console.log test.spec.js:4
+    I am called from test: happy path btc eth
+
+  console.log test.spec.js:4
+    I am called from test: happy path eth btc
+
+  console.log test.spec.js:4
+    I am called from test: happy path btc erc20
+
+Test Suites: 1 passed, 1 total
+Tests:       3 passed, 3 total
+Snapshots:   0 total
+Time:        0.798s, estimated 1s
+Ran all test suites.
+Done in 1.44s.
+------------------------------------------------------------
+----
