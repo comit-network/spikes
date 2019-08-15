@@ -361,3 +361,58 @@ Ran all test suites.
 Done in 1.44s.
 ------------------------------------------------------------
 ----
+
+=== Dry tests
+
+This technical design focuses mostly on how to write the tests that perform swaps or failure scenarios for this use case.
+Our current `dry` tests can also make use of this framework but be more precise in what is actually asserted.
+For example:
+
+[source,js]
+----
+describe("HTTP API schema", () => {
+
+    beforeAll(async () => {
+        await ensureCnd();
+    });
+
+    test("GET /swaps response conforms to Siren JSON schema", async () => {
+        let {alice} = createActors();
+
+        await alice.sendRequest(); // <1>
+        let response = await alice.getSwaps(); // <2>
+
+        expect(response).toMatchJsonSchema(sirenSchema); // <3>
+    });
+});
+----
+<1> Send a SWAP request where we don't care about what is actually swapped
+<2> Get the current list of swaps
+<3> Assert that it matches the JSON schema
+
+Similarly, any stage of doing a SWAP can be asserted rather easily in a separate test:
+
+[source,js]
+----
+describe("Siren actions", () => {
+
+    beforeAll(async () => {
+        await ensureCnd();
+    });
+
+    test("Accept action uses POST method", async () => {
+        let {alice} = createActors();
+
+        await alice.sendRequest(); // <1>
+        let response = await bob.getCurrentSwap(); // <2>
+
+        expect(response.actions.find(name => name === "accept")).isEqualTo({ method: "POST" }); // <3>
+    });
+});
+----
+<1> Send a SWAP request where we don't care about what is actually swapped
+<2> Get the "current" swap. Here the test framework has to be clever in finding the swap that Alice sent to Bob from the list of potential swaps (remember that the nodes are re-used and many swaps happen in parallel, hence there will be many swaps returned by GET /swaps)
+<3> Assert that the "accept" action has the method "POST" (there is potential to make these assertions more concise but this should make clear on how we can do this)
+
+The overall idea is that we have many different tests where the assertions only cover a particular part of the software.
+Given a bug, some test might fail because of a side effect but ideally you would want a test where a particular assertion fails to point you into the right direction.
