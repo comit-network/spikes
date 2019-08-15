@@ -6,7 +6,7 @@ Tobin C. Harding <tobin.harding@coblox.tech>
 * Authors(s): {authors}
 * Date: {revdate}
 
-Issue: https://github.com/comit-network/comit-rs/issues/897[#985]
+Issue: https://github.com/comit-network/comit-rs/issues/985[#985]
 
 == Context
 
