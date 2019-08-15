@@ -1,12 +1,11 @@
 = Revise e2e test framework
-Tobin C. Harding <tobin.harding@coblox.tech>
+Tobin C. Harding <tobin.harding@coblox.tech>;
 :toc:
 :revdate: 2019-07-29
 
-* Authors(s): {authors}
-* Date: {revdate}
-
-Issue: https://github.com/comit-network/comit-rs/issues/985[#985]
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/985[#985]
 
 == Context
 
@@ -47,7 +46,7 @@ These are the issues distilled from talking with all team members (excluding Luc
 
 === Output
 
-Current output for failing tests is lacking because:
+.Current output for failing tests is lacking because:
 * It is not clear what went wrong.
 * There is no information on the state of the two nodes.
 * One needs to know the comit protocol to understand what went wrong.
