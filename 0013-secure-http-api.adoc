@@ -1,11 +1,10 @@
 = Securing the `cnd` HTTP API
-Tobin C. Harding <tobin.harding@coblox.tech>
+Tobin C. Harding <tobin.harding@coblox.tech>;
 :toc:
 :revdate: 2019-08-13
 
-* Authors(s): {authors} +
-* Date: {revdate} +
-
+NOTE: Author: {authors} +
+Date: {revdate} +
 Issue: https://github.com/comit-network/comit-rs/issues/897[#477]
 
 == Context
