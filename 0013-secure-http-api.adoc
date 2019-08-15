@@ -53,9 +53,9 @@ The industry standard for encrypting traffic over a network is Transport Layer S
 * Replay protection - not needed, replay attack vector currently non-existent for cnd.
 * Sequence protection - no obvious need.
 
-== Implementing TLS for cnd and comit-i
+== Implementing TLS
 
-=== cnd (i.e TLS in Rust)
+=== cnd
 
 Adding TLS to cnd should be straightforward.
 TLS is supported by Warp (the web server framework we use).
