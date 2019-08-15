@@ -1,5 +1,4 @@
 = Securing the `cnd` HTTP API
-
 Tobin C. Harding <tobin.harding@coblox.tech>
 :toc:
 :revdate: 2019-08-13
