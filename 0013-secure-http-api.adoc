@@ -4,8 +4,8 @@ Tobin C. Harding <tobin.harding@coblox.tech>
 :toc:
 :revdate: 2019-08-13
 
-* Authors(s): {authors}
-* Date: {revdate}
+* Authors(s): {authors} +
+* Date: {revdate} +
 
 Issue: https://github.com/comit-network/comit-rs/issues/897[#477]
 
