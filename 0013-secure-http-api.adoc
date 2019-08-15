@@ -53,6 +53,10 @@ The industry standard for encrypting traffic over a network is Transport Layer S
 * Replay protection - not needed, replay attack vector currently non-existent for cnd.
 * Sequence protection - no obvious need.
 
+There is a usability concern that for clients that use a webbrowser e.g. `comit-i` how we sign the certificate will effect the user experience.
+A self signed cert will cause a security warning to be displayed by modern browsers.
+Installing a CA to counter the issue will require root privileges, something that we do not wish to require.
+
 == Implementing TLS
 
 === cnd
