@@ -75,7 +75,7 @@ Purchase a certificate signed by a trusted CA.
 
 ==== Signed certificate by private CA
 
-Use case: running cnd on same machine as the client.
+Use case: connecting to `comit-i` with the machine running cnd.
 Create a private CA and configure the host machine to trust certificates signed by the private CA.
 
 .pros
@@ -89,7 +89,7 @@ Create a private CA and configure the host machine to trust certificates signed 
 
 === Self signed certificate
 
-Use case: running cnd on same machine as the client.
+Use case: connecting to `comit-i` with the machine running cnd.
 Create a self signed certificate.
 
 .pros
@@ -99,6 +99,10 @@ Create a self signed certificate.
 .cons
 * Adds complexity to the set up of cnd
 * Negatively impacts usability, browser security pop up because of untrusted certificate
+
+According to let's encrypt project this can be partially mitigated if we serve `comit-i` on an IP address instead of on `localhost`
+Reference: https://letsencrypt.org/docs/certificates-for-localhost/
+
 
 == Implementing TLS
 
