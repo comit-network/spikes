@@ -276,6 +276,19 @@ The list below only contains elements from section <<Release Trigger Guidelines 
 
 Author's note: This table only contain the "Yes" and "Depends" values of the <<table-anchor-1,previous table>>.
 
+=== COMIT API version and relation to release version
+
+The communication between COMIT nodes over libp2p is identified by a protocol, currently `/bam/json/1.0.0`.
+After looking at https://docs.libp2p.io/ and https://docs.rs/libp2p/0.12.0/libp2p/ we can see that:
+- As part of the _protocol negotiation phase_, the dialer can send several protocols, the receiver will then select one of them
+- In rust-libp2p, once a protocol is selected, it is stored in an `Info` struct allowing different actions to be specified depending on the protocol.
+- Protocol selection can be done by exact match `/bam/json/1.0.0` or using any kind of matching pattern `/bam/json/1.*`, it is up to the implementation
+
+== Recommendation
+
+As per the above, the libp2p protocol versioning is actually very flexible.
+There are no constraints on how it should be used, hence we can decide to upgrade it and support previous versions as we which.
+
 === Validation
 
 As part of the release process we could run a number of validation steps before releasing, in addition to the CI run done at each PR merge.
