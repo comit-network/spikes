@@ -105,6 +105,8 @@ index eb46c727..0aafc5c2 100644
              .and_then(move |tx| {
 ----
 
-With this change, we don't care if the query already exists on btsieve by the time we issue this request.
+As a result, we don't care if the query already exists on btsieve by the time we issue this request.
 Hence, we also don't need to store the URL or anything else in order to resume a swap.
 All we need to do is re-instantiate the state machine in the current state (retrieved from the database) and upon the first poll, this code will reconstruct the future with the existing query on btsieve.
+
+Shoutout to @da-kami for coming up with the initial idea for this!
