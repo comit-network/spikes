@@ -205,6 +205,10 @@ We propose to use environment variables for this which bypasses the whole proces
 
 |===
 
+Starting your own blockchain nodes could also be supported through the `NO_START` feature.
+In general, we propose to use environment variables to extend/modify the behaviour of the test framework.
+Hence, if desired, a `NO_STOP` environment variable could be added that works similarly to `NO_START`.
+
 ==== Other features of jest
 
 - Jest allows you to specify the number of expected assertions: https://jestjs.io/docs/en/expect#expectassertionsnumber
