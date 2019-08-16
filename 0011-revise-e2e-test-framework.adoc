@@ -271,6 +271,23 @@ describe.each([ ["bitcoin", "ether"], ["ether", "bitcoin"], ["bitcoin", "erc20"]
 );
 ----
 
+==== How does our testing approach scale when adding more assets & ledgers?
+
+There are valid concerns in the team that, when cnd and btsieve are treated as a black box, we have to test all asset/ledger combinations to gain confidence about the state of the system.
+This adds complexity in the form of `O(n²)`.
+The alternative to that is whitebox testing, where your test makes assumptions about the implementations and can reason that one particular test also covers other scenarios and hence, you don't need to add a dedicated test for that.
+
+As soon as we create a `comit` crate that implements the main functionality (swap execution, actions, queries & message-types), we will have to change our testing approach.
+Such a library needs to come with its own functional tests as we cannot just rely on it being embedded in another software that is end-to-end tested.
+I'd therefore propose the following:
+
+- As long as `cnd` is the smallest usable component of COMIT, I'd recommend to blackbox test it from the outside.
+Given the parallel execution of tests suggested in part I, this should scale fairly well even if we add more assets or ledgers.
+- Start splitting up `cnd` into `cnd` and `comit` within the `comit-rs` repository.
+Initially, the `comit` crate would be implicitly tested through the e2e tests of `cnd`.
+- Develop Rust-based tests against the `comit` crate that give us confidence in its functionality.
+Those tests are much closer to the actual functionality and can thus make use of more whitebox testing approaches like coverage or property-based testing (quickcheck) that will allow us to reduce the overall number of tests.
+
 ==== Philosophy
 
 The underlying idea of the test framework above can be summarized as: "smart defaults".
