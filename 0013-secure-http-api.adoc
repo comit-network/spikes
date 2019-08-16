@@ -52,34 +52,94 @@ The industry standard for encrypting traffic over a network is Transport Layer S
 * Replay protection - not needed, replay attack vector currently non-existent for cnd.
 * Sequence protection - no obvious need.
 
-There is a usability concern that for clients that use a webbrowser e.g. `comit-i` how we sign the certificate will effect the user experience.
-A self signed cert will cause a security warning to be displayed by modern browsers.
-Installing a CA to counter the issue will require root privileges, something that we do not wish to require.
+=== Certificates
+
+TLS requires a certificate (private/public keypair) to be preset on the server i.e., cnd.
+Note, this negatively impacts our quarterly OKR #48 (Make COMIT easily accessible).
+
+There are multiple solutions to getting a certificate onto the machine running cnd, each with different pros/cons.
+
+==== Signed certificate by trusted CA
+
+Use case: running cnd on an internet facing host with a registered domain.
+Purchase a certificate signed by a trusted CA.
+
+.pros
+* This is how it would need to be done if cnd is offered as a service i.e., to mobile clients
+* Industry standard
+
+.cons
+* Resource intensive, money and time.
+* Unnecessary for use cases where cnd is on the same machine as the client
+* Not suitable for development
+
+==== Signed certificate by private CA
+
+Use case: running cnd on same machine as the client.
+Create a private CA and configure the host machine to trust certificates signed by the private CA.
+
+.pros
+* Free
+* Makes using the client with HTTPS seamless
+
+.cons
+* Requires root access to the host machine
+* Complex if done manually, however there is a tool (untested) that claims to simplify this: https://blog.filippo.io/mkcert-valid-https-certificates-for-localhost/
+* Operator of cnd still has to create and sign certificates for use by cnd i.e., increases complexity
+
+=== Self signed certificate
+
+Use case: running cnd on same machine as the client.
+Create a self signed certificate.
+
+.pros
+* Free
+* Within the realm of typical developer knowledge
+
+.cons
+* Adds complexity to the set up of cnd
+* Negatively impacts usability, browser security pop up because of untrusted certificate
 
 == Implementing TLS
+
+There are two aspects to encrypting traffic between cnd to the client.
+1. The HTTP API exposed by cnd needs to be encrypted using TLS.
+2. *Our* client implementation, `comit-i` needs to be served by cnd using TLS.
 
 === cnd
 
 Adding TLS to cnd should be straightforward.
-TLS is supported by Warp (the web server framework we use).
-The only real consideration is the TLS keypair (key and certificate) and selfsigning the certificate.
-We can provide a default keypair so that cnd works out of the box with TLS.
 
-.This can be done in a few ways:
-* Put the keys in the repository - bad, private keys should be private.
-* Write a standalone tool to generate a new key.
-* Add code to cnd to generate a new keypair if one is not found i.e. in the default place or via a config option `--key=/path/to/key`and `--cert=/path/to/cert`.
+There are two parts to this:
+1. Exposing the HTTP API vial TLS (so clients can connect to cnd using TLS)
+2. Serving `comit-i` via TLS (so the browser can use `https://` addresses)
+
+Since both of these are done by calls to Warp they can both be done in the same manner.
+TLS is supported by Warp (the web server framework we use).
+Requires adding a field in the config file and command line options e.g., `--tls-key=/path/to/key` and `--tls-cert=/path/to/cert`.
+Adds an extra initial setup step for the user of cnd to ensure valid certificate is available on the host machine.
 
 === comit-i
 
-Request content for this section to be written by team member who is familiar with `comit-i` and/or React.
+`comit-i` must consume the HTTP API exposed by cnd using TLS
+I was unable to find any information on the internet on how to do this.
 
 == Recommendation
+
+The cnd stuff is straightforward.
 
 .Recommendations are as follows:
 * Implement TLS for cnd using Warp's TLS support.
 ** Enable TLS by default, add option `--no-tls` to disable it.
 ** Look for keypair in well known location, configurable via configuration file and command line options.
+* Leave generation of valid certificate up to the user of cnd but add documentation/hints on how to do this and what options are available (based on information in this spike).
+
+As for `comit-i` my findings were less positive.
+Recommend splitting `comit-i` up into separate parts for the front end and back end and re-writing the back end in Rust.
+Rust has a library `rust-native-tls` which is an abstraction over platform-specific TLS implementations and will facilitate connecting to cnd using TLS.
+
+.Failed research question:
+* Connect to cnd from `comit-i` using TLS via Typescript or Javascript library.
 
 == Reference
 
