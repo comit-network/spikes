@@ -110,7 +110,7 @@ I'll settle with option (2) because:
 
 ==== Test structure
 
-With jest, we have **files** that contain one or more **describe**-functions (representing a suite of tests) with each containing one or more **test**-functions with each being a single **test**.
+With jest, we have **files** that contain one or more **describe**-functions (representing a suite of tests) with each containing one or more **test**-functions (https://github.com/facebook/jest/blob/master/packages/jest-jasmine2/src/index.ts#L86[`it` is an alias for `test`]) with each being a single **test**.
 These tests are run in parallel by jest.
 Each test should therefore be a self-contained unit that conforms to the three test phases: arrange, act, assert.
 
