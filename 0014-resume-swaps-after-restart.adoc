@@ -107,6 +107,7 @@ index eb46c727..0aafc5c2 100644
 
 As a result, we don't care if the query already exists on btsieve by the time we issue this request.
 Hence, we also don't need to store the URL or anything else in order to resume a swap.
-All we need to do is re-instantiate the state machine in the current state (retrieved from the database) and upon the first poll, this code will reconstruct the future with the existing query on btsieve.
+All we need to do is re-instantiate the state machine in the `Start` state with the initial value.
+Upon the first poll, this code will reconstruct the future with the existing query on btsieve and fast forward to the current state.
 
-Shoutout to @da-kami for coming up with the initial idea for this!
+Shoutout to @da-kami for coming up with the idea of using deterministic query IDs on btsieve!
