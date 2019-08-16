@@ -181,7 +181,8 @@ That can/should also be reflected in the filename.
 
 ==== Running tests against already started btsieve/cnd/blockchain_nodes
 
-We propose to use environment variables for this which bypasses the whole process of starting the given dependency (this env variable is read by the `ensure*` functions mentioned above):
+Unfortunately, https://github.com/facebook/jest/issues/6316[Jest doesn't allow custom arguments] to customize the test run.
+We propose to use environment variables to bypasses the whole process of starting the given dependency (this env variable is read by the `ensure*` functions mentioned above):
 
 .Usage of the `NO_START` environment variable
 [cols=".^d,a"]
