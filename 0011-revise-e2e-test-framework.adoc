@@ -464,7 +464,7 @@ Given a bug, some test might fail because of a side effect but ideally you would
 
 We propose to implement the above solution in the following steps:
 
-1. Take an e2e test (for example happy path bitcoin <-> ether) and rewrite it in the new format.
+1. Take an e2e test (for example happy path `bitcoin <> ether`) and rewrite it in the new format.
 Make sure to pay attention from the start that assertions and execution are cleanly separated.
 2. Take another test and modify the existing implementation of the test framework to be able to express the test.
 3. Continue until all e2e test are re-written
