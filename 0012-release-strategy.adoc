@@ -471,14 +471,18 @@ By Stabilisation I mean, what should we do if we found a bug as part of the vali
 
 * Create risk of forgetting to push the bug fix to master
 
-| 5. Same than 4 but a candidate release branch is always created
+| 5. Simplified Git Flow - Same than 4 but a candidate release branch is always created
 | * Consistent approach, more straightforward and clear for the team
-| * Always added overhead
+| * Always added overhead: Actually, we would need a new branch for the PR that updates the versions in Cargo.toml so not really overhead.
+
+* Simplified in the way that we only work from master (no "develop" branch).
+
+* See https://danielkummer.github.io/git-flow-cheatsheet/
 |===
 
 ===== Recommendation
 
-I recommend 4. (the pros and cons are already in the table) :)
+I recommend 5. (the pros and cons are already in the table) :)
 
 ==== Releasing actions
 
@@ -492,14 +496,23 @@ What should actually happen when releasing? Let's list below (I love tables)
 | The release does not need to happen now.
 It is tracked with a release issue. In the issue, specify what version should happen.
 
-| Do the release validation
+| Kick Off Git Flow process
+|See https://danielkummer.github.io/git-flow-cheatsheet/
+
+- Create `release/vX.X.X` branch
+- Commit version upgrades (in Cargo.toml) in release branch
+
+| Do the release validation from the release branch
 | See <<Validation>>
 
-| Git tag the commit
-| Fits GitHub workflow, allow to checkout given tag to compile ourselves or investigate reported bugs or use a stable version when working on/with a client
+| Merge the release branch back into master branch
+| As per Git Flow
+
+| Git tag the commit on master
+| As per Git Flow
 
 | Do a GitHub Release
-| Makes it easy to find the releases
+| This should be done automatically when pushing the tag
 
 | Hook to create binaries and attach them to GitHub Release
 | Makes it easy to manage binary releases
