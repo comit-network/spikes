@@ -339,6 +339,15 @@ This includes:
 3. Don't rely on the assertion message to debug what went wrong, instead check the logs for failing tests
 4. Split up logs into individual files per test: Use https://github.com/Jezorko/smack-my-jasmine-up to initialize the log framework with a different log file per test. PoC:
 
+In general, we discourage using stdout for any kind of log output because:
+
+- parallel execution makes this output hard to read
+- it is difficult to choose a level of verbosity upfront
+
+Instead, each test should write all their logs to a dedicated file (PoC about that below).
+The log output in these files can then be on maximum verbosity level.
+Stdout would therefore always just show the number of executed tests and their result.
+
 NOTE: In a CI environment, you can then download these logs to your computer and inspect them.
 
 [source,js]
