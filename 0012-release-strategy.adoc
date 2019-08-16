@@ -500,7 +500,7 @@ It is tracked with a release issue. In the issue, specify what version should ha
 |See https://danielkummer.github.io/git-flow-cheatsheet/
 
 - Create `release/vX.X.X` branch
-- Commit version upgrades (in Cargo.toml) in release branch
+- Commit version upgrades (Cargo.toml, CHANGELOG.md) in release branch
 
 | Do the release validation from the release branch
 | See <<Validation>>
