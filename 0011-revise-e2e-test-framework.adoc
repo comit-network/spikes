@@ -275,8 +275,7 @@ describe.each([ ["bitcoin", "ether"], ["ether", "bitcoin"], ["bitcoin", "erc20"]
 
 The underlying idea of the test framework above can be summarized as: "smart defaults".
 
-Usually, a test will need two actors:
-Alice and Bob.
+Usually, a test will need two actors: Alice and Bob.
 Hence, the functions `ensureCnd` and `ensureBtsieve` will default to spawning two instances.
 If a different setup is needed, a list of required actors could be passed to those functions: `await ensureCnd(["alice", "bob", "charlie"])`
 Depending on the name of passed actor, the function `createActors` will return an object with properties according to those names.
