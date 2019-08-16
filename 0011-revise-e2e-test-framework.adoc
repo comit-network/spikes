@@ -450,3 +450,21 @@ describe("Siren actions", () => {
 
 The overall idea is that we have many different tests where the assertions only cover a particular part of the software.
 Given a bug, some test might fail because of a side effect but ideally you would want a test where a particular assertion fails to point you into the right direction.
+
+=== Implementation steps
+
+We propose to implement the above solution in the following steps:
+
+1. Take an e2e test (for example happy path bitcoin <-> ether) and rewrite it in the new format.
+Make sure to pay attention from the start that assertions and execution are cleanly separated.
+2. Take another test and modify the existing implementation of the test framework to be able to express the test.
+3. Continue until all e2e test are re-written
+4. Rewrite the test-harness to provide the above features and switch from mocha/chai to Jest
+
+By following the above approach we expect to achieve and incremental transition from our current test suite to the proposed one above.
+It should allow us to submit several PRs and evolve the test framework in the way we need it.
+
+We consider esp. the last point to be very important.
+The test framework is fairly complicated and the design needs to take into account many aspects.
+While we did our best, it is expected that some things proposed in this spike may not work the way we thought they would.
+Implementing the whole thing incrementally should help us in not loosing too much time because of that and find a solution that works.
