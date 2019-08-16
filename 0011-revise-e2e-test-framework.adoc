@@ -1,5 +1,5 @@
 = Revise e2e test framework
-Tobin C. Harding <tobin.harding@coblox.tech>;
+Tobin C. Harding <tobin.harding@coblox.tech>; Lucas Soriano <lucas@coblox.tech>; Thomas Eizinger <thomas@coblox.tech>;
 :toc:
 :revdate: 2019-07-29
 
