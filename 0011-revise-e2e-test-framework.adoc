@@ -95,21 +95,21 @@ For the test executor, I'll settle with `jest` because
 In order to have a test suite that is fast and _stays_ fast, we will need to run tests in parallel.
 Given that, we have two choices:
 
-1. Each tests sets up its own dependencies (cnd, btsieve, blockchain nodes)
+1. Each test sets up its own dependencies (cnd, btsieve, blockchain nodes)
 2. The tests re-use the same nodes but don't share any state on those dependencies and can hence be executed in parallel
 
 I'll settle with option (2) because:
 
 - it should give us slightly better performance
 - I don't have to mangle with different ports/configuration files
-- our software should allow us to use it in parallel (swaps are independent from other)
+- our software should allow us to use it in parallel (swaps are independent from each other)
 - we get it for free that the previous statement is actually true
 
 ==== Test structure
 
 With jest, we have **files** that contain one or more **describe**-functions (representing a suite of tests) with each containing one or more **test**-functions with each being a single **test**.
 These tests are run in parallel by jest.
-Each test should therefore be a self-contained unit that conforms to the three test phases: arrange, act assert.
+Each test should therefore be a self-contained unit that conforms to the three test phases: arrange, act, assert.
 
 If we assume that tests don't need to set up their own dependencies because they can reuse existing ones, then a testfile could potentially look like this:
 
