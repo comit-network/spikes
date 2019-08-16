@@ -206,6 +206,14 @@ We propose to use environment variables to bypasses the whole process of startin
 
 |===
 
+The name `NO_START` was chosen because:
+
+- It is short and therefore quick to type.
+- It is easy to remember.
+We don't expect this feature to be used that often since it is really only useful if you want to debug cnd as part of executing an e2e test.
+In that case, developers shouldn't need to lookup what this env variable is called.
+`NO_START` seems to be intuitive.
+
 Starting your own blockchain nodes could also be supported through the `NO_START` feature.
 In general, we propose to use environment variables to extend/modify the behaviour of the test framework.
 Hence, if desired, a `NO_STOP` environment variable could be added that works similarly to `NO_START`.
