@@ -1,0 +1,110 @@
+= Resume a SWAP after restart of cnd
+Daniel Karzel <daniel.karzel@coblox.tech>; Thomas Eizinger <thomas@coblox.tech>;
+:toc:
+:revdate: 2019-08-15
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1061[#1061]
+
+== Context
+
+A swap consists of the following data:
+
+- Pair of ledgers
+- Pair of assets
+- Secret/SecretHash
+- Expiry times
+- Identities
+
+`comit-rs` currently consists of two executables: cnd and btsieve.
+Btsieve monitors ledgers for particular events (queries) and exposes an HTTP API.
+Cnd uses this API to create queries for HTLC funding etc and continuously polls for the results.
+
+The current design of cnd relies on state that is only available in-memory in order to execute the swap.
+This state builds on ``Future``s which resolve to transactions corresponding to certain ledger events.
+These ``Future``s in turn are backed by URLs pointing to queries on btsieve.
+
+Storing the data of a swap is trivial.
+What is not trivial is reconstructing those ``Future``s from the data that is stored in the database.
+If we can figure out, how to achieve that, resuming swaps after a restart is trivial because all we need to do is:
+
+1. Load all swaps from the database
+2. Filter for all resumable swaps (state > ACCEPTED && state < SWAPPED)
+3. Construct the ``Future``s, construct the state machine, spawn away
+
+Hence, this spike is going to focus on how we can construct those ``Future``s from data that we can store in the database.
+
+== Research
+
+One problem of the current design is that we MUST NOT create two separate queries on btsieve for the same event.
+That is why https://github.com/comit-network/comit-rs/blob/5895440ee7762d6f51001b7cf47d278fdb43b841/cnd/src/swap_protocols/rfc003/events/ledger_event_futures.rs#L19-L65[LedgerEventFutures] holds `Option<T>` of the corresponding `Future`.
+Repeated calls to `htlc_deployed` etc will yield the already existing future and not create a new one.
+
+In order to mitigate this issue, we propose an API change to btsieve.
+Concretely, we propose to make the following possible:
+
+[source,http request]
+----
+PUT /queries/bitcoin/testnet/transactions/ce3e88edc8fe810a273d5533524f41c1883c04270c588dd8b357f8be187cb90c
+Content-Type: application/json
+Content-Length: 66
+
+{
+    "to_address": "tb1q0304dtz07ww7gtlgvx37vx620tfu9c48png6as"
+}
+----
+
+According to the HTTP spec, https://tools.ietf.org/html/rfc7231#section-4.3.4[one can use PUT] to have an "upsert"-kind of behaviour.
+That is, create if it does not exist or update if it does exist.
+
+How is this relevant for our usecase?
+
+Currently, we use POST requests to create the queries on btsieve.
+The difference is that POST requests, contrary to PUT requests do not make any guarantees about idempotence.
+In other words, a POST request will always create a new query whereas repeated PUT requests only create them on the first one and update afterwards.
+
+If the client wishes to use PUT requests to create new resources, it has to ensure that the used identifier is unique (otherwise it will issue an update rather than a create).
+In general, and contrary to POST requests, the client is in charge of creating identifiers.
+
+One thing to consider is that we may want to implement a verification step on btsieve that disallows updating a query with different content.
+Since this is application logic, it is still a valid usage of HTTP.
+
+== Recommendation
+
+We propose the following changes:
+
+1. Extend btsieve to allow the creation of queries through PUT (btsieve MUST validate that within repeated requests, the query is semantically equivalent)
+2. Change cnd to compute a unique identifier for each query.
+We propose to concat the secret hash with current query and hash it again:
+
+[source]
+----
+HASH_256(SECRET_HASH + "FUND")
+----
+
+With this change, we only have to slighly modify the creation of queries on the cnd side:
+
+.https://github.com/comit-network/comit-rs/blob/5895440ee7762d6f51001b7cf47d278fdb43b841/cnd/src/swap_protocols/rfc003/bitcoin/htlc_events.rs#L28-L50
+[source,diff]
+----
+diff --git a/cnd/src/swap_protocols/rfc003/bitcoin/htlc_events.rs b/cnd/src/swap_protocols/rfc003/bitcoin/htlc_events.rs
+index eb46c727..0aafc5c2 100644
+--- a/cnd/src/swap_protocols/rfc003/bitcoin/htlc_events.rs
++++ b/cnd/src/swap_protocols/rfc003/bitcoin/htlc_events.rs
+@@ -26,8 +26,9 @@ impl HtlcEvents<Bitcoin, BitcoinQuantity> for Arc<dyn QueryBitcoin + Send + Sync
+         htlc_params: HtlcParams<Bitcoin, BitcoinQuantity>,
+     ) -> Box<DeployedFuture<Bitcoin>> {
+         let query_bitcoin = Arc::clone(&self);
++        let identifier = htlc_params.deployed_identifier();
+         let deployed_future = self
+-            .create(BitcoinQuery::deploy_htlc(htlc_params.compute_address()))
++            .create(identifier, BitcoinQuery::deploy_htlc(htlc_params.compute_address()))
+             .and_then(move |query_id| query_bitcoin.transaction_first_result(&query_id))
+             .map_err(rfc003::Error::Btsieve)
+             .and_then(move |tx| {
+----
+
+With this change, we don't care if the query already exists on btsieve by the time we issue this request.
+Hence, we also don't need to store the URL or anything else in order to resume a swap.
+All we need to do is re-instantiate the state machine in the current state (retrieved from the database) and upon the first poll, this code will reconstruct the future with the existing query on btsieve.
