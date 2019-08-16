@@ -86,9 +86,12 @@ Before a technical design can be created and proposed, we have to put some const
 
 For the test executor, I'll settle with `jest` because
 
-- the team already has experience with it
-- it is well maintained
-- it has good defaults
+* the team already has experience with it
+* it is well maintained
+* it has good defaults
+** parallel execution (can be limited with `--maxWorkers=N` flag)
+** all files named `*.spec.js` are considered to contain tests
+** comes with an assertion framework (currently we have mocha as the test runner and chai as the assertion library)
 
 ==== Performance
 
