@@ -15,6 +15,6 @@ List of spike outcomes for COMIT network.
 - [spike-0010](0010-timestamps.adoc) - Event timestamps
 - [spike-0011](0011-revise-e2e-test-framework.adoc) - Revise e2e test framework
 - [spike-0012](0012-release-strategy.adoc) - Release Strategy
-- [spike-0014](0014-resume-swaps-after-restart) - Resume swaps after restart
+- [spike-0014](0014-resume-swaps-after-restart.adoc) - Resume swaps after restart
 
 For new spike outcomes, please use [template.adoc](template.adoc) as basis.
