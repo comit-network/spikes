@@ -1,0 +1,161 @@
+= Securing the `cnd` HTTP API
+Tobin C. Harding <tobin.harding@coblox.tech>;
+:toc:
+:revdate: 2019-08-13
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Issue: https://github.com/comit-network/comit-rs/issues/897[#477]
+
+== Context
+
+Currently the HTTP API served by cnd has no security features, all data is sent as plain text.
+This opens an opportunity for a man-in-the-middle attacker to get in between cnd and a client consuming the API e.g., `comit-i`.
+While not critical this is still a security concern, if we are trying to write best practice software we should consider securing the HTTP API.
+
+== Research
+
+First, research how this problem is solved in the wild.
+Read a bunch of stack overflow posts and blog posts, see reference section below for blog post wrapping up this knowledge.
+
+Conclude that in order to fully secure the HTTP API we would need to use some form of encryption and some form of client/server verification.
+The requirement for encryption is self evident and is the primary focus of this spike, all communication between cnd and a client should be encrypted.
+
+The topic of authentication is not so clear cut.
+Authentication is actually out of scope for this spike but briefly considering here for completeness.
+
+.Client authentication refers to three things:
+* Identity – who claims to be making an API request?
+* Authentication – are they really who they say they are?
+* Authorization – are they allowed to do what they are trying to do?
+
+At the moment only the first two are of interest to us, all users are allowed to do anything.
+
+.Considerations:
+* API key
+* username/password
+* Basic authentication with TLS
+* OAuth
+** Oauth1.Oa
+** OAuth2
+
+Recommend to leave authentication out of scope and only consider encryption.
+
+=== Recap on TLS
+
+The industry standard for encrypting traffic over a network is Transport Layer Security (TLS).
+
+.What TLS gives us and whether we need it:
+* Authentication of cnd - needed, allows client to verify it is connecting to the correct cnd.
+* Data confidentiality - needed, protects against attacker learning the secret.
+* Date integrity - needed, protects against modification of the data i.e. changing the redeem address.
+* Replay protection - not needed, replay attack vector currently non-existent for cnd.
+* Sequence protection - no obvious need.
+
+=== Certificates
+
+TLS requires a certificate (private/public keypair) to be present on both the server and the client i.e., cnd and comit-i respectively.
+Note, this negatively impacts our quarterly OKR #48 (Make COMIT easily accessible).
+
+There are multiple solutions to getting a certificate onto the machine running cnd, each with different pros/cons.
+
+==== Signed certificate by trusted CA
+
+Use case: running cnd on an internet facing host with a registered domain.
+Purchase a certificate signed by a trusted CA.
+
+.pros
+* This is how it would need to be done if cnd is offered as a service i.e., to mobile clients
+* Industry standard
+
+.cons
+* Resource intensive, money and time.
+* Unnecessary for use cases where cnd is on the same machine as the client
+* Not suitable for development
+
+==== Signed certificate by private CA
+
+Use case: connecting to `comit-i` with the machine running cnd.
+Create a private CA and configure the host machine to trust certificates signed by the private CA.
+
+.pros
+* Free
+* Makes using the client with HTTPS seamless
+
+.cons
+* Requires root access to the host machine
+* Complex if done manually, however there is a tool (untested) that claims to simplify this: https://blog.filippo.io/mkcert-valid-https-certificates-for-localhost/
+* Operator of cnd still has to create and sign certificates for use by cnd i.e., increases complexity
+
+=== Self signed certificate
+
+Use case: connecting to `comit-i` with the machine running cnd.
+Create a self signed certificate.
+
+.pros
+* Free
+* Within the realm of typical developer knowledge
+
+.cons
+* Adds complexity to the set up of cnd
+* Negatively impacts usability, browser security pop up because of untrusted certificate
+* Browsers such as Firefox will block requests that try to https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSDidNotSucceed?utm_source=devtools&utm_medium=firefox-cors-errors&utm_campaign=default[access an https resource that has an invalid certificate]
+
+According to let's encrypt project, the problem with the security pop up can be partially mitigated if we serve `comit-i` on an IP address instead of on `localhost`
+Reference: https://letsencrypt.org/docs/certificates-for-localhost/
+
+All in all, self-signed certificates seem to be a no-go for clients on the browser.
+
+== Implementing TLS
+
+There are two aspects to encrypting traffic between cnd to the client.
+1. The HTTP API exposed by cnd needs to be encrypted using TLS.
+2. *Our* client implementation, `comit-i` needs to be served by cnd using TLS.
+
+=== cnd
+
+Adding TLS to cnd should be straightforward.
+
+There are two parts to this:
+1. Exposing the HTTP API vial TLS (so clients can connect to cnd using TLS)
+2. Serving `comit-i` via TLS (so the browser can use `https://` addresses)
+
+Since both of these are done by calls to Warp they can both be done in the same manner.
+TLS is supported by Warp (the web server framework we use).
+Requires adding a field in the config file and command line options e.g., `--tls-key=/path/to/key` and `--tls-cert=/path/to/cert`.
+Adds an extra initial setup step for the user of cnd to ensure valid certificate is available on the host machine.
+
+=== comit-i and other clients
+
+Any client must consume the HTTP API exposed by cnd using TLS.
+For an embedded client such as `comit-i` this means serving it via TLS.
+As stated above, this is supported by the web server framework we use, by providing a key and a certificate.
+
+For alternative client implementations that live outside of `cnd`, the same requirement holds.
+We would have to document this requirement and point to relevant resources.
+
+== Recommendation
+
+The cnd stuff is straightforward.
+
+.Recommendations are as follows:
+* Implement TLS for cnd using Warp's TLS support.
+** Enable TLS by default, add option `--no-tls` to disable it.
+** Look for keypair in well known location, configurable via configuration file and command line options.
+* Leave generation of valid certificate up to the user of cnd but add documentation/hints on how to do this and what options are available (based on information in this spike).
+
+In the case of `comit-i`, being a browser-based client imposes fundamental restrictions.
+In particular, the certificates involved in the secure communication cannot be self-signed.
+Satisfying this requirement is feasible, but it's worth re-evaluating our motivation for securing the network communication before implementing anything given the negative implications of using certificates signed by CAs.
+
+== Conclusions
+
+The truth is that the motivation for tackling this spike now was to be able to integrate the popular hardware wallet Nano Ledger S in `comit-i`.
+With that in mind, it's hard to justify undertaking these changes now that we have come to the conclusion that native Nano Ledger S integration is not a priority.
+Furthermore, this investigation has highlighted the fact that we need to carefully consider all possible attack vectors on the HTTP API before we decide on how to secure it.
+
+== Reference
+
+* https://stormpath.com/blog/secure-your-rest-api-right-way
+* Warp docs: https://docs.rs/warp/0.1.18/warp/
+* Warp TLS example: https://github.com/seanmonstar/warp/blob/master/examples/tls.rs
