@@ -16,5 +16,6 @@ List of spike outcomes for COMIT network.
 - [spike-0011](0011-revise-e2e-test-framework.adoc) - Revise e2e test framework
 - [spike-0012](0012-release-strategy.adoc) - Release Strategy
 - [spike-0013](0013-secure-http-api.adoc) - Securing the cnd HTTP API
+- [spike-0014](0014-resume-swaps-after-restart.adoc) - Resume swaps after restart
 
 For new spike outcomes, please use [template.adoc](template.adoc) as basis.

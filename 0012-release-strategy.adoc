@@ -205,14 +205,16 @@ The positive effect is that we would not need to wait for a change to be in cnd 
 
 ==== Recommendation
 
-Coming up with a releasing strategy that takes all crates (including vendor) in consideration is added work with little added value.
+Coming up with a releasing strategy that takes all crates (including internal) in consideration is added work with little added value.
 Users do not import the sub-crates and use them (in comparison with test-containers) and only use comit-rs as two binaries.
 
-After reconsideration, strategy 3 may provide the best of both world: a versioning system that makes sense (each binary has it's own version) and a lightweight solution to still manage dependency across versions.
+Hence, internal crates will not be versioned and their release number will be kept at 0.1.0.
 
-For strategy 3., if btsieve were to become a library used by cnd, then we would only need to continue cnd versioning as it is and stop binary release for btsieve that can continue its own version path in its own repo.
+After the 14Aug 2019 meeting, we decided to go for strategy 2:
 
-Hence, I recommend strategy 3: version cnd and btsieve separately and keep vendor crates at 0.1.0.
+- cnd and btsieve are released together
+- cnd and btsieve are released with the same version number
+- cnd checks that it connects to a btsieve with the same version number than its own: [#1219](https://github.com/comit-network/comit-rs/issues/1219)
 
 
 === Release Trigger Guidelines - Recommendation
@@ -231,11 +233,11 @@ Inline is the author's recommendation
 | i/rs | Code refactoring | No | Does not bring value to the user
 | rs | Rust API breaking change | No | This is a binary crate hence nobody is supposed to use our Rust API
 | i/rs | Test improvement | No | Does not bring value to the user
-| i/rs | UX Feature | Yes | As it bring value to the user
+| i/rs | UX Feature | Soft Yes | As it bring value to the user
 | rs | Breaking HTTP API Change | Yes | To force us to (hopefully) align the embedded comit-i as part of the release validation process
 | i | Adapt to comit-rs HTTP API Change | Yes | To make it easier to work on comit-rs with the embedded comit-i
-| rs | Breaking COMIT API Change | Yes | To migrate the "network" to the latest API fast and reduce the number of user using a deprecated API; To be able to easily differentiate both protocols
-| rs | Internal API (btsieve REST API) | No | Does not bring value to the user
+| rs | Breaking COMIT API Change (inc. protocol change) | Yes | To migrate the "network" to the latest API fast and reduce the number of user using a deprecated API; To be able to easily differentiate both protocols
+| rs | Internal API (btsieve REST API) | Yes | Needed as cnd will version check btsieve (same version expected)
 | rs | CLI API | Depends | Whether it fits under the _UX Feature_ category
 | rs | Embedded comit-i | Depends | Whether the comit-i changes fits in any other categories above
 | i/rs | Any other change | Soft No | A new feature that does not fit in any category above should not trigger a release, except if the team think it should (ie, ad-hoc discussion)
@@ -265,13 +267,27 @@ The list below only contains elements from section <<Release Trigger Guidelines 
 | i/rs | UX Feature | Minor | Major/Minor | Team decides depending how ground-breaking the feature is, e.g, how much users will have to re-learn to use COMIT
 | i/rs | Breaking HTTP API Change | Minor | Major | If someone were to create a client on cnd, they need to know that they can upgrade minor versions without risk
 | i | Adapt to comit-rs HTTP API Change | Minor | Major |
-| rs | Breaking COMIT API Change | Minor | Major | To express non-backward compatibility between two cnd
+| rs | Breaking COMIT API Change (inc. protocol change) | Minor | Major | To express non-backward compatibility between two cnd
+| rs | Internal API (btsieve REST API) | Minor | Minor | To express internal compatibility
 | rs | Breaking CLI API | Minor | Major | While this is unlikely to happen, you don't want user to discover that their systemd scripts are broken by surprise
 | rs | Embedded comit-i | Minor | Major/Minor | Depending on whether the comit-i changes fits in any other categories above
 
 |===
 
 Author's note: This table only contain the "Yes" and "Depends" values of the <<table-anchor-1,previous table>>.
+
+=== COMIT API version and relation to release version
+
+The communication between COMIT nodes over libp2p is identified by a protocol, currently `/bam/json/1.0.0`.
+After looking at https://docs.libp2p.io/ and https://docs.rs/libp2p/0.12.0/libp2p/ we can see that:
+- As part of the _protocol negotiation phase_, the dialer can send several protocols, the receiver will then select one of them
+- In rust-libp2p, once a protocol is selected, it is stored in an `Info` struct allowing different actions to be specified depending on the protocol.
+- Protocol selection can be done by exact match `/bam/json/1.0.0` or using any kind of matching pattern `/bam/json/1.*`, it is up to the implementation
+
+== Recommendation
+
+As per the above, the libp2p protocol versioning is actually very flexible.
+There are no constraints on how it should be used, hence we can decide to upgrade it and support previous versions as we which.
 
 === Validation
 
@@ -413,16 +429,8 @@ The test could also be automated by slightly changing our e2e tests and using te
 
 ===== Recommendation
 
-While it would be interesting to be able to run the end-to-end tests against testnet/dev nodes, I think that there is a number of other advantage to run this manually: confirm comit-i compatibility and test our UX.
-
-Hence, I recommend we do a testnet swap using comit-i.
-Knowing that it should not be too hard if we just used our testnet bobtimus (and connect to the same testnet nodes).
-The test should be exhaustive enough to cover all existing assets (e.g, ETH->BTC and BTC->ERC20 is enough) for both redeem and refund.
-
-Ideally, we should rotate (one release we do ETH->BTC, BTC->ERC20 and the next time BTC-ETH, ERC20->BTC).
-
-The release candidate should be used on bobtimus side.
-At this stage, I would not consider necessary to test the release candidate with the previous release. This could be reviewed post-1.0.0.
+Too heavy to do manual testnet swaps.
+However it could be interesting to automate testnet swaps at some point.
 
 ==== Stabilisation strategy
 
@@ -463,14 +471,18 @@ By Stabilisation I mean, what should we do if we found a bug as part of the vali
 
 * Create risk of forgetting to push the bug fix to master
 
-| 5. Same than 4 but a candidate release branch is always created
+| 5. Simplified Git Flow - Same than 4 but a candidate release branch is always created
 | * Consistent approach, more straightforward and clear for the team
-| * Always added overhead
+| * Always added overhead: Actually, we would need a new branch for the PR that updates the versions in Cargo.toml so not really overhead.
+
+* Simplified in the way that we only work from master (no "develop" branch).
+
+* See https://danielkummer.github.io/git-flow-cheatsheet/
 |===
 
 ===== Recommendation
 
-I recommend 4. (the pros and cons are already in the table) :)
+I recommend 5. (the pros and cons are already in the table) :)
 
 ==== Releasing actions
 
@@ -480,14 +492,27 @@ What should actually happen when releasing? Let's list below (I love tables)
 |===
 |What |Why
 
-| Do the release validation
+| Open a release issue
+| The release does not need to happen now.
+It is tracked with a release issue. In the issue, specify what version should happen.
+
+| Kick Off Git Flow process
+|See https://danielkummer.github.io/git-flow-cheatsheet/
+
+- Create `release/vX.X.X` branch
+- Commit version upgrades (Cargo.toml, CHANGELOG.md) in release branch
+
+| Do the release validation from the release branch
 | See <<Validation>>
 
-| Git tag the commit
-| Fits GitHub workflow, allow to checkout given tag to compile ourselves or investigate reported bugs or use a stable version when working on/with a client
+| Merge the release branch back into master branch
+| As per Git Flow
+
+| Git tag the commit on master
+| As per Git Flow
 
 | Do a GitHub Release
-| Makes it easy to find the releases
+| This should be done automatically when pushing the tag
 
 | Hook to create binaries and attach them to GitHub Release
 | Makes it easy to manage binary releases
@@ -557,8 +582,6 @@ Use the https://keepachangelog.com/en/1.0.0/ strategy:
 
 == Recommendation Summary
 
-=== Versioning
-
 Use 0.Y.Z versions now, starting at 0.1.0 as per Rust convention.
 Release 1.0.0 once we consider COMIT mainnet ready.
 
@@ -567,21 +590,17 @@ Release feature based, see <<Release Trigger Guidelines - Recommendation>> to kn
 For crate releases:
 
 * Do not version vendor/internal crates
-* Version cnd and btsieve crates
-* When releasing cnd, also attached btsieve bin
-* When releasing btsieve, releast by itself even if latest cnd is not yet compatible
+* Version cnd and btsieve crates with same version
+* Release cnd & btsieve together
 * Expose btsieve version on its REST API
-* cnd to check version of btsieve at start-up and confirm compatibility
+* cnd to check version of btsieve and confirm compatibility
 
 Validation before releasing:
 
 * Confirm there was a successful CI run on master for the commit candidate, if not, trigger one.
 * Full run of e2e tests on Mac OS platform (debug release)
 * Come up with a common contract validations strategy to ensure compatibility between cnd and its clients
-* Do some swaps on testnet using comit-i and bobtimus
-** The test should be exhaustive enough to cover all existing assets (e.g, ETH->BTC and BTC->ERC20 is enough) for both redeem and refund.
-** Ideally, we should rotate (one release we do ETH->BTC, BTC->ERC20 and the next time BTC-ETH, ERC20->BTC)
-** Have the release candidate locally and keep previous version on bobtimus (except if not backward compatible)
+* [.line-through]#Do some swaps on testnet using comit-i and bobtimus# Up to the releaser to do some testnet swaps
 
 Handling blocking bug due to pre-release validation:
 If there is a blocking bug, a candidate branch is created where the bug fix will be pushed and from which the release will be done.

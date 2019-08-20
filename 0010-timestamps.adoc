@@ -5,7 +5,7 @@ Tobin C. Harding <tobin.harding@coblox.tech>;
 
 NOTE: Author: {authors} +
 Date: {revdate} +
-Tracking issue: https://github.com/comit-network/comit-rs/issues/1044
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1044[#1044]
 
 == Context
 
