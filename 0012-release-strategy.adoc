@@ -532,6 +532,7 @@ It is tracked with a release issue. In the issue, specify what version should ha
 | Mention it in the next blog post
 | Ditto.
 
+|#10
 | Drink 🍾
 | Celebrations are important
 |===
