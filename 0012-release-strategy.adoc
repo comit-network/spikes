@@ -488,41 +488,47 @@ I recommend 5. (the pros and cons are already in the table) :)
 
 What should actually happen when releasing? Let's list below (I love tables)
 
-[cols="1,2"]
+[cols="1,1,2"]
 |===
-|What |Why
+|Step |What |Why
 
+|#1
 | Open a release issue
 | The release does not need to happen now.
 It is tracked with a release issue. In the issue, specify what version should happen.
 
+|#2
 | Kick Off Git Flow process
 |See https://danielkummer.github.io/git-flow-cheatsheet/
 
 - Create `release/vX.X.X` branch
 - Commit version upgrades (Cargo.toml, CHANGELOG.md) in release branch
 
+|#3
 | Do the release validation from the release branch
 | See <<Validation>>
 
-| Merge the release branch back into master branch
-| As per Git Flow
+|#4
+| Git tag the commit on the release branch
+| Not like Git Flow because we do not have a _develop_ branch
 
-| Git tag the commit on master
-| As per Git Flow
-
+|#5
 | Do a GitHub Release
 | This should be done automatically when pushing the tag
 
-| Hook to create binaries and attach them to GitHub Release
-| Makes it easy to manage binary releases
+|#6
+| Merge the release branch back into master branch
+| As per Git Flow
 
-| Crawl PRs since last merge and create a changelog
-| Changelogs are good
+|#7
+| The CI hook creates binaries and attach them to GitHub Release
+| No action from releaser
 
+|#8
 | Tweet about the release
 | Why creating a changelog if nobody reads it
 
+|#9
 | Mention it in the next blog post
 | Ditto.
 
