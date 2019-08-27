@@ -1,0 +1,21 @@
+= How to document the cnd HTTP API
+Lucas Soriano del Pino <lucas@coblox.tech>;
+:toc:
+:revdate: 2019-08-27
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1122[#1122]
+
+== Context
+
+We have no documentation for cnd's HTTP API.
+
+== Research
+
+[Documentation of steps followed and findings]
+[Lay out the situation as clearly and objectively as possible]
+
+== Recommendation
+
+[Based on the research, try to make a recommendation for one of the proposed solution. If you can't, call in a meeting to decide on an outcome]
