@@ -77,6 +77,29 @@ The list of closure instructions (`0xf0` range):
 ----
 
 
+
+=== Improving logging
+
+Whether we use `return` or `revert`, we could improve the logging by returning or `log`-ging data at the end of a failed execution.
+
+We need to consider whether to
+
+- Use the same message for A, B & C.
+- Use the same message for A & B (secret related), a different for C
+- Use a different message for A, B & C.
+
+==== Return vs Log error message
+
+Both `return` and `revert` allow a value to be returned, this could be used to yield an error message.
+
+An alternative to this would be to use the `log1` instruction to emit messages, as we currently do for the success path.
+
+https://ethereum.stackexchange.com/a/26842[After] https://ethereum.stackexchange.com/a/60287[more] https://www.reddit.com/r/ethereum/comments/3ktzad/how_do_you_get_the_return_value_of_a_function/[research] https://forum.ethereum.org/discussion/2440/how-to-retrieve-the-return-value-of-a-contract-method-by-sendtransaction[on] getting the returned value of a function, it seems it is only possible when `call`-ing the function, not when invoking it using a transaction.
+
+To read data asynchronously (ie, once the transaction is mined) for invocation, `log` needs to be used.
+
+Only another contract can read the returned value a function that modifies the internal state of a contract (ie, a function that needs to be mined when called).
+
 === How an updated Ether Basic HTLC Atomic Swap would look like
 
 The [current Ether Basic HTLC](https://github.com/comit-network/RFCs/blob/master/RFC-007-SWAP-Basic-Ether.md#contract) returns if there an issue:
@@ -85,8 +108,8 @@ The [current Ether Basic HTLC](https://github.com/comit-network/RFCs/blob/master
 [source]
 ----
 {
-    // Load received secret size
-    calldatasize
+// Load received secret size
+calldatasize
 
     // Check if secret is zero length
     iszero
@@ -135,8 +158,8 @@ The [current Ether Basic HTLC](https://github.com/comit-network/RFCs/blob/master
     return(0, 0) // <2>
 
 check_expiry:
-    // Timestamp of the current block in seconds since the epoch
-    timestamp
+// Timestamp of the current block in seconds since the epoch
+timestamp
 
     // Placeholder for refund timestamp
     <expiry>
@@ -149,16 +172,16 @@ check_expiry:
     jumpi // <3>
 
 exit:
-    // Exit
-    return(0, 0) // <4>
+// Exit
+return(0, 0) // <4>
 
 redeem:
-    log1(0, 32, 0xB8CAC300E37F03AD332E581DEA21B2F0B84EAAADC184A295FEF71E81F44A7413) // log keccak256("Redeemed()")
-    selfdestruct(<redeem_identity>)
+log1(0, 32, 0xB8CAC300E37F03AD332E581DEA21B2F0B84EAAADC184A295FEF71E81F44A7413) // log keccak256("Redeemed()")
+selfdestruct(<redeem_identity>)
 
 refund:
-    log1(0, 0, 0x5D26862916391BF49478B2F5103B0720A842B45EF145A268F2CD1FB2AED55178) // log keccak256("Refunded()")
-    selfdestruct(<refund_identity>)
+log1(0, 0, 0x5D26862916391BF49478B2F5103B0720A842B45EF145A268F2CD1FB2AED55178) // log keccak256("Refunded()")
+selfdestruct(<refund_identity>)
 }
 ----
 <1> If secret passed is the wrong size, it jumps to 4, does a `return`.
@@ -173,35 +196,13 @@ C. No secret is passed but the time is not expired.
 
 In all cases, we currently pass `0,0` to the `return` instructions, meaning the returned output is `null` and all 3 cases are not differentiable by the caller.
 
-=== Improving logging
-
-Whether we use `return` or `revert`, we could improve the logging by returning or `log`-ging data at the end of a failed execution.
-
-We need to consider whether to
-
-- Use the same message for A, B & C.
-- Use the same message for A & B (secret related), a different for C
-- Use a different message for A, B & C.
-
-== Return vs Log error message
-
-Both `return` and `revert` allow a value to be returned, this could be used to yield an error message.
-
-An alternative to this would be to use the `log1` instruction to emit messages, as we currently do for the success path.
-
-https://ethereum.stackexchange.com/a/26842[After] https://ethereum.stackexchange.com/a/60287[more] https://www.reddit.com/r/ethereum/comments/3ktzad/how_do_you_get_the_return_value_of_a_function/[research] https://forum.ethereum.org/discussion/2440/how-to-retrieve-the-return-value-of-a-contract-method-by-sendtransaction[on] getting the returned value of a function, it seems it is only possible when `call`-ing the function, not when invoking it using a transaction.
-
-To read data asynchronously (ie, once the transaction is mined) for invocation, `log` needs to be used.
-
-Only another contract can read the returned value a function that modifies the internal state of a contract (ie, a function that needs to be mined when called).
-
-=== Using `return` instruction
+==== Using `return` instruction
 
 We could continue to use revert but use the returned output to provide more information on the execution of the contract.
 
 However, this would still mark a transaction that fails to redeem or refund as successful, hence this option is discarded.
 
-=== Using `revert` instruction
+==== Using `revert` instruction
 
 Here is a propose update of the Ether Basic HTLC Atomic Swap using the `revert` instruction instead of `return`.
 Also, an error message is logged if the redeem or refund path fails.
