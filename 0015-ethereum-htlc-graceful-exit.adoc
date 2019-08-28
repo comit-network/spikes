@@ -26,9 +26,9 @@ Such an observation would be useful in numerous ways:
 == Interesting Reads
 
 - https://medium.com/blockchannel/the-use-of-revert-assert-and-require-in-solidity-and-the-new-revert-opcode-in-the-evm-1a3a7990e06e
-- [EIP-140: REVERT instruction](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-140.md)
+- https://github.com/ethereum/EIPs/blob/master/EIPS/eip-140.md[EIP-140: REVERT instruction]
 - https://ethereum.stackexchange.com/questions/119/what-opcodes-are-available-for-the-ethereum-evm
-- [Ethereum Yellow Paper](https://ethereum.github.io/yellowpaper/paper.pdf)
+- https://ethereum.github.io/yellowpaper/paper.pdf[Ethereum Yellow Paper]
 - https://github.com/ethereum/go-ethereum/blob/master/core/vm/opcodes.go
 - https://solidity.readthedocs.io/en/v0.5.11/assembly.html
 
@@ -51,7 +51,7 @@ We already determined that it is confusing for the user if the redeem or refund 
 
 ==== The `revert` instruction
 
-As per [EIP-140](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-140.md):
+As per https://github.com/ethereum/EIPs/blob/master/EIPS/eip-140.md[EIP-140]:
 
 > The REVERT instruction provides a way to stop execution and revert state changes, without consuming all provided gas and with the ability to return a reason.
 
