@@ -102,7 +102,7 @@ Only another contract can read the returned value a function that modifies the i
 
 === How an updated Ether Basic HTLC Atomic Swap would look like
 
-The [current Ether Basic HTLC](https://github.com/comit-network/RFCs/blob/master/RFC-007-SWAP-Basic-Ether.md#contract) returns if there an issue:
+The https://github.com/comit-network/RFCs/blob/master/RFC-007-SWAP-Basic-Ether.md#contract[current Ether Basic HTLC] returns if there an issue:
 
 .Current Ether Basic HTLC
 [source]
@@ -304,4 +304,7 @@ refund:
 
 == Recommendation
 
-[Based on the research, try to make a recommendation for one of the proposed solution. If you can't, call in a meeting to decide on an outcome]
+I propose the following change to the Basic Atomic Swap Ether and ERC20 HTLCs:
+
+1. Use `revert` instead of `return` to mark the transaction as `failed` if it did not redeem or refund successfully.
+2. Add two `log` statements in the failure path to allow the user to know why the transaction fail, whether it is due to an incorrect secret or a refund too early.
