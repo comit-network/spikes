@@ -82,7 +82,7 @@ The list of closure instructions (`0xf0` range):
 The [current Ether Basic HTLC](https://github.com/comit-network/RFCs/blob/master/RFC-007-SWAP-Basic-Ether.md#contract) returns if there an issue:
 
 .Current Ether Basic HTLC
-[source,asm]
+[source]
 ----
 {
     // Load received secret size
@@ -214,7 +214,7 @@ For this example, we propose 2 error messages:
 - `tooEarly`: if no secret is provided and expiry has not yet happened
 
 .Proposed new Ether Basic HTLC using revert
-[source,asm]
+[source]
 ----
 {
     // Load received secret size
