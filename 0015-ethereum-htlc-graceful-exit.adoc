@@ -82,11 +82,17 @@ The list of closure instructions (`0xf0` range):
 
 Whether we use `return` or `revert`, we could improve the logging by returning or `log`-ging data at the end of a failed execution.
 
+Please note there are 3 failure scenarios:
+
+- (redeem) incorrect secret (secret hash mismatch).
+- (redeem) incorrect secret length.
+- (refund) expiry time not yet reached.
+
 We need to consider whether to
 
-- Use the same message for A, B & C.
-- Use the same message for A & B (secret related), a different for C
-- Use a different message for A, B & C.
+- Use the same message for all 3 scenarios.
+- Use the same message for incorrect secret & incorrect secret length (secret related), a different for expiry time not yet reached.
+- Use a different message for all 3 scenarios.
 
 ==== Return vs Log error message
 
