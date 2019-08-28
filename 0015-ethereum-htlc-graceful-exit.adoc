@@ -57,7 +57,7 @@ As per https://github.com/ethereum/EIPs/blob/master/EIPS/eip-140.md[EIP-140]:
 
 Which means that the REVERT instructions gives us the benefits we are seeking:
 
-- Stop the execution: _The effect of REVERT is that execution is aborted, considered as failed, and state changes are rolled back._
+- Stop the execution: _The effect of REVERT is that execution is aborted, *considered as failed*, and state changes are rolled back._
 - Allow an error message to be returned: _The error message will be available to the caller in the returndata buffer and will also be copied to the output area, i.e. it is handled in the same way as the regular return data is handled._
 
 ==== Other instructions?
