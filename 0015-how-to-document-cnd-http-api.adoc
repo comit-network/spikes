@@ -221,8 +221,14 @@ If we go for the recommended option of using <<redoc, ReDoc>>, it's https://www.
 
 === How to document extension link relation types? ===
 
-I would argue that this is covered in https://github.com/comit-network/comit-rs/issues/843[the original issue].
-Just replace `human-protocol-spec` key with a link to a static HTML page hosted on GitHub Pages (for example) where the meaning of `human-protocol-spec` is described.
+This question is motivated by the existence of the invalid link relation `human-protocol-spec`.
+The https://github.com/comit-network/comit-rs/issues/843[issue] that introduces this problem already outlines what has to be done.
+What's left is deciding where to host the document that describes this new link relation.
+Since we are introducing an API specification that supports custom sections, I recommend that we use a custom section to describe `human-protocol-spec`.
+A link to that custom section will need to be used as an extension relation type.
+
+It would be ideal to ensure that this link always works and that it is not tied to the tools that we use to visualise the specification (i.e. ReDoc).
+A possible solution could involve using https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections[HTTP redirections].
 
 === Client-side validation ===
 
