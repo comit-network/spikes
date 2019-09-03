@@ -14,9 +14,6 @@ Having it is a hard requirement if we want to cater to application developers.
 It should also be helpful for the team and for newcomers.
 
 == Research ==
-We have no documentation for cnd's HTTP API.
-Having it is a hard requirement if we want to cater to application developers.
-It should also be helpful for the team and for newcomers.
 
 === Which API specification approach should we use? ===
 
