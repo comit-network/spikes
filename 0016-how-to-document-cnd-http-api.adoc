@@ -1,0 +1,285 @@
+= How to document cnd's HTTP API =
+Lucas Soriano del Pino <lucas@coblox.tech>;
+:toc:
+:revdate: 2019-08-29
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1122[#1122]
+
+== Context ==
+
+We have no documentation for cnd's HTTP API.
+Having it is a hard requirement if we want to cater to application developers.
+It should also be helpful for the team and for newcomers.
+
+== Research ==
+
+=== Which API specification approach should we use? ===
+
+==== Options ====
+
+===== https://github.com/OAI/OpenAPI-Specification[OpenAPI] =====
+
+* Extremely popular (specification has over 15k stars on GitHub).
+* https://openapi.tools/[Great tooling].
+* APIs can be specified using either https://github.com/OAI/OpenAPI-Specification/blob/master/examples/v3.0/petstore.yaml[YAML] or JSON.
+* "Winner" of API Description Wars.
+
+===== https://github.com/raml-org/raml-spec/[RAML] =====
+
+* Quite popular (specification has over 3k stars on GitHub).
+* APIs can be specified using YAML.
+* https://raml.org/projects[Lots of tooling].
+* Good for designing large numbers of APIs.
+* Company behind joined Open API Initiative in 2017.
+
+===== https://github.com/apiaryio/api-blueprint/[API Blueprint] =====
+
+* Very popular (specification has over 7k stars on GitHub).
+* More accessible to newcomers to API description.
+* Targets human readability over machine readability.
+* https://apiblueprint.org/tools.html[Lots of tooling].
+* APIs can be specified using a description language on top of Markdown (conforms to GitHub Flavored Markdown).
+* Company behind joined Open API Initiative in 2016.
+
+===== Roll our own =====
+
+* More flexible.
+* No tooling.
+* An https://gist.github.com/iros/3426278[example] showing how it could look.
+
+==== [[recommend-openapi]] Recommendation ====
+
+OpenAPI, because it appears to be the industry standard, and is compatible with the most tools.
+The better human readability of API Blueprint doesn't seem all that important given that these specifications can be viewed using powerful tools such as https://rebilly.github.io/ReDoc/[ReDoc].
+
+Also, OpenAPI's `$ref` keyword would allow us to https://github.com/OAI/OpenAPI-Specification/blob/master/guidelines/v2.0/REUSE.md[reuse] operations (endpoints), responses, parameter lists, etc., which simplifies the task of maintaining both a public API specification for developers and a private one for internal use.
+
+=== How would a developer validate its API usage against the specification? ===
+
+Mock servers powered by tools such as https://connexion.readthedocs.io/en/latest/[Connexion] or https://stoplight.io/prism[Prism].
+These tools take a HTTP API specification and simulate a server that responds to requests according to the specification.
+This comes for free as long as we use one of the API description languages introduced above.
+
+=== [[test-specification]] How do we ensure that API specification and implementation are in sync? ===
+
+==== Options ====
+
+===== https://inspector.swagger.io/builder[Swagger Inspector] =====
+
+* Online tool.
+* Quick, manual testing.
+* Can generate OpenAPI specifications from requests and responses.
+
+===== https://dredd.org/en/latest/index.html[Dredd] =====
+
+* Language-agnostic.
+* Works with both OpenAPI and API Blueprint.
+* Very popular (over 3k stars on GitHub).
+* Command line tool.
+* Takes API specification and makes requests to server based on that, reporting whether the responses match the documentation.
+* Example:
+[source,sh]
+----
+dredd cnd-http-api-description.yml http://localhost:<port-where-cnd-is-hosted>
+----
+* Can run code before/after specific tests by using https://dredd.readthedocs.io/en/latest/hooks/[hooks] (https://dredd.org/en/latest/hooks/rust.html#hooks-rust[Rust] and https://dredd.readthedocs.io/en/latest/hooks/js.html#hooks-nodejs[JS] are supported).
+* https://dredd.org/en/latest/how-to-guides.html#integrating-dredd-with-your-test-suite[Easy integration with test suite] by using a config file.
+* CLI can help https://dredd.org/en/latest/how-to-guides.html#continuous-integration[modify CircleCI config] for continuous integration.
+* Uses https://dredd.org/en/latest/how-it-works.html#automatic-expectations[examples in specification] to generate expected responses.
+* Can define https://dredd.org/en/latest/hooks/js.html#using-chai-assertions[custom expectations using Chai assertions].
+
+===== https://github.com/RuntimeTools/chai-openapi-response-validator[Chai OpenAPI Response Validator] =====
+
+* Works with Chai (which is compatible with Jest).
+* Easy to incorporate to our api tests workflow.
+* Example from GitHub repository:
+[source,javascript]
+----
+// Set up Chai
+const chai = require('chai');
+const expect = chai.expect;
+
+// Import this plugin
+const chaiResponseValidator = require('chai-openapi-response-validator');
+
+// Load an OpenAPI file (YAML or JSON) into this plugin
+chai.use(chaiResponseValidator('path/to/openapi.yml'));
+
+// Write your test (e.g. using Mocha)
+describe('GET /example/request', function() {
+  it('should satisfy OpenAPI spec', async function() {
+
+    // Get an HTTP response using chai-http
+    chai.use(require('chai-http'));
+    const app = require('path/to/app');
+    const res = chai.request(app).get('/example/request');
+
+    expect(res.status).to.equal(200);
+
+    // Assert that the HTTP response satisfies the OpenAPI spec
+    expect(res).to.satisfyApiSpec;
+  });
+});
+----
+
+==== [[recommend-dredd]] Recommendation ====
+
+Dredd, because it's well documented and has all the features we need.
+It looks like the main effort will be https://dredd.org/en/latest/how-it-works.html#making-your-api-description-ready-for-testing[preparing the specification] for testing.
+
+==== [[json-schema-integration]] JSON Schema integration ====
+
+We currently use JSON Schema to validate the shape of the body of the response to `GET /
+swaps` and `GET /
+swaps/rfc003/:id`.
+JSON Schema is supported by OpenAPI, https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#schema-object[with some caveats].
+There are https://apisyouwonthate.com/blog/solving-openapi-and-json-schema-divergence[ways to get around this situation], and full support for JSON Schema is https://github.com/OAI/OpenAPI-Specification/pull/1977[in the works].
+
+=== How to generate the specification ===
+
+==== Options ====
+
+===== Automatically =====
+
+* Switch to actix-web and use https://paperclip.waffles.space/actix-plugin.html[this experimental plugin].
+* Wait for Rocket to https://github.com/SergioBenitez/Rocket/issues/297[implement this feature] and switch back to it.
+* https://github.com/seanmonstar/warp/issues/89[Wait for this feature] to come to warp.
+
+===== Manually =====
+
+* Use https://github.com/swagger-api/swagger-editor[Swagger Editor] (over 5k stars on GitHub).
+* Use a plugin for an editor/IDE (look at the editors listed https://openapi.tools/[here]).
+
+===== Assisted =====
+
+* Using https://inspector.swagger.io/builder[Swagger Inspector].
+* Make API calls to a running cnd through the UI and generate part of the specification.
+
+==== [[recommend-manual-generation]] Recommendation ====
+
+The tools aren't there yet to automatically produce the API specification from source code in Rust.
+There seems to be some interest for this, so it may come in the future.
+This may not actually be a problem, since we want to have control over what we show in the specification, in order to incentivise correct usage of the REST API by application developers.
+To this end, endpoints such as the ones related to actions will probably not be publicly documented.
+
+Additionally, we can use tools such as https://speccy.io/[speccy] and https://github.com/zalando/zally[Zally] to validate the specification.
+
+=== How to visualise specification ===
+
+==== Options ====
+
+===== https://petstore.swagger.io/[SwaggerUI] =====
+
+* Extremely popular (over 15k stars on https://github.com/swagger-api/swagger-ui[GitHub]).
+* RPC-style.
+* Looks like this:
+
+image:https://swagger.io/swagger/media/Images/Tools/Opensource/Swagger_UI.png?ext=.png[swagger-ui-image]
+
+* Hides JSON bodies.
+
+===== [[redoc]] https://redocly.github.io/redoc/[ReDoc] =====
+
+* Popular (over 1k stars on GitHub).
+* Very https://github.com/Redocly/redoc/#deployment[simple] to set up.
+* Three-column style.
+* It looks very good:
+
+image:https://raw.githubusercontent.com/Redocly/redoc/master/demo/redoc-demo.png[redoc-image]
+
+===== http://cheesestore.github.io/[Spectacle] =====
+
+* Quite popular (about 1k stars on GitHub).
+* Looks similar to ReDoc:
+
+image:https://raw.githubusercontent.com/sourcey/spectacle/master/screenshot.jpg[spectacle-image]
+
+==== [[recommend-redoc]]Recommendation ====
+
+ReDoc because it is easy and I think it looks nice.
+It also supports custom sections in an OpenAPI specification file, which can be used to introduce topics such as our RESTful approach and how we think the API should be consumed.
+
+=== What does the documentation include? ===
+
+==== OpenAPI ====
+
+* Description of web services, including but not limited to data.
+- Sort of an extension to JSON Schema in that sense.
+- JSON Schema files can be referenced directly.
+* Focus on strict typing.
+* Enables use of a lot of cool tools such as ReDoc and Dredd, recommended in this document.
+
+==== JSON Schema ====
+
+* Flexible data modelling.
+* Validating structure of JSON data.
+
+==== References ====
+
+https://phil.tech/api/2018/03/30/openapi-and-json-schema-divergence/[Blog that introduces differences between OpenAPI and JSON Schema]
+
+=== [[recommend-host-github-pages]] How to host documentation for current `master` HEAD ===
+
+If we go for the recommended option of using <<redoc, ReDoc>>, it's https://www.npmjs.com/package/redoc#tldr[very easy]:
+
+. Include API specification in repository with cnd.
+. Host a website on GitHub Pages (for example).
+. Use a HTML tag that links to the API specification (there's even a https://www.npmjs.com/package/redoc#usage-as-a-react-component[React component]).
+
+=== [[recommend-custom-section-link-relation]] How to document extension link relation types? ===
+
+This question is motivated by the existence of the invalid link relation `human-protocol-spec`.
+The https://github.com/comit-network/comit-rs/issues/843[issue] that introduces this problem already outlines what has to be done.
+What's left is deciding where to host the document that describes this new link relation.
+Since we are introducing an API specification that supports custom sections, I recommend that we use a custom section to describe `human-protocol-spec`.
+A link to that custom section will need to be used as an extension relation type.
+
+It would be ideal to ensure that this link always works and that it is not tied to the tools that we use to visualise the specification (i.e. ReDoc).
+A possible solution could involve using https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections[HTTP redirections].
+
+=== Client-side validation ===
+
+==== Context ====
+
+* We already define <<json-schema-integration, JSON Schemas>> for some data objects returned from the API.
+* We have https://github.com/comit-network/comit-i/issues/44[discussed] doing input validation on comit-i.
+* We currently reproduce server-side validation on comit-i.
+
+==== Purpose ====
+
+* Improve user experience for users of clients of our API.
+* Simplify the job of developers.
+
+==== [[recommend-use-json-schema-more]] Recommendation ====
+
+* Define JSON Schemas for all data objects that our API returns.
+* Offer a copy of these contracts to clients in a programmatically accessible format.
+* Include link to schema in response headers:
+[source,html]
+----
+Link: <http://example.com/schemas/swap.schema.json#>; rel=”describedby”
+----
+* Use in comit-i to prove that it works.
+
+==== References ====
+
+* https://apisyouwonthate.com/blog/the-many-amazing-uses-of-json-schema-client-side-validation[Blog on client-side validation based on JSON Schema].
+
+=== [[recommend-use-endpoint-to-host-spec]] Where to get the specification for the version you are developing against ===
+
+Instead of keeping track of all the versions of the API specification and serving all of them remotely, I recommend serving the specification on a local endpoint of cnd's HTTP API, such as `GET /http-spec`.
+
+== Summary of recommendations
+
+* <<recommend-openapi, Use OpenAPI>> as an API description format.
+- Modularise specification to simplify maintenance of public and private specs.
+- Integrate our use of JSON Schema with OpenAPI.
+* <<recommend-dredd, Use Dredd>> to test that implementation and specification are in sync.
+* <<recommend-manual-generation, Write the specification manually>>.
+* <<recommend-redoc, Use ReDoc>> to produce a visually appealing document.
+* <<recommend-host-github-pages, Use GitHub Pages>> to host documentation for latest `master`.
+* <<recommend-custom-section-link-relation, Use custom section>> in spec to document extension relation types.
+* <<recommend-use-json-schema-more, Embrace JSON Schema>> to describe data.
+* <<recommend-use-endpoint-to-host-spec, Add endpoint such as `GET /http-spec`>> to provide documentation for a running instance of cnd.
