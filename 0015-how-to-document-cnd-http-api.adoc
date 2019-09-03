@@ -54,6 +54,8 @@ It should also be helpful for the team and for newcomers.
 OpenAPI, because it appears to be the industry standard, and is compatible with the most tools.
 The better human readability of API Blueprint doesn't seem all that important given that these specifications can be viewed using powerful tools such as https://rebilly.github.io/ReDoc/[ReDoc].
 
+Also, OpenAPI's `$ref` keyword would allow us to https://github.com/OAI/OpenAPI-Specification/blob/master/guidelines/v2.0/REUSE.md[reuse] operations (endpoints), responses, parameter lists, etc., which simplifies the task of maintaining both a public API specification for developers and a private one for internal use.
+
 === How would a developer validate its API usage against the specification? ===
 
 Mock servers powered by tools such as https://connexion.readthedocs.io/en/latest/[Connexion] or https://stoplight.io/prism[Prism].
