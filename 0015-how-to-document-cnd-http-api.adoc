@@ -267,7 +267,7 @@ Link: <http://example.com/schemas/swap.schema.json#>; rel=”describedby”
 
 * https://apisyouwonthate.com/blog/the-many-amazing-uses-of-json-schema-client-side-validation[Blog on client-side validation based on JSON Schema].
 
-=== [[recommend-http-spec-endpoint]] Where to get the specification for the version you are developing against ===
+=== [[recommend-use-endpoint-to-host-spec]] Where to get the specification for the version you are developing against ===
 
 Instead of keeping track of all the versions of the API specification and serving all of them remotely, I recommend serving the specification on a local endpoint of cnd's HTTP API, such as `GET /http-spec`.
 
@@ -282,4 +282,4 @@ Instead of keeping track of all the versions of the API specification and servin
 * <<recommend-host-github-pages, Use GitHub Pages>> to host documentation for latest `master`.
 * <<recommend-custom-section-link-relation, Use custom section>> in spec to document extension relation types.
 * <<recommend-use-json-schema-more, Embrace JSON Schema>> to describe data.
-* <<recommend-http-spec-endpoint, Add `GET /http-spec` endpoint>> to provide documentation for a running instance of cnd.
+* <<recommend-use-endpoint-to-host-spec, Add endpoint such as `GET /http-spec`>> to provide documentation for a running instance of cnd.
