@@ -9,10 +9,14 @@ Tracking issue: https://github.com/comit-network/comit-rs/issues/1122[#1122]
 
 == Context ==
 
-We have no documentation for cnd's HTTP API. Having it is a hard requirement if we want to cater to application developers. It should also be helpful for the team and for newcomers.
+We have no documentation for cnd's HTTP API.
+Having it is a hard requirement if we want to cater to application developers.
+It should also be helpful for the team and for newcomers.
 
 == Research ==
-We have no documentation for cnd's HTTP API. Having it is a hard requirement if we want to cater to application developers. It should also be helpful for the team and for newcomers.
+We have no documentation for cnd's HTTP API.
+Having it is a hard requirement if we want to cater to application developers.
+It should also be helpful for the team and for newcomers.
 
 === Which API specification approach should we use? ===
 
@@ -45,10 +49,13 @@ We have no documentation for cnd's HTTP API. Having it is a hard requirement if 
 * An https://gist.github.com/iros/3426278[example] showing how it could look.
 
 ==== Recommendation ====
-OpenAPI, because it appears to be the industry standard, and is compatible with the most tools. The better human readability of API Blueprint doesn't seem all that important given that these specifications can be viewed using powerful tools such as https://rebilly.github.io/ReDoc/[ReDoc].
+OpenAPI, because it appears to be the industry standard, and is compatible with the most tools.
+The better human readability of API Blueprint doesn't seem all that important given that these specifications can be viewed using powerful tools such as https://rebilly.github.io/ReDoc/[ReDoc].
 
 === How would a developer validate its API usage against the specification? ===
-Mock servers powered by tools such as https://connexion.readthedocs.io/en/latest/[Connexion] or https://stoplight.io/prism[Prism]. These tools take a HTTP API specification and simulate a server that responds to requests according to the specification. This comes for free as long as we use one of the API description languages introduced above.
+Mock servers powered by tools such as https://connexion.readthedocs.io/en/latest/[Connexion] or https://stoplight.io/prism[Prism].
+These tools take a HTTP API specification and simulate a server that responds to requests according to the specification.
+This comes for free as long as we use one of the API description languages introduced above.
 
 === [[test-specification]] How do we ensure that API specification and implementation are in sync? ===
 
@@ -110,12 +117,15 @@ describe('GET /example/request', function() {
 ----
 
 ==== Recommendation ====
-Dredd, because it's well documented and has all the features we need. It looks like the main effort will be https://dredd.org/en/latest/how-it-works.html#making-your-api-description-ready-for-testing[preparing the specification] for testing.
+Dredd, because it's well documented and has all the features we need.
+It looks like the main effort will be https://dredd.org/en/latest/how-it-works.html#making-your-api-description-ready-for-testing[preparing the specification] for testing.
 
 ==== [[json-schema-integration]] JSON Schema integration ====
 We currently use JSON Schema to validate the shape of the body of the response to `GET /
 swaps` and `GET /
-swaps/rfc003/:id`. JSON Schema is supported by OpenAPI, https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#schema-object[with some caveats]. There are https://apisyouwonthate.com/blog/solving-openapi-and-json-schema-divergence[ways to get around this situation], and full support for JSON Schema is https://github.com/OAI/OpenAPI-Specification/pull/1977[in the works].
+swaps/rfc003/:id`.
+JSON Schema is supported by OpenAPI, https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#schema-object[with some caveats].
+There are https://apisyouwonthate.com/blog/solving-openapi-and-json-schema-divergence[ways to get around this situation], and full support for JSON Schema is https://github.com/OAI/OpenAPI-Specification/pull/1977[in the works].
 
 === How to generate the specification ===
 
@@ -135,7 +145,10 @@ swaps/rfc003/:id`. JSON Schema is supported by OpenAPI, https://github.com/OAI/O
 * Make API calls to a running cnd through the UI and generate part of the specification.
 
 ==== Recommendation ====
-Unfortunately the tools aren't there yet to automatically produce the API specification from source code in Rust. There seems to be some interest for this, so it may come in the future. For the time being, we will have to write it ourselves. Fortunately, this specification will be <<test-specification,tested>> and we can use tools such as https://speccy.io/[speccy] to validate it.
+Unfortunately the tools aren't there yet to automatically produce the API specification from source code in Rust.
+There seems to be some interest for this, so it may come in the future.
+For the time being, we will have to write it ourselves.
+Fortunately, this specification will be <<test-specification,tested>> and we can use tools such as https://speccy.io/[speccy] to validate it.
 
 === How to visualise specification ===
 
@@ -180,7 +193,8 @@ If we go for the recommended option of using <<redoc, ReDoc>>, it's https://www.
 . Use a HTML tag that links to the API specification (there's even a https://www.npmjs.com/package/redoc#usage-as-a-react-component[React component]).
 
 === How to document extension link relation types? ===
-I would argue that this is covered in https://github.com/comit-network/comit-rs/issues/843[the original issue]. Just replace `human-protocol-spec` key with a link to a static HTML page hosted on GitHub Pages (for example) where the meaning of `human-protocol-spec` is described.
+I would argue that this is covered in https://github.com/comit-network/comit-rs/issues/843[the original issue].
+Just replace `human-protocol-spec` key with a link to a static HTML page hosted on GitHub Pages (for example) where the meaning of `human-protocol-spec` is described.
 
 === Client-side validation ===
 
