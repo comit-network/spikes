@@ -159,9 +159,10 @@ There are https://apisyouwonthate.com/blog/solving-openapi-and-json-schema-diver
 
 The tools aren't there yet to automatically produce the API specification from source code in Rust.
 There seems to be some interest for this, so it may come in the future.
-This may not actually be a problem, since we want to have control over what we show in the specification, in order to motivate the correct use of our REST API from application developers.
+This may not actually be a problem, since we want to have control over what we show in the specification, in order to incentivise correct usage of the REST API by application developers.
 To this end, endpoints such as the ones related to actions will probably not be publicly documented.
-Additionally, this specification will be <<test-specification,tested>> and we can use tools such as https://speccy.io/[speccy] to validate it.
+
+Additionally, we can use tools such as https://speccy.io/[speccy] and https://github.com/zalando/zally[Zally] to validate the specification.
 
 === How to visualise specification ===
 
