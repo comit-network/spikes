@@ -17,6 +17,7 @@ List of spike outcomes for COMIT network.
 - [spike-0012](0012-release-strategy.adoc) - Release Strategy
 - [spike-0013](0013-secure-http-api.adoc) - Securing the cnd HTTP API
 - [spike-0014](0014-resume-swaps-after-restart.adoc) - Resume swaps after restart
+- [spike-0015](0015-ethereum-htlc-graceful-exit.adoc) - Graceful exit of the Ethereum HTLC for incorrect invocations
 - [spike-0016](0016-how-to-document-cnd-http-api.adoc) - How to document cnd's HTTP API
 
 For new spike outcomes, please use [template.adoc](template.adoc) as basis.

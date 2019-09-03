@@ -1,0 +1,316 @@
+= Graceful exit of the Ethereum HTLC for incorrect invocations
+Franck Royer <franck@coblox.tech>;
+:toc:
+:revdate: 2019-08-27
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/RFCs/issues/62[#62]
+
+== Context
+
+There are two ways of invoking the Ethereum HTLC in an invalid way:
+
+- with the wrong secret
+- without the secret but before the expiry
+
+In both cases, we currently return from the contract without doing anything.
+This makes it hard to observe whether or not the invocation was actually successful.
+From an EVM perspective, it executes successfully (i.e. without any errors).
+
+Such an observation would be useful in numerous ways:
+
+- In comit-rs e2e tests to check if the refund actually worked or if we have to invoke it again
+- For the user, the Ethereum wallet (e.g. Metamask) may show something different if the user invokes a refund too early. Showing a successful transaction if it actually was not successful is misleading.
+
+== Interesting Reads
+
+- https://medium.com/blockchannel/the-use-of-revert-assert-and-require-in-solidity-and-the-new-revert-opcode-in-the-evm-1a3a7990e06e
+- https://github.com/ethereum/EIPs/blob/master/EIPS/eip-140.md[EIP-140: REVERT instruction]
+- https://ethereum.stackexchange.com/questions/119/what-opcodes-are-available-for-the-ethereum-evm
+- https://ethereum.github.io/yellowpaper/paper.pdf[Ethereum Yellow Paper]
+- https://github.com/ethereum/go-ethereum/blob/master/core/vm/opcodes.go
+- https://solidity.readthedocs.io/en/v0.5.11/assembly.html
+
+
+== Research
+
+=== Instructions to terminate a call
+
+==== The `return` instruction
+
+The `return` instruction is the standard `exit` of an EVM program.
+It halts execution, the state remains as it is (ie, it is saved) and data can be returned.
+
+Because the COMIT Ether and ERC20 Basic Swap HTLCs do not have a store or a state that can be changed, the fact that the `return` instruction saves the state does not matter.
+
+In these HTLCs, the `return` instruction is never used to return data, the call is always `return(0,0)`.
+
+Note that if `return` instruction is executed, the transaction status is successful.
+We already determined that it is confusing for the user if the redeem or refund actually failed.
+
+==== The `revert` instruction
+
+As per https://github.com/ethereum/EIPs/blob/master/EIPS/eip-140.md[EIP-140]:
+
+> The REVERT instruction provides a way to stop execution and revert state changes, without consuming all provided gas and with the ability to return a reason.
+
+Which means that the REVERT instructions gives us the benefits we are seeking:
+
+- Stop the execution: _The effect of REVERT is that execution is aborted, *considered as failed*, and state changes are rolled back._
+- Allow an error message to be returned: _The error message will be available to the caller in the returndata buffer and will also be copied to the output area, i.e. it is handled in the same way as the regular return data is handled._
+
+==== Other instructions?
+
+As far as I can see, there are no other instructions that we can use to terminate a call without an undesirable side effect.
+
+The list of closure instructions (`0xf0` range):
+
+----
+0xf0    CREATE          Create a new account with associated code
+0xf1    CALL            Message-call into an account
+0xf2    CALLCODE        Message-call into this account with alternative account's code
+0xf3    RETURN          Halt execution returning output data
+0xf4    DELEGATECALL    Message-call into this account with an alternative account's code, but persisting the current values for `sender` and `value`
+0xfd    REVERT          Halt execution, revert state changes and return output data
+0xff    SELFDESTRUCT    Halt execution and register account for later deletion
+----
+
+
+
+=== Improving logging
+
+Whether we use `return` or `revert`, we could improve the logging by returning or `log`-ging data at the end of a failed execution.
+
+Please note there are 3 failure scenarios:
+
+- (redeem) incorrect secret (secret hash mismatch).
+- (redeem) incorrect secret length.
+- (refund) expiry time not yet reached.
+
+We need to consider whether to
+
+- Use the same message for all 3 scenarios.
+- Use the same message for incorrect secret & incorrect secret length (secret related), a different for expiry time not yet reached.
+- Use a different message for all 3 scenarios.
+
+==== Return vs Log error message
+
+Both `return` and `revert` allow a value to be returned, this could be used to yield an error message.
+
+An alternative to this would be to use the `log1` instruction to emit messages, as we currently do for the success path.
+
+https://ethereum.stackexchange.com/a/26842[After] https://ethereum.stackexchange.com/a/60287[more] https://www.reddit.com/r/ethereum/comments/3ktzad/how_do_you_get_the_return_value_of_a_function/[research] https://forum.ethereum.org/discussion/2440/how-to-retrieve-the-return-value-of-a-contract-method-by-sendtransaction[on] getting the returned value of a function, it seems it is only possible when `call`-ing the function, not when invoking it using a transaction.
+
+To read data asynchronously (ie, once the transaction is mined) for invocation, `log` needs to be used.
+
+Only another contract can read the returned value a function that modifies the internal state of a contract (ie, a function that needs to be mined when called).
+
+=== How an updated Ether Basic HTLC Atomic Swap would look like
+
+The https://github.com/comit-network/RFCs/blob/master/RFC-007-SWAP-Basic-Ether.md#contract[current Ether Basic HTLC] returns if there an issue:
+
+.Current Ether Basic HTLC
+[source]
+----
+{
+// Load received secret size
+calldatasize
+
+    // Check if secret is zero length
+    iszero
+
+    // If secret is zero length, jump to branch that checks if expiry time has been reached
+    check_expiry
+    jumpi
+
+    // Load expected secret size
+    32
+
+    // Load received secret size
+    calldatasize
+
+    // Compare secret size
+    eq
+    iszero
+
+    // If passed secret is wrong size, jump to exit contract
+    exit // <1>
+    jumpi
+
+    // Load secret into memory
+    calldatacopy(0, 0, 32)
+
+    // Hash secret with SHA-256 (pre-compiled contract 0x02)
+    call(72, 0x02, 0, 0, 32, 33, 32)
+
+    // Placeholder for correct secret hash
+    <secret_hash>
+
+    // Load hashed secret from memory
+    mload(33)
+
+    // Compare hashed secret with existing one
+    eq
+
+    // Combine `eq` result with `call` result
+    and
+
+    // Jump to redeem if hashes match
+    redeem
+    jumpi
+
+    // Exit if hashes don't match
+    return(0, 0) // <2>
+
+check_expiry:
+// Timestamp of the current block in seconds since the epoch
+timestamp
+
+    // Placeholder for refund timestamp
+    <expiry>
+
+    // Compare refund timestamp with current timestamp
+    lt
+
+    // Jump to refund if time is expired
+    refund
+    jumpi // <3>
+
+exit:
+// Exit
+return(0, 0) // <4>
+
+redeem:
+log1(0, 32, 0xB8CAC300E37F03AD332E581DEA21B2F0B84EAAADC184A295FEF71E81F44A7413) // log keccak256("Redeemed()")
+selfdestruct(<redeem_identity>)
+
+refund:
+log1(0, 0, 0x5D26862916391BF49478B2F5103B0720A842B45EF145A268F2CD1FB2AED55178) // log keccak256("Refunded()")
+selfdestruct(<refund_identity>)
+}
+----
+<1> If secret passed is the wrong size, it jumps to 4, does a `return`.
+<2> If the secret is incorrect, it does a `return`.
+<3> If the refund time is not expired, it does *not* jump and continues to 4 that does a `return`.
+
+As we can see, we currently execute a `return(0, 0)` for 3 reasons:
+
+A. The passed secret has a wrong length.
+B. The passed secret is incorrect (hashes do not match).
+C. No secret is passed but the time is not expired.
+
+In all cases, we currently pass `0,0` to the `return` instructions, meaning the returned output is `null` and all 3 cases are not differentiable by the caller.
+
+==== Using `return` instruction
+
+We could continue to use revert but use the returned output to provide more information on the execution of the contract.
+
+However, this would still mark a transaction that fails to redeem or refund as successful, hence this option is discarded.
+
+==== Using `revert` instruction
+
+Here is a propose update of the Ether Basic HTLC Atomic Swap using the `revert` instruction instead of `return`.
+Also, an error message is logged if the redeem or refund path fails.
+
+Note that while this example compiles with `solc`, it had not been tested.
+This should (hopefully) give an idea of how the HTLC would look like.
+
+For this example, we propose 2 error messages:
+- `wrongSecret`: if the secret is of incorrect length or it is not the correct secret (hash mismatch)
+- `tooEarly`: if no secret is provided and expiry has not yet happened
+
+.Proposed new Ether Basic HTLC using revert
+[source]
+----
+{
+    // Load received secret size
+    calldatasize
+
+    // Check if secret is zero length
+    iszero
+
+    // If secret is zero length, jump to branch that checks if expiry time has been reached
+    check_expiry
+    jumpi
+
+    // Load expected secret size
+    32
+
+    // Load received secret size
+    calldatasize
+
+    // Compare secret size
+    eq
+    iszero
+
+    // If passed secret is wrong size, jump to exit contract
+    exit_secret
+    jumpi
+
+    // Load secret into memory
+    calldatacopy(0, 0, 32)
+
+    // Hash secret with SHA-256 (pre-compiled contract 0x02)
+    call(72, 0x02, 0, 0, 32, 33, 32)
+
+    // Placeholder for correct secret hash
+    <secret_hash>
+
+    // Load hashed secret from memory
+    mload(33)
+
+    // Compare hashed secret with existing one
+    eq
+
+    // Combine `eq` result with `call` result
+    and
+
+    // Jump to redeem if hashes match
+    redeem
+    jumpi
+
+// Exit if it does not match
+exit_secret:
+    // Load Error Message "WRONG SECRET"
+    log1(0, 32, <keccak256("wrongSecret()")>)
+    // Exit
+    revert(0, 0)
+
+check_expiry:
+    // Timestamp of the current block in seconds since the epoch
+    timestamp
+
+    // Placeholder for refund timestamp
+    <expiry>
+
+    // Compare refund timestamp with current timestamp
+    lt
+
+    // Jump to refund if time is expired
+    refund
+    jumpi
+
+    // Exit if it does not match
+    // Load Error Message "TOO EARLY"
+    log1(0, 32, <keccak256("tooEarly()")>)
+    // Exit
+    revert(0, 0)
+
+redeem:
+    log1(0, 32, 0xB8CAC300E37F03AD332E581DEA21B2F0B84EAAADC184A295FEF71E81F44A7413) // log keccak256("Redeemed()")
+    selfdestruct(<redeem_identity>)
+
+refund:
+    log1(0, 0, 0x5D26862916391BF49478B2F5103B0720A842B45EF145A268F2CD1FB2AED55178) // log keccak256("Refunded()")
+    selfdestruct(<refund_identity>)
+}
+----
+
+
+== Recommendation
+
+I propose the following change to the Basic Atomic Swap Ether and ERC20 HTLCs:
+
+1. Use `revert` instead of `return` to mark the transaction as `failed` if it did not redeem or refund successfully.
+2. Add two `log` statements in the failure path to allow the user to know why the transaction fail, whether it is due to an incorrect secret or a refund too early.
