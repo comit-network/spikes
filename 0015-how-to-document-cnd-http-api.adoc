@@ -171,7 +171,8 @@ Fortunately, this specification will be <<test-specification,tested>> and we can
 * Extremely popular (over 15k stars on https://github.com/swagger-api/swagger-ui[GitHub]).
 * RPC-style.
 * Looks like this:
-image::https://swagger.io/swagger/media/Images/Tools/Opensource/Swagger_UI.png?ext=.png[swagger-ui-image]
+
+image:https://swagger.io/swagger/media/Images/Tools/Opensource/Swagger_UI.png?ext=.png[swagger-ui-image]
 
 * Hides JSON bodies.
 
@@ -181,13 +182,15 @@ image::https://swagger.io/swagger/media/Images/Tools/Opensource/Swagger_UI.png?e
 * Very https://github.com/Redocly/redoc/#deployment[simple] to set up.
 * Three-column style.
 * It looks very good:
-image::https://raw.githubusercontent.com/Redocly/redoc/master/demo/redoc-demo.png[redoc-image]
+
+image:https://raw.githubusercontent.com/Redocly/redoc/master/demo/redoc-demo.png[redoc-image]
 
 ===== http://cheesestore.github.io/[Spectacle] =====
 
 * Quite popular (about 1k stars on GitHub).
 * Looks similar to ReDoc:
-image::https://raw.githubusercontent.com/sourcey/spectacle/master/screenshot.jpg[spectacle-image]
+
+image:https://raw.githubusercontent.com/sourcey/spectacle/master/screenshot.jpg[spectacle-image]
 
 ==== Recommendation ====
 
