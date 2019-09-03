@@ -1,4 +1,4 @@
-= How to document the cnd HTTP API =
+= How to document cnd's HTTP API =
 Lucas Soriano del Pino <lucas@coblox.tech>;
 :toc:
 :revdate: 2019-08-29
