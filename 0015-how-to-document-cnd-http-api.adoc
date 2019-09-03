@@ -196,6 +196,7 @@ image:https://raw.githubusercontent.com/sourcey/spectacle/master/screenshot.jpg[
 ==== Recommendation ====
 
 ReDoc because it is easy and I think it looks nice.
+It also supports custom sections in an OpenAPI specification file, which can be used to introduce topics such as our RESTful approach and how we think the API should be consumed.
 
 === What does the documentation include? ===
 
