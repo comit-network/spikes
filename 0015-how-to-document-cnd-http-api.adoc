@@ -49,7 +49,7 @@ It should also be helpful for the team and for newcomers.
 * No tooling.
 * An https://gist.github.com/iros/3426278[example] showing how it could look.
 
-==== Recommendation ====
+==== [[recommend-openapi]] Recommendation ====
 
 OpenAPI, because it appears to be the industry standard, and is compatible with the most tools.
 The better human readability of API Blueprint doesn't seem all that important given that these specifications can be viewed using powerful tools such as https://rebilly.github.io/ReDoc/[ReDoc].
@@ -124,7 +124,7 @@ describe('GET /example/request', function() {
 });
 ----
 
-==== Recommendation ====
+==== [[recommend-dredd]] Recommendation ====
 
 Dredd, because it's well documented and has all the features we need.
 It looks like the main effort will be https://dredd.org/en/latest/how-it-works.html#making-your-api-description-ready-for-testing[preparing the specification] for testing.
@@ -157,7 +157,7 @@ There are https://apisyouwonthate.com/blog/solving-openapi-and-json-schema-diver
 * Using https://inspector.swagger.io/builder[Swagger Inspector].
 * Make API calls to a running cnd through the UI and generate part of the specification.
 
-==== Recommendation ====
+==== [[recommend-manual-generation]] Recommendation ====
 
 The tools aren't there yet to automatically produce the API specification from source code in Rust.
 There seems to be some interest for this, so it may come in the future.
@@ -196,7 +196,7 @@ image:https://raw.githubusercontent.com/Redocly/redoc/master/demo/redoc-demo.png
 
 image:https://raw.githubusercontent.com/sourcey/spectacle/master/screenshot.jpg[spectacle-image]
 
-==== Recommendation ====
+==== [[recommend-redoc]]Recommendation ====
 
 ReDoc because it is easy and I think it looks nice.
 It also supports custom sections in an OpenAPI specification file, which can be used to introduce topics such as our RESTful approach and how we think the API should be consumed.
@@ -211,7 +211,7 @@ Models services.
 
 Models data.
 
-=== How to host documentation for current `master` HEAD ===
+=== [[recommend-host-github-pages]] How to host documentation for current `master` HEAD ===
 
 If we go for the recommended option of using <<redoc, ReDoc>>, it's https://www.npmjs.com/package/redoc#tldr[very easy]:
 
@@ -219,7 +219,7 @@ If we go for the recommended option of using <<redoc, ReDoc>>, it's https://www.
 . Host a website on GitHub Pages (for example).
 . Use a HTML tag that links to the API specification (there's even a https://www.npmjs.com/package/redoc#usage-as-a-react-component[React component]).
 
-=== How to document extension link relation types? ===
+=== [[recommend-custom-section-link-relation]] How to document extension link relation types? ===
 
 This question is motivated by the existence of the invalid link relation `human-protocol-spec`.
 The https://github.com/comit-network/comit-rs/issues/843[issue] that introduces this problem already outlines what has to be done.
@@ -243,11 +243,11 @@ A possible solution could involve using https://developer.mozilla.org/en-US/docs
 * Improve user experience for users of clients of our API.
 * Simplify the job of developers.
 
-==== Proposal ====
+==== [[recommend-use-json-schema-more]] Recommendation ====
 
 * Define JSON Schemas for all data objects that our API returns.
 * Offer a copy of these contracts to clients in a programmatically accessible format.
-* Include link to in response header:
+* Include link to schema in response headers:
 [source,html]
 ----
 Link: <http://example.com/schemas/swap.schema.json#>; rel=”describedby”
@@ -257,3 +257,20 @@ Link: <http://example.com/schemas/swap.schema.json#>; rel=”describedby”
 ==== References ====
 
 * https://apisyouwonthate.com/blog/the-many-amazing-uses-of-json-schema-client-side-validation[Blog on client-side validation based on JSON Schema].
+
+=== [[recommend-http-spec-endpoint]] Where to get the specification for the version you are developing against ===
+
+Instead of keeping track of all the versions of the API specification and serving all of them remotely, I recommend serving the specification on a local endpoint of cnd's HTTP API, such as `GET /http-spec`.
+
+== Summary of recommendations
+
+* <<recommend-openapi, Use OpenAPI>> as an API description format.
+- Modularise specification to simplify maintenance of public and private specs.
+- Integrate our use of JSON Schema with OpenAPI.
+* <<recommend-dredd, Use Dredd>> to test that implementation and specification are in sync.
+* <<recommend-manual-generation, Write the specification manually>>.
+* <<recommend-redoc, Use ReDoc>> to produce a visually appealing document.
+* <<recommend-host-github-pages, Use GitHub Pages>> to host documentation for latest `master`.
+* <<recommend-custom-section-link-relation, Use custom section>> in spec to document extension relation types.
+* <<recommend-use-json-schema-more, Embrace JSON Schema>> to describe data.
+* <<recommend-http-spec-endpoint, Add `GET /http-spec` endpoint>> to provide documentation for a running instance of cnd.
