@@ -50,7 +50,7 @@ OpenAPI, because it appears to be the industry standard, and is compatible with 
 === How would a developer validate its API usage against the specification? ===
 Mock servers powered by tools such as https://connexion.readthedocs.io/en/latest/[Connexion] or https://stoplight.io/prism[Prism]. These tools take a HTTP API specification and simulate a server that responds to requests according to the specification. This comes for free as long as we use one of the API description languages introduced above.
 
-=== How do we ensure that API specification and implementation are in sync? ===
+=== [[test-specification]] How do we ensure that API specification and implementation are in sync? ===
 
 ==== Options ====
 
@@ -112,7 +112,7 @@ describe('GET /example/request', function() {
 ==== Recommendation ====
 Dredd, because it's well documented and has all the features we need. It looks like the main effort will be https://dredd.org/en/latest/how-it-works.html#making-your-api-description-ready-for-testing[preparing the specification] for testing.
 
-==== JSON Schema integration ====
+==== [[json-schema-integration]] JSON Schema integration ====
 We currently use JSON Schema to validate the shape of the body of the response to `GET /
 swaps` and `GET /
 swaps/rfc003/:id`. JSON Schema is supported by OpenAPI, https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#schema-object[with some caveats]. There are https://apisyouwonthate.com/blog/solving-openapi-and-json-schema-divergence[ways to get around this situation], and full support for JSON Schema is https://github.com/OAI/OpenAPI-Specification/pull/1977[in the works].
@@ -135,7 +135,7 @@ swaps/rfc003/:id`. JSON Schema is supported by OpenAPI, https://github.com/OAI/O
 * Make API calls to a running cnd through the UI and generate part of the specification.
 
 ==== Recommendation ====
-Unfortunately the tools aren't there yet to automatically produce the API specification from source code in Rust. There seems to be some interest for this, so it may come in the future. For the time being, we will have to write it ourselves. Fortunately, this specification will be custom-id:test-specification[tested] and we can use tools such as https://speccy.io/[speccy] to validate it.
+Unfortunately the tools aren't there yet to automatically produce the API specification from source code in Rust. There seems to be some interest for this, so it may come in the future. For the time being, we will have to write it ourselves. Fortunately, this specification will be <<test-specification,tested>> and we can use tools such as https://speccy.io/[speccy] to validate it.
 
 === How to visualise specification ===
 
@@ -149,7 +149,7 @@ image::How_to_visualise_documentation/Swagger_UI_2019-08-29_18-16-23.png[scaledw
 
 * Hides JSON bodies.
 
-===== https://redocly.github.io/redoc/[ReDoc] =====
+===== [[redoc]] https://redocly.github.io/redoc/[ReDoc] =====
 * Popular (over 1k stars on GitHub).
 * Very https://github.com/Redocly/redoc/#deployment[simple] to set up.
 * Three-column style.
@@ -173,7 +173,7 @@ Models services.
 Models data.
 
 === How to host documentation for current `master` HEAD ===
-If we go for the recommended option of using custom-id:redoc[ReDoc], it's https://www.npmjs.com/package/redoc#tldr[very easy]:
+If we go for the recommended option of using <<redoc, ReDoc>>, it's https://www.npmjs.com/package/redoc#tldr[very easy]:
 
 . Include API specification in repository with cnd.
 . Host a website on GitHub Pages (for example).
@@ -185,7 +185,7 @@ I would argue that this is covered in https://github.com/comit-network/comit-rs/
 === Client-side validation ===
 
 ==== Context ====
-* We already define custom-id:json-schema-integration[JSON Schemas] for some data objects returned from the API.
+* We already define <<json-schema-integration, JSON Schemas>> for some data objects returned from the API.
 * We have https://github.com/comit-network/comit-i/issues/44[discussed] doing input validation on comit-i.
 * We currently reproduce server-side validation on comit-i.
 
