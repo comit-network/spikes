@@ -203,13 +203,22 @@ It also supports custom sections in an OpenAPI specification file, which can be 
 
 === What does the documentation include? ===
 
-==== HTTP API Specification ====
+==== OpenAPI ====
 
-Models services.
+* Description of web services, including but not limited to data.
+- Sort of an extension to JSON Schema in that sense.
+- JSON Schema files can be referenced directly.
+* Focus on strict typing.
+* Enables use of a lot of cool tools such as ReDoc and Dredd, recommended in this document.
 
 ==== JSON Schema ====
 
-Models data.
+* Flexible data modelling.
+* Validating structure of JSON data.
+
+==== References ====
+
+https://phil.tech/api/2018/03/30/openapi-and-json-schema-divergence/[Blog that introduces differences between OpenAPI and JSON Schema]
 
 === [[recommend-host-github-pages]] How to host documentation for current `master` HEAD ===
 
