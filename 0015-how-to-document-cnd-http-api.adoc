@@ -20,12 +20,14 @@ It should also be helpful for the team and for newcomers.
 ==== Options ====
 
 ===== https://github.com/OAI/OpenAPI-Specification[OpenAPI] =====
+
 * Extremely popular (specification has over 15k stars on GitHub).
 * https://openapi.tools/[Great tooling].
 * APIs can be specified using either https://github.com/OAI/OpenAPI-Specification/blob/master/examples/v3.0/petstore.yaml[YAML] or JSON.
 * "Winner" of API Description Wars.
 
 ===== https://github.com/raml-org/raml-spec/[RAML] =====
+
 * Quite popular (specification has over 3k stars on GitHub).
 * APIs can be specified using YAML.
 * https://raml.org/projects[Lots of tooling].
@@ -33,6 +35,7 @@ It should also be helpful for the team and for newcomers.
 * Company behind joined Open API Initiative in 2017.
 
 ===== https://github.com/apiaryio/api-blueprint/[API Blueprint] =====
+
 * Very popular (specification has over 7k stars on GitHub).
 * More accessible to newcomers to API description.
 * Targets human readability over machine readability.
@@ -41,15 +44,18 @@ It should also be helpful for the team and for newcomers.
 * Company behind joined Open API Initiative in 2016.
 
 ===== Roll our own =====
+
 * More flexible.
 * No tooling.
 * An https://gist.github.com/iros/3426278[example] showing how it could look.
 
 ==== Recommendation ====
+
 OpenAPI, because it appears to be the industry standard, and is compatible with the most tools.
 The better human readability of API Blueprint doesn't seem all that important given that these specifications can be viewed using powerful tools such as https://rebilly.github.io/ReDoc/[ReDoc].
 
 === How would a developer validate its API usage against the specification? ===
+
 Mock servers powered by tools such as https://connexion.readthedocs.io/en/latest/[Connexion] or https://stoplight.io/prism[Prism].
 These tools take a HTTP API specification and simulate a server that responds to requests according to the specification.
 This comes for free as long as we use one of the API description languages introduced above.
@@ -59,11 +65,13 @@ This comes for free as long as we use one of the API description languages intro
 ==== Options ====
 
 ===== https://inspector.swagger.io/builder[Swagger Inspector] =====
+
 * Online tool.
 * Quick, manual testing.
 * Can generate OpenAPI specifications from requests and responses.
 
 ===== https://dredd.org/en/latest/index.html[Dredd] =====
+
 * Language-agnostic.
 * Works with both OpenAPI and API Blueprint.
 * Very popular (over 3k stars on GitHub).
@@ -81,6 +89,7 @@ dredd cnd-http-api-description.yml http://localhost:<port-where-cnd-is-hosted>
 * Can define https://dredd.org/en/latest/hooks/js.html#using-chai-assertions[custom expectations using Chai assertions].
 
 ===== https://github.com/RuntimeTools/chai-openapi-response-validator[Chai OpenAPI Response Validator] =====
+
 * Works with Chai (which is compatible with Jest).
 * Easy to incorporate to our api tests workflow.
 * Example from GitHub repository:
@@ -114,10 +123,12 @@ describe('GET /example/request', function() {
 ----
 
 ==== Recommendation ====
+
 Dredd, because it's well documented and has all the features we need.
 It looks like the main effort will be https://dredd.org/en/latest/how-it-works.html#making-your-api-description-ready-for-testing[preparing the specification] for testing.
 
 ==== [[json-schema-integration]] JSON Schema integration ====
+
 We currently use JSON Schema to validate the shape of the body of the response to `GET /
 swaps` and `GET /
 swaps/rfc003/:id`.
@@ -129,19 +140,23 @@ There are https://apisyouwonthate.com/blog/solving-openapi-and-json-schema-diver
 ==== Options ====
 
 ===== Automatically =====
+
 * Switch to actix-web and use https://paperclip.waffles.space/actix-plugin.html[this experimental plugin].
 * Wait for Rocket to https://github.com/SergioBenitez/Rocket/issues/297[implement this feature] and switch back to it.
 * https://github.com/seanmonstar/warp/issues/89[Wait for this feature] to come to warp.
 
 ===== Manually =====
+
 * Use https://github.com/swagger-api/swagger-editor[Swagger Editor] (over 5k stars on GitHub).
 * Use a plugin for an editor/IDE (look at the editors listed https://openapi.tools/[here]).
 
 ===== Assisted =====
+
 * Using https://inspector.swagger.io/builder[Swagger Inspector].
 * Make API calls to a running cnd through the UI and generate part of the specification.
 
 ==== Recommendation ====
+
 Unfortunately the tools aren't there yet to automatically produce the API specification from source code in Rust.
 There seems to be some interest for this, so it may come in the future.
 For the time being, we will have to write it ourselves.
@@ -152,6 +167,7 @@ Fortunately, this specification will be <<test-specification,tested>> and we can
 ==== Options ====
 
 ===== https://petstore.swagger.io/[SwaggerUI] =====
+
 * Extremely popular (over 15k stars on https://github.com/swagger-api/swagger-ui[GitHub]).
 * RPC-style.
 * Looks like this:
@@ -160,6 +176,7 @@ image::How_to_visualise_documentation/Swagger_UI_2019-08-29_18-16-23.png[scaledw
 * Hides JSON bodies.
 
 ===== [[redoc]] https://redocly.github.io/redoc/[ReDoc] =====
+
 * Popular (over 1k stars on GitHub).
 * Very https://github.com/Redocly/redoc/#deployment[simple] to set up.
 * Three-column style.
@@ -167,22 +184,27 @@ image::How_to_visualise_documentation/Swagger_UI_2019-08-29_18-16-23.png[scaledw
 image::How_to_visualise_documentation/redoc-demo_2019-08-29_18-29-34.png[scaledwidth=100%]
 
 ===== http://cheesestore.github.io/[Spectacle] =====
+
 * Quite popular (about 1k stars on GitHub).
 * Looks similar to ReDoc:
 image::How_to_visualise_documentation/screenshot_2019-08-29_18-46-24.jpg[scaledwidth=100%]
 
 ==== Recommendation ====
+
 ReDoc because it is easy and I think it looks nice.
 
 === What does the documentation include? ===
 
 ==== HTTP API Specification ====
+
 Models services.
 
 ==== JSON Schema ====
+
 Models data.
 
 === How to host documentation for current `master` HEAD ===
+
 If we go for the recommended option of using <<redoc, ReDoc>>, it's https://www.npmjs.com/package/redoc#tldr[very easy]:
 
 . Include API specification in repository with cnd.
@@ -190,21 +212,25 @@ If we go for the recommended option of using <<redoc, ReDoc>>, it's https://www.
 . Use a HTML tag that links to the API specification (there's even a https://www.npmjs.com/package/redoc#usage-as-a-react-component[React component]).
 
 === How to document extension link relation types? ===
+
 I would argue that this is covered in https://github.com/comit-network/comit-rs/issues/843[the original issue].
 Just replace `human-protocol-spec` key with a link to a static HTML page hosted on GitHub Pages (for example) where the meaning of `human-protocol-spec` is described.
 
 === Client-side validation ===
 
 ==== Context ====
+
 * We already define <<json-schema-integration, JSON Schemas>> for some data objects returned from the API.
 * We have https://github.com/comit-network/comit-i/issues/44[discussed] doing input validation on comit-i.
 * We currently reproduce server-side validation on comit-i.
 
 ==== Purpose ====
+
 * Improve user experience for users of clients of our API.
 * Simplify the job of developers.
 
 ==== Proposal ====
+
 * Define JSON Schemas for all data objects that our API returns.
 * Offer a copy of these contracts to clients in a programmatically accessible format.
 * Include link to in response header:
@@ -215,4 +241,5 @@ Link: <http://example.com/schemas/swap.schema.json#>; rel=”describedby”
 * Use in comit-i to prove that it works.
 
 ==== References ====
+
 * https://apisyouwonthate.com/blog/the-many-amazing-uses-of-json-schema-client-side-validation[Blog on client-side validation based on JSON Schema].
