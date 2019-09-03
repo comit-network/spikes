@@ -155,7 +155,7 @@ Fortunately, this specification will be <<test-specification,tested>> and we can
 ==== Options ====
 
 ===== https://petstore.swagger.io/[SwaggerUI] =====
-* Extremely popular (over 15k stars on https://github.com/swagger-api/swagger-ui[GitHub])
+* Extremely popular (over 15k stars on https://github.com/swagger-api/swagger-ui[GitHub]).
 * RPC-style.
 * Looks like this:
 image::How_to_visualise_documentation/Swagger_UI_2019-08-29_18-16-23.png[scaledwidth=100%]
@@ -179,10 +179,10 @@ ReDoc because it is easy and I think it looks nice.
 
 === What does the documentation include? ===
 
-==== HTTP API Specification. ====
+==== HTTP API Specification ====
 Models services.
 
-==== JSON Schema. ====
+==== JSON Schema ====
 Models data.
 
 === How to host documentation for current `master` HEAD ===
