@@ -509,26 +509,30 @@ It is tracked with a release issue. In the issue, specify what version should ha
 | See <<Validation>>
 
 |#4
+| Open a PR
+| Get it approved
+
+|#5
 | Git tag the commit on the release branch and push
 | Not like Git Flow because we do not have a _develop_ branch
 
-|#5
+|#6
 | Wait for a GitHub Release
 | This should be done automatically when pushing the tag
 
-|#6
+|#7
 | The CI hook creates binaries and attach them to GitHub Release
 | No action from releaser
 
-|#7
+|#8
 | Merge the release branch back into master branch
 | As per Git Flow
 
-|#8
+|#9
 | Tweet about the release
 | Why creating a changelog if nobody reads it
 
-|#9
+|#10
 | Mention it in the next blog post
 | Ditto.
 
