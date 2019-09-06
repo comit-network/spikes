@@ -501,7 +501,7 @@ It is tracked with a release issue. In the issue, specify what version should ha
 | Kick Off Git Flow process
 |See https://danielkummer.github.io/git-flow-cheatsheet/
 
-- Create `release/vX.X.X` branch
+- Create `release/X.X.X` branch
 - Commit version upgrades (Cargo.toml, CHANGELOG.md) in release branch
 
 |#3
@@ -509,26 +509,30 @@ It is tracked with a release issue. In the issue, specify what version should ha
 | See <<Validation>>
 
 |#4
-| Git tag the commit on the release branch
-| Not like Git Flow because we do not have a _develop_ branch
+| Open a PR
+| Get it approved
 
 |#5
-| Do a GitHub Release
-| This should be done automatically when pushing the tag
+| Git tag the commit on the release branch and push
+| Not like Git Flow because we do not have a _develop_ branch
 
 |#6
-| Merge the release branch back into master branch
-| As per Git Flow
+| Wait for a GitHub Release
+| This should be done automatically when pushing the tag
 
 |#7
 | The CI hook creates binaries and attach them to GitHub Release
 | No action from releaser
 
 |#8
+| Merge the release branch back into master branch
+| As per Git Flow
+
+|#9
 | Tweet about the release
 | Why creating a changelog if nobody reads it
 
-|#9
+|#10
 | Mention it in the next blog post
 | Ditto.
 
