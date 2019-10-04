@@ -1,0 +1,110 @@
+' DIAGRAM #########################################
+' Execution phase messaging
+' #################################################
+@startuml
+' #################################################
+' SETTINGS: color settings of diagram
+' #################################################
+skinparam sequence {
+	BorderColor black
+	ArrowColor black
+	ActorBorderColor black
+	LifeLineBorderColor black
+	LifeLineBackgroundColor white
+	
+	ParticipantBorderColor black
+	ParticipantBackgroundColor white
+	ParticipantFontColor black
+	
+	ActorBackgroundColor white
+	ActorFontColor black
+}
+' #################################################
+' ACTORS
+' #################################################
+participant "Bob\ncnd" as BC
+actor Maker as M
+actor Taker as T
+participant "Alice\ncnd" as AC
+
+' allow parallelism
+!pragma teoz true
+
+' #################################################
+' DIAGRAM
+' #################################################
+group execution phase
+    T->AC: create swap
+    note right #white
+        required:
+        - connect-info
+        - protocol
+        - Offer ID
+        - alpha-ledger = ask-ledger
+        - beta-ledger = bid-ledger
+        - alpha-asset = ask-asset
+        - beta-asset = bid-asset
+        - alpha-amount = ask-amount
+        - beta-amount = bid-amount
+        - role = Alice
+        optional:
+        - expiries
+        - identities
+    end note
+    & M->BC: create swap
+    note left #white
+        required:
+        - protocol
+        - Offer ID
+        - alpha-ledger = ask-ledger
+        - beta-ledger = bid-ledger
+        - alpha-asset = ask-asset
+        - beta-asset = bid-asset
+        - alpha-amount = ask-amount
+        - beta-amount = bid-amount
+        - role = Bob
+        optional:
+        - expiries
+        - identities
+    end note
+    opt
+        AC->AC: default expiries
+        note right #white
+            if expiries not given
+        end note
+    end
+    & opt
+        BC->BC: default expiries
+        note left #white
+            if expiries not given
+        end note
+    end
+    opt
+        AC->AC: identities from transient key
+        note right #white
+            if identities not given
+        end note
+    end
+    & opt
+        BC->BC: identities from transient key
+        note left #white
+            if identities not given
+        end note
+    end
+    AC->AC: generate secret
+    AC->BC: these are all the parameters I have, do they match yours? [all params, including hash(secret)]
+    BC->BC: add hash(secret) to params
+    BC->BC: compare all params
+    alt
+        BC->AC: yes, parameters match, here are my identities [identities]
+    else matching fails
+        BC->AC: \nparam X did not match
+        AC->T: there is a problem
+    end
+    AC->T: Fund transaction
+    & BC->BC: Monitor alpha ledger
+    group go on with execution as defined previously defined
+    end
+end
+
+@enduml

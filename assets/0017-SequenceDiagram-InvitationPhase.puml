@@ -1,0 +1,52 @@
+' DIAGRAM #########################################
+' Invitation phase messaging
+' #################################################
+@startuml
+' #################################################
+' SETTINGS: color settings of diagram
+' #################################################
+skinparam sequence {
+	BorderColor black
+	ArrowColor black
+	ActorBorderColor black
+	LifeLineBorderColor black
+	LifeLineBackgroundColor white
+	
+	ParticipantBorderColor black
+	ParticipantBackgroundColor white
+	ParticipantFontColor black
+	
+	ActorBackgroundColor white
+	ActorFontColor black
+}
+' #################################################
+' ACTORS
+' #################################################
+actor Maker as M
+participant "Social\nMedia" as I
+actor Taker as T
+
+' allow parallelism
+!pragma teoz true
+
+' #################################################
+' DIAGRAM
+' #################################################
+group invitation phase
+    M->I: publish trade invite
+    note right #white
+            required:
+            - connect-info
+            - ask-asset
+            - ask-ledger
+            - bid-asset
+            - bid-ledger
+            optional:
+            - ask-amount
+            - bid-amount
+            - date
+        end note
+    T->I: process trade invite
+end
+
+@enduml

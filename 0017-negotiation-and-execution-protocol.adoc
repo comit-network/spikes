@@ -1,0 +1,544 @@
+= How to document cnd's HTTP API =
+Thomas Eizinger <thomas@coblox.tech>; Philipp Hoenisch <philipp@coblox.tech>; Daniel Karzel <daniel.karzel@coblox.tech>;
+:toc:
+:revdate: 2019-10-05
+:sectnums:
+:sectnumlevels: 5
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1413[#1413]
+
+== Context ==
+
+Over time we came to the conclusion that our protocol stack in general, and RFC003 in particular, is difficult to understand in certain ways.
+
+We could specify several problems:
+
+. The Accept/Decline feels weird, it often does not make sense in specific use-case context
+. We do not clearly distinguish trade negotiation from execution at the moment.
+. It is hard to add the concept of orders and an order-book to COMIT.
+
+This spike includes:
+
+. Solution proposal for splitting trade negotiation and execution in different protocols.
+. Solution proposal for the "How to update an offer"/"Offers should not get stale" problem.
+. Defining the base for a first negotiation protocol.
+. Defining the changes needed to the existing execution protocol RFC003.
+
+== Research ==
+
+=== Constraints
+
+Before defining the terminology certain constraints shall be defined, so we know what is already regarded as given.
+
+==== Protocol Constraints
+
+As we build upon libp2p for messaging all protocols should adhere to the libp2p specification. The proposed first negotiation protocol will be a new libp2p protocol.
+
+For the sake of simplicity we assume that there is only one protocol (RFC003) for trade execution at the moment.
+In the future there will be more execution protocols.
+
+The negotiation protocol should be designed in a way that it is independent from a possible orderbook.
+It should be possible to use a central or decentral orderbook for the protocol.
+
+==== Offers Constraints
+
+During the negotiation phase the offer can be changed multiple times.
+Once the negotiation phase comes to a successful end (the parties agree on the parameters for the execution) the execution phase is triggered (immediately).
+Note that there might still be an implicit accept of the message sent from taker to maker with the needed parameters.
+
+=== Definitions
+
+==== Trade ====
+
+In the COMIT context a trade is always between two digital assets.
+
+We identify two main phases when it comes to a trade:
+
+. Negotiation: The phase where the maker comes up with one or multiple offers.
+The outcome of the negotiation phase should be the parameters needed for execution.
+. Execution: The phase where the trade is executed, hence actions are executed on the ledger.
+
+Basic idea of the steps of a trade as defined by this spike:
+
+. Trade Invitation (maker -> world)
+. Negotiation (P2P)
+.. Offer Request (taker -> maker)
+.. Offer (maker -> taker)
+. Execution (P2P)
+
+==== Negotiation and Execution Roles ====
+
+The negotiation phase of a trade specifies two roles:
+
+* Maker: Creates offers
+* Taker: Takes offers
+
+Note that these roles are orthogonal to the cryptographic roles (Alice and Bob) in the execution protocol.
+Both the maker and the taker can theoretically be in the role of Alice (who generates the secret) or Bob.
+During the negotiation phase both parties have to reach agreement on who will be in the role of Alice and who will be in the role of Bob.
+
+==== Bid and Ask ====
+
+In the context of this document Bid and Ask is always from the market maker point of view.
+
+* Bid: The amount of asset the maker offers.
+* Ask: The amount of asset the maker asks for from a potential taker.
+
+
+=== Recommendation for protocol changes
+
+The general idea is to first define what parameters are needed for the execution phase and then design a negotiation protocol that outputs these parameters for the execution.
+
+As RFC003 is currently the only implementation of an execution protocol we focus on this protocol.
+Once more execution protocols are defined we will have to define more negotiation protocols according to the parameters required by the execution protocol.
+This means, that some negotiation protocols could be re-used for multiple execution protocols if the execution protocols have the same input parameters.
+
+=== Invitation phase
+
+We introduce an invitation phase in order to enable decentralization.
+Makers don't necessarily have a central order book, the invitation helps them to overcome the problem of decentral offers getting stale.
+
+On an abstract level an invitation protocol can be defined as a function:
+
+```
+fn invitation() -> negotiation_params[] {
+    // steps (messages) needed to come from nothing to negotiation_params
+}
+```
+
+==== Communication
+
+Message Overview:
+
+![Invitation](http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/0017-SequenceDiagram-InvitationPhase.puml&fmt=svg)
+
+==== Trade Invitation ====
+
+The trade invitation specifies which assets on which ledgers a maker _is willing_ to trade.
+The trade invitation is not necessarily part of the negotiation.
+Its purpose is to connect maker and taker.
+
+An asset-availability is defined by:
+
+[%header,cols=1*]
+|===
+|required
+
+|connection-info
+|bid-asset
+|ask-asset
+|===
+
+[%header,cols=1*]
+|===
+|optional
+
+|timestamp
+|bid-amount
+|ask-amount
+|===
+
+Constraints:
+
+* Connection-info currently consists of IP-address and libp2p peer-id
+* The optional parameters help takers to understand what a maker was capable of at a certain point in time.
+
+Representation in JSON:
+
+```json
+{
+    "connection-info": { ... },
+    "bid": {
+        "ledger": ...
+        "asset": ...
+    },
+    "ask": {
+        "ledger": ...
+        "asset": ...
+    }
+}
+```
+When designing the negotiation protocol
+One should aim for a standardized format for trade invitations to be able to process them in the negotiation phase.
+
+
+=== Negotiation protocol
+
+On an abstract level the negotiation protocol can be defined as a function:
+
+```
+fn negotiation(input_params[]) -> execution_params[] {
+    // steps (messages) needed to come from input_params to execution_params
+}
+```
+
+The output of the negotiation protocol should enable the execution phase.
+As we only have one execution protocol (RFC003 - Atomic Swaps using HTLCs) at the moment this negotiation protocol will be designed to output the parameters for that protocol.
+
+Asset-availability handling (i.e. building a central order-book) is not part of this protocol.
+
+The invitation phase may be part of an implementation of a negotiation protocol.
+
+==== Negotiation Input Parameters
+
+The minimum input parameters for the protocol are:
+
+* ledger/asset pair
+* connection-info (of the negotiation protocol)
+
+Example of one input parameter as JSON object:
+```
+{
+    "bid_ledger": ... ,
+    "bid_asset": ... ,
+    "ask_ledger": ... ,
+    "ask_asset": ... ,
+    "peer_id" ...
+}
+```
+
+These input parameters are the output of the invitation phase.
+
+==== Negotiation Output Parameters
+
+The output of the negotiation protocol should enable the execution phase.
+However, the negotiation phase should be functionally decoupled from the execution phase.
+
+The execution phase needs the following parameters on both sides in order to start the execution:
+
+* role
+* ledger-asset pairs
+* amounts
+* execution protocol
+* expiries
+* identities
+
+Out of these parameters the following are relevant for negotiating the price:
+
+* ledger-asset pairs
+* amounts
+* execution protocol
+* expiries
+
+Constraints:
+
+* Execution protocol and expiries CAN have an implication on the price.
+Thus, they should be considered as part of the negotiation.
+If the expiries are not taken into account during the negotiation the execution phase should be able to come up with default expiry times.
+* Identities don't have an implication on the price negotiation and should not be exposed to the negotiation protocol.
+
+[%header,cols=1*]
+|===
+|required
+
+|offer id
+|valid until
+|bid-ledger
+|bid-asset
+|bid-amount
+|ask-ledger
+|ask-asset
+|ask-amount
+|_execution_ protocol
+|_execution_ connection-info
+|===
+
+[%header,cols=1*]
+|===
+|optional
+
+|_execution_ expiries
+|===
+
+===== Deciding the Execution Role
+
+Assumption: In order to motivate the maker to create offers the expiries for the maker should be shorter than for the taker.
+This, in a way, ensures liquidity in the network as it is more attractive to create offers.
+
+As the expiries for the actor in the role of Bob are shorter:
+
+* The maker should automatically default to Bob.
+* Consequently, the taker defaults to the role of Alice.
+
+For future protocols this can be revised.
+
+==== Communication
+
+The negotiation protocol builds on the assumption that the taker already has received an trade invite from the maker.
+The taker knows how to contact the maker for requesting a specific offer.
+
+Message Overview:
+
+![Negotiation](http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/0017-SequenceDiagram-NegotiationPhase.puml&fmt=svg)
+
+===== P2P Offer Request
+
+Message from the taker to the maker to receive a specific offer.
+This offer might be different from the trade invitation information, as the maker might have been trading since publishing the invitation.
+
+[%header,cols=1*]
+|===
+|required
+
+|bid-ledger
+|bid-asset
+|bid-amount
+|ask-ledger
+|ask-asset
+|ask-amount
+|===
+
+===== P2P Offer
+
+Message from the maker to the taker that specifies a specific offer to be executed.
+
+[%header,cols=1*]
+|===
+|required
+
+|offer id
+|valid until
+|bid-ledger
+|bid-asset
+|bid-amount
+|ask-ledger
+|ask-asset
+|ask-amount
+|_execution_ protocol(s)
+|_execution_ connection-info
+|===
+
+[%header,cols=1*]
+|===
+|optional
+
+|_execution_ expiries
+|===
+
+Constraints:
+
+* The offer ID is a unique identifier for one specific offer.
+* Once the taker send an offer request, the returned offer by the maker is for the taker specifically.
+It has a timestamp defining until when it is valid.
+
+The offer ID is used to be able to link the swap execution back to the negotiation.
+
+```json
+{
+    id: "unique_identifier"
+    "connection-info": { ... },
+    "bid": {
+        "ledger": ...
+        "asset": ...
+    },
+    "ask": {
+        "ledger": ...
+        "asset": ...
+    }
+}
+```
+
+===== P2P Take Offer
+
+Message from the taker to the maker that specifies that the taker wants to take a specific offer previously received from the maker.
+
+[%header,cols=1*]
+|===
+|required
+
+|offer id
+|===
+
+[%header,cols=1*]
+|===
+|optional
+
+|_execution_ expiries
+|_execution_ protocol
+|===
+
+The taker can suggest expiries when taking the offer.
+This is meant for use cases, where the maker did not suggest expiries in the offer, but the taker does not want to fallback to the default expiries of the execution.
+
+The execution protocol may be specified by the taker if the maker specified more than one in his offer.
+
+==== Shortcomings
+
+This first simple negotiation protocol does not really specify an orderbook in the sense that a user can compare ALL available offers.
+A taker can only process the offers of known makers.
+Every taker is responsible for keeping its own list of known makers and evaluate the offers.
+There may exist unknown makers that would offer a better rate.
+
+=== Changes to the existing execution protocol RFC002/RFC003
+
+Constraints:
+
+. Taker defaults to Alice, Maker defaults to Bob
+. The taker has received connection information to contact the maker for execution in the negotiation phase.
+
+==== Input parameters
+
+===== Execution Parameter Definition
+
+For the execution phase as specified by RFC003 we need the parameters for creating the HTLCs on both sides:
+
+* alpha-ledger
+* alpha-asset
+* alpha-amount
+* beta-ledger
+* beta-asset
+* beta-amount
+* expiries
+* hash(secret)
+* identities
+
+In order to come up with these parameters we need:
+
+* role (to know who comes up with the secret)
+
+In order to enable more protocols in the future we need:
+
+* protocol
+
+===== Negotiation Output
+
+From the negotiation phase we have the following output parameters:
+
+[%header,cols=1*]
+|===
+|required
+
+|offer id
+|valid until
+|bid-ledger
+|bid-asset
+|bid-amount
+|ask-ledger
+|ask-asset
+|ask-amount
+|_execution_ protocol
+|_execution_ connection-info (know only to taker)
+|_execution_ role
+|===
+
+[%header,cols=1*]
+|===
+|optional
+
+|_execution_ expiries
+|===
+
+The taker has received the execution connection information from the maker during the negotiation phase. Thus, the taker has to make the first move.
+
+===== Parameter Mapping
+
+This section defines the input parameters for cnd and
+
+[%header,cols=2*]
+|===
+|required (cnd)
+|negotiation
+
+|offer id
+|offer id
+
+|beta-ledger
+|bid-ledger
+
+|beta-asset
+|bid-asset
+
+|beta-amount
+|bid-amount
+
+|alpha-ledger
+|ask-ledger
+
+|alpha-asset
+|ask-asset
+
+|alpha-amount
+|ask-amount
+
+|protocol
+|_execution_ protocol
+
+| connection-info
+|_execution_ connection-info
+
+|role
+|_execution_ role
+
+|===
+
+[%header,cols=2*]
+|===
+|optional (cnd)
+|negotiation
+
+|expiries
+|_execution_ expiries
+
+|identities
+|
+|===
+
+Constraints:
+
+* The connection-info is only provided to the cnd in the role of Alice.
+* If the expiries were not part of the negotiation output cnd will come up with defaults.
+* Identities might be provided by the user. If no identities are provided the cnd will come up with defaults.
+
+==== Communication changes
+
+Instead of a request-response model we propose a messaging model where both parties supply the same parameter to the execution on both sides.
+The CND nodes of the 2 parties execute the swap automatically if the parameters of the counterparty define an executable swap.
+Thus, once one party adds a swap to the pool, cnd sends a message to the counterparty's cnd to verify that the same swap is defined there too.
+
+This requires:
+
+* Changing the messaging so that both parties can just supply the input parameters for the execution and CND sends a message to the counterparty to compare the parameters.
+** Sending such kind of messages does include the exchange of execution specific parameters that were not defined during negotiation (e.g. identities and hash of secret, which are not price relevant).
+* In the best case scenario there is no user interaction needed. There is no explicit accept as such any more.
+** The swap is deemed executable once the parameters match on both sides.
+* Once the parameters match the taker (which defaulted to Alice) gets the fund transaction, the maker cnd monitors alpha-ledger for funding.
+
+Messaging:
+
+![Execution](http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/0017-SequenceDiagram-ExecutionPhase.puml&fmt=svg)
+
+== Summary of recommendations ==
+
+=== Optimizing for the user
+
+In the "best case" scenario, i.e. a scenario without any errors that assumes cnd coming up with default identities and default expiries the human interaction is kept to a bare minimum:
+
+. Maker: create and publish trade invitation
+. Taker: take offer
+. Taker: fund
+. Maker: fund
+. Taker: redeem
+. Maker: redeem
+
+Constraints:
+
+. The actual offer (in the maker app) can be kept up to date automatically on the maker side.
+. Offer invitations can be automatically processed on the taker side.
+. Offer requests can be automated sent (periodically query for the current rate) on the taker side.
+. The execution phase assumes two cnd that run compatible versions.
+. In order to come up with indentities cnd has to use tansient keys.
+. Fund and redeem of maker and taker can be automated.
+
+The proposed solutions are a middle ground between convenience for applications on top and security.
+The security level is slightly lowered by using e.g. transient keys.
+
+=== Negotiation protocol
+
+For a first version of the negotiation protocol it might be easier to combine the invitation and negotiation phase into one protocol.
+
+=== Execution protocol changes
+
+Adapt the communication according to the sequence diagram specifying the execution phase messaging.
+
