@@ -1,3 +1,5 @@
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/comit-network/community)
+
 # COMIT research outcomes
 
 List of spike outcomes for COMIT network.
