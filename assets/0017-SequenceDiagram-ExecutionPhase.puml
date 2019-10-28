@@ -38,14 +38,13 @@ group execution phase
     note right #white
         required:
         - connect-info
-        - protocol
-        - Offer ID
-        - alpha-ledger = ask-ledger
-        - beta-ledger = bid-ledger
-        - alpha-asset = ask-asset
-        - beta-asset = bid-asset
-        - alpha-amount = ask-amount
-        - beta-amount = bid-amount
+        - swap id
+        - alpha_ledger.name = ask-ledger
+        - alpha_asset.name = ask-asset
+        - alpha_asset.quantity = ask-amount
+        - beta_ledger.name = bid-ledger
+        - beta_asset.name = bid-asset
+        - beta_asset.quantity = bid-amount
         - role = Alice
         optional:
         - expiries
@@ -54,19 +53,20 @@ group execution phase
     & M->BC: create swap
     note left #white
         required:
-        - protocol
-        - Offer ID
-        - alpha-ledger = ask-ledger
-        - beta-ledger = bid-ledger
-        - alpha-asset = ask-asset
-        - beta-asset = bid-asset
-        - alpha-amount = ask-amount
-        - beta-amount = bid-amount
+        - swap id
+        - alpha_ledger.name = ask-ledger
+        - alpha_asset.name = ask-asset
+        - alpha_asset.quantity = ask-amount
+        - beta_ledger.name = bid-ledger
+        - beta_asset.name = bid-asset
+        - beta_asset.quantity = bid-amount
         - role = Bob
         optional:
         - expiries
         - identities
     end note
+    AC->AC: default to rfc003 protocol
+    & BC->BC: default to rfc003 protocol
     opt
         AC->AC: default expiries
         note right #white
@@ -103,7 +103,7 @@ group execution phase
     end
     AC->T: Fund transaction
     & BC->BC: Monitor alpha ledger
-    group go on with execution as defined previously defined
+    group go on with execution (as defined in rfc003)
     end
 end
 

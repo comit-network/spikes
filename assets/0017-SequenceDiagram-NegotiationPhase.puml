@@ -36,11 +36,40 @@ actor Taker as T
 ' #################################################
 group negotiation phase
     T->M: offer request (from invite)
+    note right #white
+        required:
+        - bid-ledger
+        - bid-asset
+        - ask-ledger
+        - ask-asset
+    end note
     M->T: current offer
+    note left #white
+        required:
+        - offer-id
+        - bid-ledger
+        - bid-asset
+        - bid-amount
+        - ask-ledger
+        - ask-asset
+        - ask-amount
+        optional:
+        - exe-expiries
+    end note
     T->T: decision to take offer
     T->M: take offer
+    note right #white
+        required:
+        - offer-id
+    end note
     alt
-        M->T: Acknowledge
+        M->M: Create exe-swap-id
+        M->T: Acknowledge with swap-id
+        note left #white
+            required:
+            - offer-id
+            - exe-swap-id
+        end note
     else some kind of failure
         M->T: \nmissing param,\noffer outdated,\nexpiries not accepted
         note right #white

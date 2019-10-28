@@ -44,7 +44,7 @@ group invitation phase
             optional:
             - ask-amount
             - bid-amount
-            - date
+            - creation-date
         end note
     T->I: process trade invite
 end
