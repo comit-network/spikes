@@ -22,7 +22,7 @@ We could specify several problems:
 === This spike includes
 
 . Solution proposal for splitting trade negotiation and execution in different protocols.
-. Solution proposal for the "How to update an offer"/"Offers should not get stale" problem.
+. Solution proposal for the "How to update an order"/"Orders should not get stale" problem.
 . Defining the base for a first negotiation protocol.
 . Defining the changes needed to the existing execution protocol RFC003.
 
@@ -117,7 +117,7 @@ During the negotiation phase both parties have to reach an agreement on who will
 
 In the context of this document Bid and Ask is always from the market maker point of view.
 
-* Bid: The amount of asset the maker _offers_ (or _sells_).
+* Bid: The amount of asset the maker _orders_ (or _sells_).
 * Ask: The amount of asset the maker _asks_ for (or wants to _buy) from a potential taker.
 
 
@@ -244,7 +244,7 @@ This might be revised in the future.
 ==== Communication
 
 The negotiation protocol builds on the assumption that the taker already has received an trade invite from the maker.
-The taker knows how to contact the maker for requesting a specific offer.
+The taker knows how to contact the maker for requesting a specific order.
 
 Message Overview:
 
@@ -255,16 +255,16 @@ Message Overview:
 As mentioned above in <<negotiation-protocol, Negotiation Protocol>>,
 the taker _requests_ an order from the maker. For that, he needs to send the parameters he retrieved from the <<trade-invitation, Trade Invitation>> as described in <<trade-invitation-paramaters, this table>>.
 
-===== P2P Offer Response
+===== P2P Order Response
 
-The message from the maker to the taker that specifies a specific offer to be executed. The parameters are defined <<negotiation-output-paramaters, this table>>.
+The message from the maker to the taker that specifies a specific order to be executed. The parameters are defined <<negotiation-output-paramaters, this table>>.
 
 Constraints:
 
-* The offer ID is a unique identifier for one specific offer.
-* Once the taker send an offer request, the returned offer by the maker is for the taker specifically.
+* The order ID is a unique identifier for one specific order.
+* Once the taker send an order request, the returned order by the maker is for the taker specifically.
 * It has a timestamp (_valid until_) defining until when it is valid.
-* The offer ID is used to be able to link the swap execution back to the negotiation.
+* The order ID is used to be able to link the swap execution back to the negotiation.
 
 ===== P2P Take Order
 
@@ -274,27 +274,27 @@ This message SHOULD have the following parameters:
 [cols=4*]
 |===
 |*required*
-|offer id
+|order id
 |bid-amount
 |ask-amount
 |===
 
 
-The bid and ask amount has to be a fraction of the bid and ask amounts returned by the maker (otherwise the maker will most likely decline the take offer).
+The bid and ask amount has to be a fraction of the bid and ask amounts returned by the maker (otherwise the maker will most likely decline the take order).
 
 Note that in this design the taker cannot specify expiries.
 He can accept the (optional) expiries defined by the maker or use the cnd's default expiries.
 
-===== Acknowledgement for Take Offer
+===== Acknowledgement for Take Order
 
 Message from the maker to the taker that kicks-off the execution phase.
 The maker generates a unique swap-id and sends it to the taker.
-The swap-id will be used to identify the swap during the execution phase, it can be use to link the execution to the offer.
+The swap-id will be used to identify the swap during the execution phase, it can be use to link the execution to the order.
 
 [cols=3*]
 |===
 |*required*
-| offer id
+| order id
 | swap-id
 |===
 
@@ -306,7 +306,7 @@ In the future, the invitation and negotiation phase can be enhanced by different
 Ideas for additional features:
 
 * Allows price targeting for individual takers by adding an id to invitations.
-* Allow takers to specify alternative expiries when taking an offer.
+* Allow takers to specify alternative expiries when taking an order.
 
 === [[execution-protocol]]Changes to the existing execution protocol RFC002/RFC003
 
@@ -424,13 +424,13 @@ Messaging:
 In the "best case" scenario, i.e. a scenario without any errors that assumes cnd coming up with default identities and default expiries the human interaction is kept to a bare minimum:
 
 . Maker: create and publish trade invitation
-. Taker: take offer
+. Taker: take order
 
 Constraints:
 
-. The actual offer (in the maker app) can be kept up to date automatically on the maker side.
-. Offer invitations can be automatically processed on the taker side.
-. Offer requests can be automated sent (periodically query for the current rate) on the taker side.
+. The actual order (in the maker app) can be kept up to date automatically on the maker side.
+. Order invitations can be automatically processed on the taker side.
+. Order requests can be automated sent (periodically query for the current rate) on the taker side.
 . The execution phase assumes two cnd that run compatible versions.
 . In order to come up with indentities cnd may use tansient keys.
 . Fund and redeem of maker and taker MAY be handled automatically by an application (the application initiates the transactions).
