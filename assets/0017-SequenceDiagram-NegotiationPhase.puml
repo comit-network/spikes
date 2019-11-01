@@ -1,0 +1,84 @@
+' DIAGRAM #########################################
+' Negotiation phase messaging
+' #################################################
+@startuml
+' #################################################
+' SETTINGS: color settings of diagram
+' #################################################
+skinparam sequence {
+	BorderColor black
+	ArrowColor black
+	ActorBorderColor black
+	LifeLineBorderColor black
+	LifeLineBackgroundColor white
+	
+	ParticipantBorderColor black
+	ParticipantBackgroundColor white
+	ParticipantFontColor black
+	
+	ActorBackgroundColor white
+	ActorFontColor black
+}
+' #################################################
+' ACTORS
+' #################################################
+actor Maker as M
+' participant "app\nMaker" as TM
+' participant "Social\nMedia" as I
+' participant "app\nTaker" as TT
+actor Taker as T
+
+' allow parallelism
+!pragma teoz true
+
+' #################################################
+' DIAGRAM
+' #################################################
+group negotiation phase
+    T->M: offer request (from invite)
+    note right #white
+        required:
+        - bid-ledger
+        - bid-asset
+        - ask-ledger
+        - ask-asset
+    end note
+    M->T: current offer
+    note left #white
+        required:
+        - offer-id
+        - bid-ledger
+        - bid-asset
+        - bid-amount
+        - ask-ledger
+        - ask-asset
+        - ask-amount
+        optional:
+        - exe-expiries
+    end note
+    T->T: decision to take offer
+    T->M: take offer
+    note right #white
+        required:
+        - offer-id
+    end note
+    alt
+        M->M: Create exe-swap-id
+        M->T: Acknowledge with swap-id
+        note left #white
+            required:
+            - offer-id
+            - exe-swap-id
+        end note
+    else some kind of failure
+        M->T: \nmissing param,\noffer outdated,\nexpiries not accepted
+        note right #white
+            taker could send
+            another offer request
+        end note
+    end
+    T->T: default to role of Alice
+    & M->M: default to role of Bob
+end
+
+@enduml
