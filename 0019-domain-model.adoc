@@ -1,0 +1,222 @@
+= Towards a richer domain model in cnd
+Thomas Eizinger <thomas@coblox.tech>;
+:toc:
+:revdate: 2019-12-12
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1708[#1708]
+
+== Context
+
+We've done a pretty good job in modelling the domain of atomic swaps within cnd.
+The concepts we talk about, ledgers and assets are well modeled within the application.
+What is less consistent are the actual ledgers and assets of the specific chains.
+For those, we either fall back to types defined in external libraries (like `bitcoin::Amount`) or we created some types ourselves (like `EtherQuantity`).
+
+Our understanding of the domain as-well as our proficiency with Rust have changed a fair bit since we last revisited these topics.
+
+This spike is an attempt to take a step back and proposes some changes to our existing model that reflects this.
+
+== Research
+
+It is hard to reference specific research for this topic because it is mostly based on our experience of working in the field.
+One thing that can be referenced is the Rust style guide on naming: https://doc.rust-lang.org/1.0.0/style/style/naming/README.html#avoid-redundant-prefixes-[rfc-356]
+
+== Recommendation
+
+Based on the Rust style guide referenced above, it is idiomatic Rust to have rather short names for types, even if the type by itself may not be descriptive enough in a larger context.
+To make it more descriptive, one should refer to the type through one or more of its parent modules, up until it is descriptive enough for the given context.
+
+For example, an enum `Error` makes sense within a single module and can be referred to as `io::Error` if more context is needed.
+
+The next section is going to list a few references to types that the design in of this spike aims to make possible:
+
+=== Referring to ledgers (instances of the `Ledger` trait)
+
+In a context where several different ledgers need to referenced, one should be able to write:
+
+[source,rust]
+----
+use crate::ledgers::{bitcoin, ethereum};
+
+fn main() {
+
+    let bitcoin_mainnet = bitcoin::Mainnet;
+    let ethereum_testnet = ethereum::Kovan;
+
+}
+----
+
+In a context where we only refer to the different networks of a particular ledger, one can import the different structs directly and hence shorten the usage sites:
+
+[source,rust]
+----
+use crate::ledgers::bitcoin::Mainnet;
+
+impl BlockByHash<Mainnet> for BitcoindConnector {
+
+}
+----
+
+=== Referring to assets (instances of the `Asset` trait)
+
+One of the problems our design needs to solve is the ambiguity in the name "Bitcoin" because it refers to the ledger as-well as to the asset that is tracked on it.
+Currently, we solve this by referring to the `Asset` as `bitcoin::Amount`, which is a type that is defined in the `rust-bitcoin` crate.
+If we only were to introduce a struct `Bitcoin` that refers to the asset, we would have a nameclash with our current struct `Bitcoin` that refers to the ledger (and has a `network` field).
+Fortunately, with the above design of referring to the ledgers, this struct goes away which means we can use the name to refer to the asset itself.
+Compared to the different networks of a ledger, there is typically only one main asset.
+This means there is almost no benefit in using a similar structure as we did for the ledgers above (`crate::assets::bitcoin::Bitcoin`).
+Instead, I'd propose to flatten these modules by one level and instead provide them like this:
+
+* `crate::assets::Bitcoin`
+* `crate::assets::Ether`
+* `crate::assets::Erc20Token`
+
+=== What would this new design look like in our current codebase?
+
+The following sections attempts to give a small taste at what this design would look like in various places.
+
+==== `LoadAcceptedSwap`
+
+An implementation of this trait currently looks like this:
+
+[source,rust]
+----
+impl LoadAcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, crate::ethereum::EtherQuantity> for Sqlite {
+    async fn load_accepted_swap(
+        &self,
+        key: &SwapId,
+    ) -> anyhow::Result<
+        AcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, crate::ethereum::EtherQuantity>,
+    > {
+        // actual implementation redacted
+    }
+}
+----
+
+The new design would look like this:
+
+[source,rust]
+----
+impl LoadAcceptedSwap<bitcoin::Testnet, ethereum::Kovan, assets::Bitcoin, assets::Ether> for Sqlite {
+    async fn load_accepted_swap(
+        &self,
+        key: &SwapId,
+    ) -> anyhow::Result<
+        AcceptedSwap<bitcoin::Testnet, ethereum::Kovan, assets::Bitcoin, assets::Ether>,
+    > {
+        // actual implementation redacted
+    }
+}
+----
+
+=== Our two `Ledger` traits
+
+Currently, we have two traits for describing a Ledger:
+
+- `swap_protocols::rfc003::Ledger`
+- `swap_protocols::Ledger`
+
+We enforce that both traits are implemented on the same type.
+The reason we have these traits is simple: It saves us from typing even more type parameters.
+
+Traits in Rust are used to abstract over functionality.
+To make this possible in our case, we need access to certain types which vary by ledger: identities, transactions and for the rfc003 protocol, what we call the `HtlcLocation`.
+
+Our current design has two flaws:
+
+a. We generalized too early: It has been one and a half years and we still only have one protocol.
+
+b. It mimics object-orientation by emulating inheritance through the two ledger traits:
+
+1. `swap_protocols::Ledger`: Defines the two associated types `Transaction` and `Identity`. We thought that these are applicable to all kinds of protocols and hence they went into the "base-class" trait.
+
+2. `swap_protocols::rfc003::Ledger`: Defines the associated type `HtlcLocation`. This one only applies to htlc-based protocols like rfc003 and was therefore defines in a rfc003-specific "subclass" trait.
+
+This design can easily be fixed by simply removing the "base-class" trait `swap_protocols::Ledger` and merging it into `swap_protocols::rfc003::Ledger`.
+The proposal has two consequences:
+
+. As we add new protocols, they will have to define their own `Ledger` trait **if** the protocol has similar requirements in terms of needing to abstract over functionality that needs access to specific types.
+
+One could see the duplication (two `Ledger` traits defining an associated type `Transaction` f.e.) here as a downside but I'd argue it is not.
+Similarily as in OO, sharing code through base-classes can usually also be achieved in a way that introduces less coupling.
+Also, often there is actually nothing that _should_ be shared because it just happens to be the same / similar even though the concepts that are actually being modeled are not the same.
+I think especially the latter applies here.
+Our code abstracts over protocols, not ledgers.
+Two protocols having similar requirements is not duplication, they are still different protocols and therefore highly unlikely to change _together_.
+Duplication is only a problem if things change _together_ and the changes are scattered across the codebase.
+
+[start=2]
+. We cannot write code that abstracts over ledgers regardless of the protocol.
+
+My guess is that this is actually good because all we do is in the context of a protocol so we actually should not be writing code that is generic over all kinds of protocols.
+
+NOTE: We can still write code that is _shared_ between several protocols, like how to serialize a bitcoin transaction id etc.
+Code like this can easily be used from within several implementations.
+What is important to recognize here is that it is very unlikely for us to define logic (`impl` blocks) that abstract over several ledgers outside of a single protocol.
+
+== Further implications
+
+This section is going to cover additional implications that the adoption of the above design will bring.
+
+=== Swaps across networks are impossible except if we explicitely allow them
+
+The new model would allow us to be very explicit about which combinations of networks are allowed.
+For example, if there is simply no implementation of `Save` for the ledgers `bitcoin::Mainnet` and `ethereum::Kovan` then we also cannot call it at runtime.
+
+=== We can define implementations that are only valid for a specific network
+
+Blockchain connectors are a good example here.
+Some of them only work for a specific network.
+The proposed model would allow us to capture this in the type system.
+
+=== More code needs to be written?
+
+It looks like we need to write more code to capture the same amount of functionality compared to current model, but I'd be very cautious calling that a bad thing:
+
+. At the moment, we only test our software against private testnets (regtest), so we actually don't really know how it behaves in other situations.
+With the current model, the `network` is fairly implicit because it is runtime element of the software: an enum variant inside the ledger struct.
+We don't check this value in most of the code, so we don't actually make a difference between the different networks - but maybe we should in some situations?
+
+. If we want/need to make a difference between the networks of a ledger, it would be good if that difference was very explicit.
+A separate `impl` blocks seems to be a much better choice here compared to one or more `if` statements on the `network` field of a ledger struct.
+
+Overall, I would claim that "supporting mainnet" or "supporting testnet" is something that should be explicit in the codebase compared to something that just happens to work because we don't make a difference in the networks of a ledger.
+
+In a way, the code we would have to add is probably code that should already exist but just doesn't because we haven't been testing our software on networks other than private testnet nodes.
+
+NOTE: Just because we define more `impl` blocks of traits or structs to cover all the networks doesn't mean our codebase grows by 3x the size.
+As pointed out earlier, we can still make use of patterns to reuse functionality across the codebase.
+Starting from simple functions where each of the `impl` blocks just delegate to and more advanced ways like blanket impls (`impl XYZ for T where T: ABC`).
+
+== Final module tree
+
+* crate cnd
+** mod ledgers
+*** mod bitcoin (all structs implement Ledger)
+**** struct Mainnet
+**** struct Testnet
+**** struct Regtest
+*** mod ethereum (all structs implement Ledger)
+**** struct Mainnet
+**** struct Kovan
+**** struct ParityDevChain
+** mod assets (all structs implement Asset)
+*** struct Bitcoin
+*** struct Ether
+*** struct Erc20Token
+
+== Implementation proposal
+
+All of the following can be individual PRs.
+
+. Create our own wrapper type around `bitcoin::Amount`, name it `Bitcoin` and put it into the `assets` module
+. Rename our `EtherQuantity` type to `Ether` and put it into the `assets` module
+. Merge the two `Ledger` traits
+. Move the existing ledgers `Bitcoin` and `Ethereum` into the `ledgers` module.
+. Create only the `Regtest` and `ParityDevChain` ledger structs and change all implementations sites to that.
+With this step we theoretically lose the functionality of testnet and mainnet swaps.
+However, no one is using cnd at the moment anyway and the remaining ledger types can fairly easily be added again afterwards (as step 5).
+Not doing all of them at once will greatly improve the coding and review of the PR because no new impl blocks have to be added.
+We can thus learn from the first PR and maybe already identify certain patterns as we code along.
