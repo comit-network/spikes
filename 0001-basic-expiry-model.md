@@ -16,7 +16,8 @@ Values that are reasonable and that ensure that the protocol is secure for both 
 
 ## Model
 
-The basic model we came up with is here: https://www.overleaf.com/read/sswbyytnfjhy (It was too difficult to express in markdown -- Talk to me for editable version).
+The basic model we came up with is here: https://www.overleaf.com/read/sswbyytnfjhy or here in [PDF format](assets/basic_expiry_model.pdf).  (It was too difficult to express in markdown.) 
+
 
 The model can produce meaningful estimates (subject to the limitations mentioned) but we need to figure out how to actually evaluate it and come up with a quantile function for the random variables representing the time to redeem.
 I've left this for another spike, but an initial naive attempt can be seen below.
