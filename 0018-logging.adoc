@@ -1,0 +1,94 @@
+= [Overhaul comit-rs Logging]
+Tobin C. Harding <tobin.harding@coblox.tech>;
+:toc:
+:revdate: 2019-12-23
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/487[#487]
+
+== Context
+
+At the moment, there is no consistency in what is logged where and with what level of detail.
+Debugging cnd by using the logs is painful at best and impractical at worst.
+
+This spike is about investigating, how the current logs could be improved and proposing an overall logging strategy that makes the logs actually useful.
+
+There are a few problems that need addressing, including but not limited to:
+
+* Log levels - guidelines on when to log and at what level
+* Useful context - we need useful context, what is useful should be defined by the team since it comes from experience debugging cnd.
+* Only useful output i.e., no dumping u8 arrays in the logs.
+* Async codebase - since we have an asynchronous code base logging may be inherently the wrong approach, we will also consider tracing.
+* Dynamically controlling log level
+* Controlling the log level of libraries vs cnd logs i.e., 
+
+The output of this spike should be proposed changes to the current logging libraries (i.e., what libraries we use to log) and also some guidelines so the whole team knows when and where to add log statements.
+
+== Research
+
+=== Log Levels ===
+
+
+This is actually the easiest thing to solve, using correct log levels is pretty standard dev practice, the internet more or less has consensus on the following log levels:
+
+Copying from the following site: https://reflectoring.io/logging-levels/
+
+* error: should only be used when the application really is in trouble. Users are being affected without having a way to work around the issue.
+* warn: should be used when something bad happened, but the application still has the chance to heal itself or the issue can wait a day or two to be fixed.
+* info: should be used to document state changes in the application or some entity within the application.
+* debug: should be used to log any information that helps us identify what went wrong on DEBUG level.
+* trace: log all information that helps us to trace the flow of the application.
+
+=== Useful Context ===
+
+Useful context is not that easy to solve due to the async nature of cnd.
+Typically one can follow the sequence of log messages to get more context than is available within the scope of the log statement.
+The solution to this is most likely to use a tracing library instead of logging, see below for more on tracing.
+
+Related to context is useful output in the log messages i.e., don't dump byte slices using "{:?}".
+
+Suggestions to remedy this include:
+* Implement custom `Debug` for any objects that we would like to print within logs.
+* Add a `Log` trait for any objects that we wish to log and call the method when logging i.e., `log::info("Got: {}", foo.log())`
+
+=== Controlling Log Levels ===
+
+Currently we can control the base log level within the config file.  More fine grained control requires code changes in `cnd/src/logging/initialize.rs`.
+If we stay with logging I would suggest that we set the cnd log level to `trace`.
+It may be useful to have a few simple scripts in tree that do typical useful grep commands on the logs (unnecessary if we go with tracing).
+
+=== Tracing ===
+
+As mentioned in the issue on GitHub (linked above), logging may not be the correct approach because of the asynchronous nature of cnd.
+The issue is that because logging is event driven and the logs are ordered so it is hard to follow, from reading the log, what events are linked to each other.
+Tracing may be the solution to this but adding tracing requires a non-trivial implementation effort as well as some time investment for all devs on the team to learn how to debug using the trace output and interact with the tracing system.
+On top of this, tracing is most useful for, as the name suggests, 'tracing' a running application.
+Currently, our pain points come from running a failing e2e test, looking at the logs, and not being able to debug the issue.
+If used like this, we will not be leveraging the full potential of tracing, but at least we would be setting the ground work for this style of debugging in the future.
+Having the additional context and structured data may add value and help with debugging.
+
+There are at least two async tracing libraries in the Rust ecosystem, the most popular is by far `tracing` by the tokio folks.
+
+
+== Guidelines/suggestions ==
+
+In summary here are some proposed guidelines to help improve our logs.
+
+I would like to suggest that we attempt to utilise the current logging system fully before deciding to switch to tracing.
+There is an https://github.com/comit-network/comit-rs/pull/1786#issue-355453304[open pull request] to start this, it does a bunch of clean up but can be summarised as follows:
+
+* Do not use targets
+* Set default log level to `Info` for upstream libraries
+* Set default log level to `Trace` for cnd
+* Add a logging trait `Scribe` and use it when logging objects.
+* Audit current log statements, correct log level if required i.e., debug/trace
+
+If/when this pull request merges there will be ongoing work:
+
+
+
+* Add log statements as appropriate to the code base - especially trace statements.
+* Improve `Scribe` implementations as needed.
+
+Perhaps we can run this system for month or two then get team feedback.
