@@ -1,0 +1,52 @@
+= Decide on an async stack for cnd
+Thomas Eizinger <thomas@coblox.tech>;
+:toc:
+:revdate: 2020-01-02
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1802[#1802]
+
+== Context
+
+The Rust ecosystem provides several libraries to facilitate an asynchronous programming model.
+The most notable ones are `async-std` and `tokio`.
+
+This spike describes the decision for which one we are going to use in the future.
+Historically (before async/await landed on stable), there was only `tokio` but with 1.39 landing on stable, `async-std` was given to the community.
+
+== Research
+
+Both `async-std` and `tokio` provide mainly two types of functionality:
+
+- Types that implement `Future`
+- An executor to run a `Future` to completion
+
+To better understand the decision making, we need to quickly re-visit, how certain futures work in Rust.
+
+=== IO futures
+
+Most relevant to our decision making are IO futures, i.e. any futures that wrap network sockets or file access.
+
+Both libraries make use of `mio` to provide this functionality.
+`mio` is a low-level wrapper around OS primitives for doing asynchronous IO.
+To deliver this functionality, they make use of a concept that is called a "Reactor" that polls the kernel for events which signal readiness of certain IO operations.
+
+The main difference between `async-std` and `tokio` are that `async-std` implicitely spawns a background thread that polls this reactor vs `tokio` requires you to do this specifically. (Source: https://github.com/libp2p/rust-libp2p/issues/1318#issuecomment-564636632)
+The reactor and the respective IO-futures communicate via TLS (thread-local storage), hence the reactor has to be on the same thread.
+
+=== Maturity
+
+`tokio` has been around since the early days of Rust.
+Its implementation has been battle-tested and is actively used in production.
+
+`async-std` is relatively new but already receives a lot of attention from the community, mainly because of its good documentation and nicely achieved API parity with `std`.
+
+== Recommendation
+
+Two of our main IO dependencies, `warp` and `reqwest`, use `hyper` to provide low-level HTTP functionality.
+`hyper` in turn is built on top of `tokio` IO futures.
+
+Because of that, we have to at least have a `tokio` reactor running on the thread that these libraries operate on.
+
+Consequently, I would recommend to stick to the `tokio` ecosystem as much as possible and try to avoid dependencies that bring in `async-std`.
