@@ -10,9 +10,8 @@ Tracking issue: https://github.com/comit-network/comit-rs/issues/487[#487]
 == Context
 
 At the moment, there is no consistency in what is logged where and with what level of detail.
-Debugging cnd by using the logs is painful at best and impractical at worst.
-
 This spike is about investigating, how the current logs could be improved and proposing an overall logging strategy that makes the logs actually useful.
+This document is based on the assumption that the cnd logs are currently unusable for debugging and that we would like to remedy this problem as quickly and cheaply as possible.
 
 There are a few problems that need addressing, including but not limited to:
 
@@ -24,6 +23,7 @@ There are a few problems that need addressing, including but not limited to:
 * Controlling the log level of libraries vs cnd logs i.e., 
 
 The output of this spike should be proposed changes to the current logging libraries (i.e., what libraries we use to log) and also some guidelines so the whole team knows when and where to add log statements.
+
 
 == Research
 
@@ -45,24 +45,25 @@ Copying from the following site: https://reflectoring.io/logging-levels/
 Useful context is not that easy to solve due to the async nature of cnd.
 Typically one can follow the sequence of log messages to get more context than is available within the scope of the log statement.
 The solution to this is most likely to use a tracing library instead of logging, see below for more on tracing.
+Currently we typically deal with only a single swap when debugging, once in production we will need to be able to debug with multiple swaps in progress, at a bare minimum this will require the swap_id to be able to be associated with every log message.
 
 Related to context is useful output in the log messages i.e., don't dump byte slices using "{:?}".
 
-Suggestions to remedy this include:
+Suggestions to remedy this (without switching to tracing) include:
 * Implement custom `Debug` for any objects that we would like to print within logs.
 * Add a `Log` trait for any objects that we wish to log and call the method when logging i.e., `log::info("Got: {}", foo.log())`
 
 === Controlling Log Levels ===
 
 Currently we can control the base log level within the config file.  More fine grained control requires code changes in `cnd/src/logging/initialize.rs`.
-If we stay with logging I would suggest that we set the cnd log level to `trace`.
-It may be useful to have a few simple scripts in tree that do typical useful grep commands on the logs (unnecessary if we go with tracing).
+Currently we provide log level control for upstream libraries, this is not fully complete and is necessary if we wish to use `trace` level logging in cnd.
 
 === Tracing ===
 
 As mentioned in the issue on GitHub (linked above), logging may not be the correct approach because of the asynchronous nature of cnd.
 The issue is that because logging is event driven and the logs are ordered so it is hard to follow, from reading the log, what events are linked to each other.
 Tracing may be the solution to this but adding tracing requires a non-trivial implementation effort as well as some time investment for all devs on the team to learn how to debug using the trace output and interact with the tracing system.
+In order to get the benefits of tracing there are code changes that need to be made to define 'spans' and add context.
 On top of this, tracing is most useful for, as the name suggests, 'tracing' a running application.
 Currently, our pain points come from running a failing e2e test, looking at the logs, and not being able to debug the issue.
 If used like this, we will not be leveraging the full potential of tracing, but at least we would be setting the ground work for this style of debugging in the future.
