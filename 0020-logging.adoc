@@ -47,7 +47,7 @@ Typically one can follow the sequence of log messages to get more context than i
 The solution to this is most likely to use a tracing library instead of logging, see below for more on tracing.
 Currently we typically deal with only a single swap when debugging, once in production we will need to be able to debug with multiple swaps in progress, at a bare minimum this will require the swap_id to be able to be associated with every log message.
 
-Related to context is useful output in the log messages i.e., don't dump byte slices using "{:?}".
+Related to context is useful output in the log messages i.e., don't dump byte slices using `{:?}`.
 
 Suggestions to remedy this (without switching to tracing) include:
 
