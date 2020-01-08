@@ -70,7 +70,7 @@ Currently, our pain points come from running a failing e2e test, looking at the 
 If used like this, we will not be leveraging the full potential of tracing, but at least we would be setting the ground work for this style of debugging in the future.
 Having the additional context and structured data may add value and help with debugging.
 
-There are at least two async tracing libraries in the Rust ecosystem, the most popular is by far `tracing` by the tokio folks.
+There are at least two async tracing libraries in the Rust ecosystem, the most popular is by far https://docs.rs/tracing/0.1.11/tracing/[tracing] by the tokio folks.
 
 
 == Guidelines/suggestions ==
