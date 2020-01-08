@@ -50,6 +50,7 @@ Currently we typically deal with only a single swap when debugging, once in prod
 Related to context is useful output in the log messages i.e., don't dump byte slices using "{:?}".
 
 Suggestions to remedy this (without switching to tracing) include:
+
 * Implement custom `Debug` for any objects that we would like to print within logs.
 * Add a `Log` trait for any objects that we wish to log and call the method when logging i.e., `log::info("Got: {}", foo.log())`
 
