@@ -14,7 +14,7 @@ We propose the following protocol names for Alpha and Beta ledger:
 - `HAN` - HTCL for Asset on Native
 - `HErc20` - HTLC for ERC20
 - `HOmni` - HTLC for OMNI
-- `HALigth` - HTLC for Lightning
+- `HALight` - HTLC for Lightning
 
 A swap would then be defined by a combination of two protocols, here are three examples:
 
