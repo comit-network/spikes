@@ -1,0 +1,73 @@
+@startuml
+
+title HAN-HALight atomic swap
+
+actor Alice as a
+
+participant "Alice's CND" as ac
+participant "Alice's LND" as al
+
+participant "Ethereum Chain" as eth
+
+participant "Bob's LND" as bl
+participant "Bob's CND" as bc
+
+actor Bob as b
+
+... We assume a negotiation and communication protocol is in place.\n \
+Both parties have agreed to the same set of parameters and are ready to swap. ...
+
+par
+
+a->ac: Get swap
+ac-->a: Action: lnd-add-hold-invoice
+
+bc->eth: Watch for contract
+
+end
+
+a->al: Add hold invoice
+
+ac->al: Get invoice state
+al-->ac: Invoice is awaiting payment
+
+a->ac: Get swap
+ac-->a: Action: ethereum-deploy-contract
+
+a->eth: Deploy contract
+eth-->bc: Contract deployed!
+
+b->bc: Get swap
+bc-->b: Action: lnd-pay-invoice
+
+b->bl: Pay invoice
+bl->al: Make payment
+
+ac->al: Get invoice state
+al-->ac: Payment arrived
+
+a->ac: Get swap
+ac-->a: Action: lnd-settle-invoice
+
+a->al: Settle invoice
+
+al-->bl: Payment successful
+
+bc->bl: Get payment state
+bl-->bc: Payment was successful
+
+note left of b
+With the successful payment,
+Bob's LND learns the pre-image
+to the invoice he paid.
+end note
+
+b->bc: Get swap
+bc-->b: Action: ethereum-call-contract
+
+b->eth: Call contract
+
+eth->eth: Transfer money to Bob's account
+
+
+@enduml
