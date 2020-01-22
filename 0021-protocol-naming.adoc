@@ -11,10 +11,10 @@ Tracking issue: https://github.com/comit-network/RFCs/issues/130[#130]
 
 We propose the following protocol names for Alpha and Beta ledger:
 
-- `HAN` - HTCL for Asset on Native
-- `HErc20` - HTLC for ERC20
-- `HOmni` - HTLC for OMNI
-- `HALight` - HTLC for Lightning
+- `HAN` - (atomic swaps using ) **H**TLCs for **A**ssets that are **N**ative to the ledger
+- `HErc20` - (atomic swaps using ) **H**TLCs for the **Erc20** asset
+- `HOmni` - (atomic swaps using ) **H**TLCs for the **Omni** asset
+- `HALight` - (atomic swaps using ) **H**TLCs for **A**ssets on the **Light**ning ledger
 
 A swap would then be defined by a combination of two protocols, here are three examples:
 
