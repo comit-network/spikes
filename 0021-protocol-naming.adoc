@@ -1,5 +1,5 @@
 = Introducing a protocol naming scheme
-Thomas Eizinger <thomas@coblox.tech>; Daniel Karzel<daniel.karzel@coblox.tech>
+Thomas Eizinger <thomas@coblox.tech>; Daniel Karzel <daniel.karzel@coblox.tech>;
 :toc:
 :revdate: 2020-01-20
 
