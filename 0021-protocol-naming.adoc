@@ -1,0 +1,46 @@
+= Introducing a protocol naming scheme
+Thomas Eizinger <thomas@coblox.tech>; Daniel Karzel <daniel.karzel@coblox.tech>;
+:toc:
+:revdate: 2020-01-20
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/RFCs/issues/130[#130]
+
+== Proposal
+
+We propose the following protocol names for Alpha and Beta ledger:
+
+- `HAN` - (atomic swaps using ) **H**TLCs for **A**ssets that are **N**ative to the ledger
+- `HErc20` - (atomic swaps using ) **H**TLCs for the **Erc20** asset
+- `HOmni` - (atomic swaps using ) **H**TLCs for the **Omni** asset
+- `HALight` - (atomic swaps using ) **H**TLCs for **A**ssets on the **Light**ning ledger
+
+A swap would then be defined by a combination of two protocols, here are three examples:
+
+- `HAN-HAN` - An HTLC swap between a native assets as Alpha and a native asset as Beta (e.g. BTC-ETH)
+- `HAN-HALight` - An HTLC swap between a native asset as Alpha and Lightning as Beta (e.g. ETH-Lightning)
+- `HOmni-HALight` - An HTLC swap between Omni as Alpha and Lightning as Beta
+
+For the introduction of Scriptless Scripts we defined that the `H` (`HTLC`) would have to change.
+We identified that its is not sufficient to just replace the `H` of `HTLC` with e.g. an `S` (for signature - which would have resulted in e.g. `HAN-SAN`) because there are different implementations of achieving scriptless scrips that might have to be distinguished.
+Since we could not come up with a perfect naming-scheme for this problem space, we decided to wait until the new protocol will be introduced in COMIT.
+The naming scheme we came up with is flexible enough to include privacy preserving swaps, we just have to agree on a specific name.
+We expect the POC to help for coming up with a proper name.
+
+== Reasoning
+
+We identified four different naming spaces:
+
+. Native assets: Coins that are native on a ledger meaning money creation is governed by the native protocol
+. Custom assets: Tokens created on-top of a ledger, money creation is governed by a contract created by some user (e.g. ERC20, OMNI)
+. "Instant": Everything around Layer 2 integration
+. "Privacy preserving": Everything around scriptless script integration
+
+Additionally we defined, that the protocol should be defined separately for Alpha Ledger and Beta Ledger.
+This way one can combine protocols to define a swap clearly.
+
+We decided that it is too early to generalize protocols around specific implementations.
+We opted for specific names around specific tokens (e.g. ERC20), because generalization does not offer us advantages at the moment.
+We also opted for a specific name for Lightning out of the same reason.
+Generalization CAN be done at a later point if we feel it is needed (e.g. generalizing `HOMNI` and `HERC20` in one superclass).
