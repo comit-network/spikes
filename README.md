@@ -27,5 +27,6 @@ List of spike outcomes for COMIT network.
 - [spike-0020](0020-logging.adoc) - Overhaul comit-rs Logging
 - [spike-0021](0021-protocol-naming.adoc) - Protocol naming scheme
 - [spike-0022](0022-lnd-plan-of-attack.adoc) - Plan of attack for integrating LND into cnd
+- [spike-0023](0023-communication-protocol.adoc) - Design a new communication protocol for COMIT
 
 For new spike outcomes, please use [template.adoc](template.adoc) as basis.

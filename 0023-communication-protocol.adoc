@@ -1,0 +1,157 @@
+= Design a new communication protocol for COMIT
+Thomas Eizinger <thomas@coblox.tech>;
+:toc:
+:revdate: 2020-01-28
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1827[#1827]
+
+== Context
+
+NOTE: This is the issue description at the time of writing.
+
+The current communication protocol was our first attempt.
+Since then, we learned many things and also adopted libp2p, which made several aspects of the design redundant.
+
+=== Be "libp2p-native":
+
+- leverage the "protocol" concept of libp2p
+- follow patterns such as oneshot substreams where applicable
+
+=== Leverage the negotiation phase
+
+We've discovered that very likely, there will always be a negotiation phase before COMIT even gets to know about the swap.
+The new communication protocol should leverage this fact to simplify the communication by avoiding (re-)transmission of data the applications already know (the famous, auto-accept problem).
+To solve this, the spike will need to identify, which data definitely needs to be shared among the nodes and is not in control by the applications.
+We've already identified that at the very least, this includes:
+
+- secret-hash
+- transient identities (Bitcoin for now, proposal for Ethereum is available)
+
+=== Modularity & open-closed principle
+
+At the moment, the communication protocol is a single request-response handshake.
+This imposes a lot of complexity on the message format, as it has to handle all kinds of different scenarios.
+Ideally, the new communication protocol has a more modular approach to allow for different messages to be sent, depending on the ledgers, assets and swap-protocols being involved.
+In a way, this relates to the open-closed principle.
+Extensions to the communication protocol should happen in the form of new messages instead of modifying existing ones.
+
+=== Support for more ledgers
+
+While designing the new protocol, one should take into account the needs for support Lightning and Grin.
+
+== Research
+
+=== Assumptions and goals
+
+I've started the research and design of the new communication protocol with the following assumptions and goals in mind.
+
+. Avoid interaction as part of the communication protocol.
+This makes the implementation easier and more resilient as we don't have to maintain in-memory state for each connection.
+. Favor small, single-purpose protocols over more complex ones.
+. In every context, it is clear which party will initiate the communication.
+This applies to opening the first substream that announces the swap and not to the actual network communication.footnote:[In libp2p, a single network connection is reused between two parties for several substreams.]
+We assume that the two parties have already established the roles of (cryptographic) Alice and Bob and those roles are an input to the communication protocol.
+
+To design a better communication protocol than the first one, it is useful to take a step back and think protocols in a more abstract manner.
+
+=== Protocols in COMIT
+
+A protocol can be roughly defined as the order and semantics of actions.
+
+Within COMIT, we have two kinds of protocols:
+
+. Cryptographic protocols
+. Communication protocols
+
+A cryptographic protocol within COMIT defines the order and semantics of interactions with blockchains.
+At the moment, COMIT specializes in cryptographic protocols that facilitate atomic swaps.
+
+With the https://github.com/comit-network/spikes/blob/master/0021-protocol-naming.adoc[protocol naming spike], we've made it more explicit that COMIT does not support one but several cryptographic protocols at the moment.
+In particular, we currently support:
+
+* HAN for Bitcoin
+* HAN for Ethereum
+* HErc20 for Ethereum
+
+We've managed to identify a protocol (HAN) that can be applied to both of the ledgers that we currently support.
+Even though this allows for some reuse, when you take a look at the actual interactions with the blockchain, HAN for Bitcoin and HAN for Ethereum differ (you cannot broadcast a Bitcoin transaction on Ethereum and vice versa).
+Given that there is always two protocols that need to be combined for an atomic swap, our total number of supported protocols (considering the full swap as a black box) is 6 (2 * 3).footnote:[We don't allow HAN(Ethereum)-HErc20 at the moment, so this number drops to 4 in reality.]
+
+A communication protocol within COMIT defines how two COMIT nodes interact with each other.
+Those (libp2p-based) protocols facilitate the exchange of information for the purpose of then following a cryptographic protocol.
+
+These two kinds of protocols have a relationship to each other.
+In the past we went with a N-to-1 relationship: we designed a single communication protocol that was supposed to handle communication for all kinds of cryptographic protocols.
+Even though we sweated blood in the design of the original communication protocol, we quickly learned that it is not as extensible and flexible as we thought it would to be.
+
+=== What is the ideal relationship between cryptographic and libp2p protocols?
+
+The main problem with the design of the original communication protocol was that we tried to anticipate the future a bit too much.
+Even thought it is important to allow for future extensions, one has to be careful about how the extension mechanism works.
+
+Let's consider the following requirement:
+
+. In order to execute a certain cryptographic protocol, COMIT nodes may want to exchange information.
+
+The important thing to realize here is that not every cryptographic protocol necessarily requires communication.
+Almost certainly, we should not design a single communication protocol that caters for all possible cryptographic protocols.
+
+=== What is the scope of a single communication protocol?
+
+Knowing that we likely want more than one communication protocol, the question is, what is the scope of one of those libp2p protocols?
+
+In order to not fall into the same trap as with the original communication protocol, we can just opt to not design libp2p protocols for things that we don't (yet) know.
+The result of this idea is that we need (at least) a single libp2p protocol for each cryptographic protocol.
+As elaborated in <<Protocols in COMIT>>, this number is currently 4.
+
+There is a downside to this:
+Duplication.
+
+Designing a completely independent libp2p protocol for each swap would mean having very similar messages with different kinds of data types.
+
+=== The oneshot substream pattern
+
+A pattern common within libp2p is the 'oneshot substream' pattern.
+It refers to the idea of defining protocols that only have a single message.
+Examples include `/ipfs/id/1.0.0/` and `/ipfs/id/push/1.0.0`: https://github.com/libp2p/specs/tree/master/identify
+
+The advantages of using single-message protocols are:
+
+* short-lived:
+Open a substream, send the message, close it again.
+No need to wait for the other party to reply.
+* very focused:
+These protocols are small and focused, avoiding the trap of over-engineering them.
+* simpler client code:
+If there is only one possible message that can be sent, its shape can be hardcoded by the client.
+Software that uses libp2p has to cater for several protocols being active concurrently anyway.
+Using the protocol layer as the level with which messages vary makes many things a lot simpler.
+In other words, no need to have `type` fields inside the message, the protocol already identifies the type.
+* cheap:
+Opening substreams is very cheap compared to network connections.
+While there is still some inefficiency in terms of opening substreams, a more flexible design seems to be desirable over some added latency.
+Plus, https://github.com/libp2p/specs/tree/master/identify[work is underway] to make this more efficient.
+
+=== Identifying the moving parts
+
+Marry one protocol per swap with oneshot pattern
+
+=== Agreeing on a common identifier
+
+- make sure we talk about the same thing (swap digest)
+- who proposed the identifier?
+
+=== How we know we are ready to start the swap?
+
+- finalize message
+
+=== Error handling
+
+- timeouts
+- close on announce substream
+
+== Recommendation
+
+[Based on the research, try to make a recommendation for one of the proposed solution. If you can't, call in a meeting to decide on an outcome]
