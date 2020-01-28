@@ -403,7 +403,7 @@ They are already required for the other protocols and should thus be re-usable f
 
 == Alternative considerations
 
-This section aims to add rationale why certain alternatives to the proposed where dismissed.
+This section aims to add rationale why certain alternatives to the proposed were dismissed.
 
 === Have cnd automatically add a hold invoice to lnd
 
