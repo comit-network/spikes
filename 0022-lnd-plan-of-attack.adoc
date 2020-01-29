@@ -22,8 +22,8 @@ The problems identified are:
 . Swaps with Lightning are HTLC-based, yet they are different from our current swaps and we don't have a reusable concept in our spec and/or software for defining protocols per ledger
 . Different messaging is required for a swap that includes Lightning vs other protocols but our messaging is not flexible enough to express that
 . Lightning is not a public ledger, hence our current abstraction of watching a blockchain doesn't fit
-. The _standard_ LN as of today doesn't support paying someone who doesn't know the preimage, hence the swaps would only work in one direction (if Bob pays Alice via LN)
-. Our current REST API is not capable of the alpha/beta ledger protocol idea
+. The stable release of LN as of today doesn't support paying someone who doesn't know the preimage, hence the swaps would only work in one direction (if Bob pays Alice via LN)
+. Our current REST API is not capable of using separate protocols per ledger (it is built around the idea of rfc003)
 
 ==== Re-use "half the protocol"
 
@@ -141,7 +141,7 @@ However, in my opinion, consistency wins here:
 
 === The HALight protocol
 
-The HALight protocol allows us to do atomic swaps using HTLCs with assets that are tracked on lightning.
+The HALight protocol allows us to do atomic swaps using HTLCs with assets that are tracked on Lightning.
 
 ==== What is the `Ledger` in this protocol?
 
@@ -168,6 +168,9 @@ It is conceptually similar to how we see other ledgers (Bitcoin, Ethereum).
 The difference is that it is a private ledger, hence not every party can see every transaction.
 I feel the concept of a "private" ledger is better suited here.
 With https://github.com/comit-network/comit-rs/issues/1862 landing, we can introduce ledgers like `lightning::Mainnet` etc.
+Thinking ahead, we are likely going to do something similar with Grin:
+Grin is also a single ledger but with private transactions.
+Modelling Lightning the same way seems like the most sensible solution.
 
 ==== What does the protocol look like?
 
@@ -175,7 +178,9 @@ The following diagrams assume that a negotiation protocol is in place and the pa
 The protocol is following the "COMIT spirit":
 
 - readonly access to LND; COMIT is never in control of the user's funds
-- moving money is explicit; COMIT emits a dedicated `redeem` action for both protocol (even though it would not be necessary for the HAN-HALight one because Alice knows the secret from the very beginning so she could just use a regular invoice)
+- moving money is explicit; COMIT emits a dedicated `redeem` action for both protocol (even though it would not be necessary for the HAN-HALight one because Alice knows the secret from the very beginning so she could just use a regular invoice).
+To achieve this, both parties use hold invoices regardless of the whether Lightning the alpha or the beta ledger.
+This also makes the protocol symmetric, which makes the implementation a lot easier.
 
 ===== HAN-HALight swap
 
@@ -221,7 +226,7 @@ We need to be able to differentiate between the following states:
 * Invoice has been paid (analogous to HTLC has been deployed)
 * Invoice has been settled (analogous to HTLC has been redeemed)
 * Invoice has been rejected (this does not exist on Layer 1, it would be analogous for removing the HTLC from the blockchain again)
-* Invoice has timed out
+* Invoice has timed out (payment was not received in time)
 
 NOTE: The hold invoices shows up as CANCELED in either case (timed-out or rejected)
 
@@ -341,6 +346,9 @@ In this case, the timeout should not be too long, otherwise the absolute expiry 
 . memo
 We can return a description that says something like "COMIT atomic swap {swap-id} with {peer-id}" to make identifying invoices of swaps easier for the user.
 
+NOTE: This memo is https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md#tagged-fields[constrained in size] (639 bytes).
+We should make sure our description fits in there.
+
 ===== `lnd-settle-invoice`
 
 Settles a hold invoice.
@@ -386,6 +394,8 @@ While not strictly necessary for integrating Lightning, this is a good opportuni
 . Once the inner workings for cnd are adopted to the new two-protocol approach, we can start implementing the HALight protocol next to it.
 For the communication with LND, I would recommend to use HTTP for monitoring invoices and outgoing payments.
 Even though this requires us to use polling, the integration is much simpler as we don't have to bring in and get familiar with a gRPC stack.
+. One important thing that we must not forget is validation of the final-cltv-delta of the payment.
+Similarly to how we verify the expiry value of on-chain HTLCs, cnd needs to verify that the incoming payment has the correct final-cltv-delta set.
 
 === The messaging protocol
 
