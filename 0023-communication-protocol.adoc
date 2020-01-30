@@ -2,6 +2,8 @@
 Thomas Eizinger <thomas@coblox.tech>;
 :toc:
 :revdate: 2020-01-28
+:sectnums:
+:sectnumlevels: 5
 
 NOTE: Author: {authors} +
 Date: {revdate} +
@@ -340,5 +342,33 @@ Once each party sent a finalize message AND received one, implementations should
 
 == Discussion points
 
-- Should we use multihash for the swap digest?
-- how to compute the swap digest?
+This section includes discussion topics that remain to be answered.
+
+=== Should we use multihash for the swap digest
+
+<<Announce-message,Section 3.2>> introduces the concept of a swap digest.
+In order to be forwards compatible with different hash algorithms, it proposes to encode the merkle root as a multihash.
+That way, the hash is self-describing and the receiving party knows, which hash algorithm needs to be used to compute the digest.
+
+Do we need the flexibility of changing the hash function that is used to compute the swap digest without a breaking change to the protocol?
+We could always just create `/comit/swap/announce/2.0.0` that defines a different hash function.
+
+=== How to compute the swap digest
+
+It is still to be defined, how exactly the swap digest will be computed.
+In particular, we need to define:
+
+* the order in which the tree of information about the swap is arranged
+* which parts of the swap are included in the merkle tree
+
+Especially the last point is important to discuss.
+Consider the following:
+
+Given the above protocols, it is should be possible to realize an implementation of COMIT that only requires a single user interaction (on both sides) before the swap starts.
+Considering our current implementation, we would still generate transient bitcoin identities to use in the HTLC and only pay to the user's wallet upon redeeming.
+Both of these requirements combined raises the question:
+how does cnd know, which of the parameters submitted via the API are "negotiated" (i.e. also known to the other party) and which ones where added locally by the user?
+Only the "negotiated" ones must be added to the swap digest, otherwise the digests won't match.
+
+The only answer I have for this so far is that we should just always exlude identities from the swap digest.
+Thinking about it, why would any negotiation protocol ever include identities?
