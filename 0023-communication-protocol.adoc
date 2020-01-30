@@ -134,24 +134,148 @@ Opening substreams is very cheap compared to network connections.
 While there is still some inefficiency in terms of opening substreams, a more flexible design seems to be desirable over some added latency.
 Plus, https://github.com/libp2p/specs/tree/master/identify[work is underway] to make this more efficient.
 
-=== Identifying the moving parts
+=== Communication requirements
 
-Marry one protocol per swap with oneshot pattern
+In order to design the ideal communication protocol, we have to identify which data we want to transfer and why.
+This section aims to achieve that.
 
-=== Agreeing on a common identifier
+==== Verifying the details of the swap
 
-- make sure we talk about the same thing (swap digest)
-- who proposed the identifier?
+One of the primary requirements for the communication protocol is for both parties to verify that they talk about the same swap.
+This is crucial in avoiding unnecessary transactions, as long as both parties are willing to actually swap.
 
-=== How we know we are ready to start the swap?
+==== Sending over protocol-specific data
 
-- finalize message
+For HTLC-based protocols like HAN, HErc20 and HALight, Alice generates a secret.
+The communication protocol must provide a way for Alice to share the hash of this secret with Bob.
+We also have to take into account that in the future, we will have swap protocols that depend on other cryptographic elements like signatures.
 
-=== Error handling
+==== Sharing identities
 
-- timeouts
-- close on announce substream
+Atomic swap protocols center around the idea of providing a time window in which the change in ownership of assets is atomic.
+A core aspect of these protocols are identities.
+The communication protocol must provide a way for both parties to share identities with the other party.
+For on-chain (i.e. Layer 1) protocols like HAN and HErc20, this is always a pair of identities (redeem + refund).
+For Layer 2 protocols like HALight, the identity is a single public key: the identifier of the user's lnd instance.
+We have to accommodate for these differences in protocols.
 
 == Recommendation
 
-[Based on the research, try to make a recommendation for one of the proposed solution. If you can't, call in a meeting to decide on an outcome]
+Based on the research above, this section presents a proposal for a set of libp2p protocols that can be combined to offer the required functionality.
+
+=== Announcing a swap
+
+Protocol-identifier: `/comit/swap/announce/1.0.0`
+
+This protocol includes two messages:
+
+. The announce message
+. The confirmation message
+
+==== Announce-message
+
+[source,json]
+----
+{
+  "swap_digest": "12202c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+}
+----
+
+This message is always sent by Alice.
+See <<Assumptions and goals,assumptions point 3>> for further explanation.
+
+The `swap_digest` field is a https://github.com/multiformats/multihash[multihash-encoded] merle root that contains all details of the swap.
+It remains to be defined, how the digest is exactly computed but the idea is the following:
+
+. Take all of the swaps information _known to the COMIT node_ (alpha ledger, alpha asset, protocols, etc) and arrange it as a tree.
+. Compute the merkle root by hashing all of the nodes together
+
+The idea is that, independently of what information about the swap is given to the COMIT node (imagine different usecases, with different negotiation protocols on top of COMIT), there is a deterministic way of computing this digest.
+If both parties, independently of each other, compute the same digest, they must be knowledgeable of the same parameters.
+This should give us enough certainty to start executing the swap assuming the other party is in good will.footnote:[It is pretty much impossible to fully protected against bad will upfront.]
+Only sending a digest has several advantages over sending the actual data of the swap for comparison:
+
+- The message format is much simpler and can be reused for every swap-protocol, independent of the cryptographic protocol in use.
+- The message format is agnostic over what the nodes are actually committing to.
+
+The nodes know, which data they used to compute the digest.
+Consequently, they are also aware of what is still missing to start the swap.
+Imagine a negotiation protocol that doesn't include expiriesfootnote:[Despite the fact that they are price-relevant.].
+The nodes could:
+
+.. either default to certain expiries and include them in the digest
+.. or simply not include them in the digest.
+
+In case of a), a matching digest means both nodes used the same default expiries.
+In case of b), a matching digest means both nodes are aware that the expiries are still missing and they will have to somehow negotiate them.
+
+==== Confirmation message
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79"
+}
+----
+
+In case the digest matches, Bob generates a UUIDv4 and sends it back to Alice.
+If the digest does not match, Bob closes the substream without sending any message.
+
+You may wonder, why Bob generates an ID on top of the digest that Alice shared with him.
+The reason is simple: while highly unlikely, the digest is not unique.
+
+Having Bob generating a random, dedicated identifier for this swap allows us:
+
+.. Make it explicit that Bob agrees to this swap and is knowledgeable of the same parameters as Alice.
+.. Establish a dependency between this libp2p protocol and all others.
+The other libp2p protocols use the swap-id generated by Bob to identify the swap.
+None of the parties can construct a meaningful message without going through this handshake, making it clear that this handshake has to happen before everything else.
+
+=== Sharing the secret hash
+
+Protocol-identifier: `/comit/swap/secrethash/1.0.0`
+
+This protocol is only to be used by Alice, as she is the one generating the secret.
+
+This protocol only includes a single message to share the secret hash.
+If you paid close attention to the protocol identifier, you may have realized that it is actually protocol agnostic:
+It neither mentions HAN, HErc20 or any of the others.
+The reason is simple: We don't need different messages for different protocol combinations if they always just need to exchange a secret hash.
+Using this libp2p protocol implies that the referenced swap is HTLC-based.
+
+==== Secret hash message
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79",
+  "secret_hash": "122003f2fb5188982860e6bdaa4cebdae5509311da248c4bd7ba1126f78a881cb816"
+}
+----
+
+The `swap_id` refers to the swap-id generated by Bob in the confirmation message.
+The `secret_hash` is a https://github.com/multiformats/multihash[multihash] of the secret generated by Alice.
+
+We use a multi-hash to allow re-use of this message for any HTLC-based protocol, independent of the hash algorithm that is used.
+It is important to note that for a given swap protocol pair, only a single hash algorithm will be valid.
+The above example uses SHA256, which is the hash algorithm we currently use for HAN, HErc20 and HALight.
+
+Implementations MUST verify that the hash algorithm used to encode this multihash is the same one as the one used in the swap protocol.
+Implementations MUST also take care to not being tricked into using a weaker hash algorithm.
+However, this is very unlikely anyway because the hash algorithm used by HTLCs is usually not configurable.
+
+=== Sharing identities
+
+Which identities need to be shared depends on:
+
+* the protocols of the swap
+* the alpha and beta ledger
+* the role
+
+`/comit/bitcoin/identity/1.0.0`
+`/comit/ethereum/identity/1.0.0`
+`/comit/lightning/identity/1.0.0`
+
+== Discussion points
+
+- Should we use multihash for the swap digest?
