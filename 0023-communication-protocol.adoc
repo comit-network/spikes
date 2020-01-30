@@ -218,10 +218,10 @@ In case of b), a matching digest means both nodes are aware that the expiries ar
 }
 ----
 
-In case the digest matches, Bob generates a UUIDv4 and sends it back to Alice.
-If the digest does not match, Bob closes the substream without sending any message.
+In case Bob knows about a swap with the same digest, he generates a UUIDv4 and sends it back to Alice.
+If he doesn't know about a swap with this digest, he closes the substream without sending any message.
 
-You may wonder, why Bob generates an ID on top of the digest that Alice shared with him.
+You may wonder why Bob generates an ID on top of the digest that Alice shared with him.
 The reason is simple: while highly unlikely, the digest is not unique.
 
 Having Bob generating a random, dedicated identifier for this swap allows us:
@@ -266,16 +266,79 @@ However, this is very unlikely anyway because the hash algorithm used by HTLCs i
 
 === Sharing identities
 
-Which identities need to be shared depends on:
+In the context of a swap based on HTLCs, each party has two identities: one on each ledger.
+For the HALight protocol, the parties only need to exchange one identity: their LND pubkey.
 
-* the protocols of the swap
-* the alpha and beta ledger
-* the role
+We can define very simple protocols to allow for this information to be exchanged.
+These are the protocols we need:
 
-`/comit/bitcoin/identity/1.0.0`
-`/comit/ethereum/identity/1.0.0`
-`/comit/lightning/identity/1.0.0`
+==== Protocols for sharing identities
+
+Protocol identifier: `/comit/swap/identity/bitcoin/1.0.0`
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79",
+  "pubkey": "03c9c6a4cd77d03ebe552e85c2a84a5065263824cb006629659821a0bbe496538e"
+}
+----
+
+Protocol identifier: `/comit/swap/identity/ethereum/1.0.0`
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79",
+  "address": "0xd3935B8cCA773146Cda591eF468Ce141BD6d57f4"
+}
+----
+
+Protocol identifier: `/comit/swap/identity/lightning/1.0.0`
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79",
+  "pubkey": "0236055ab508ec9495c07a3968f7ee9a1b5983f70e24d362f677d2619419601052"
+}
+----
+
+==== Why do we not need more protocols?
+
+Given the context of a swap, all of these protocols carry unambiguous information.
+Consider the following example:
+
+Assume `Bitcoin` is the alpha-ledger and `Ethereum` is the beta-ledger.
+In said constellation, Alice's refund identity is a Bitcoin public key and here redeem identity is an Ethereum address.
+
+If Alice would send a message using the `/comit/swap/identity/bitcoin/1.0.0` protocol, it is unambiguous for Bob that Alice is sending her refund identity.
+
+More generally speaking:
+Given knowledge of the alpha and beta ledger and the role, a message can be unambiguously identified as the redeem or refund identity of an actor depending on whether the message is incoming or outgoing.
+
+This allows us to slim down the protocols to the bare minimum of sending over an identity.
+
+=== Finalizing a swap
+
+One of the downsides of splitting the communication for a single swap up into several protocols is the fact that we don't have a natural "end" of the communication.
+If all of the communication were to take place within a single protocol, closing the substream could act as "I am done communicating".
+
+Following a multiple protocol approach, the answer to how we communicate this concern is another protocol.
+
+Introducing: `/comit/swap/finalize/1.0.0`
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79"
+}
+----
+
+Both parties are expected to use this protocol after they have sent all the data they consider necessary for starting the execution of the swap.
+Once each party sent a finalize message AND received one, implementations should consider the swap finalized and start with the execution phase (i.e. watch for transactions, emit actions, etc)
 
 == Discussion points
 
 - Should we use multihash for the swap digest?
+- how to compute the swap digest?
