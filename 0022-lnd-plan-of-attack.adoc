@@ -362,11 +362,13 @@ Integrating Lightning requires effort on several fronts at the same time.
 This section proposed various steps we can take to parallelize this as much as possible.
 At the same time, emphasis is put on spending our time in a "smart" way, that is, not spending too much effort on code that is already known to be replaced.
 
-I see three main areas in which progress can be made in parallel:
+I see five main areas in which progress can be made in parallel:
 
 . The e2e test suite
 . The support for Lightning inside cnd
 . The messaging protocol
+. The comit-js-sdk
+. create-comit-app
 
 === The e2e test suite
 
@@ -410,6 +412,34 @@ Given the above recommendations, we can specify the following requirements for t
 
 The two other parameters, amount and secret-hash, are expected to be already taken care of in the design of the communication protocol.
 They are already required for the other protocols and should thus be re-usable for the HALight protocol.
+
+=== comit-js-sdk
+
+The SDK has to be extended in several ways.
+
+. As mentioned in <<The support for Lightning inside cnd,Section 3.2>>, we should add support for the `Deprecation` header.
+This allows us to inform our users about upcoming changes to the API.
+. The SDK needs to support the new endpoints described in <<Our current REST API endpoints are not capable of expressing the concept of a protocol per ledger,Section 2.1.5>> for creating new swaps.
+For the beginning, I would hardcode the routes in the SDK.
+We should keep in mind though, that the new endpoints allow us to emit Siren actions for describing how to create a new swap.
+This would decouple the SDK even more from cnd.
+Whether or not that is useful can only be evaluated over time depending on how the SDK evolves.
+To paint a picture of what this could enable: based on an offer, having Siren actions for creating swaps would allow us to automatically find the correct endpoint and enrich it with data not present in the offer (like identities) automatically.
+. The SDK needs to support all the actions listen in <<What are the actions we need to emit on cnd’s REST API?,Section 2.2.6>>.
+This will require using gRPC from the SDK to execute the `lnd-add-hold-invoice` action.
+
+=== create-comit-app
+
+In order for create-comit-app to support Lightning, it needs to be extended to:
+
+. Start two instances of lnd (one for Alice, one for Bob)
+. Open a channel between them
+. Expose the gRPC and HTTP endpoint of both lnd instances to the env file
+. Expose the tls.cert of each lnd instance
+. Generate a macaroon per lnd for cnd
+. Generate a macaroon per lnd for use in the application
+
+Lnd supports bitcoind as a backend, hence we can just connect it to the bitcoind instance that is already started by lnd.
 
 == Alternative considerations
 
