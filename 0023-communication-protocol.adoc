@@ -353,7 +353,7 @@ That way, the hash is self-describing and the receiving party knows, which hash 
 Do we need the flexibility of changing the hash function that is used to compute the swap digest without a breaking change to the protocol?
 We could always just create `/comit/swap/announce/2.0.0` that defines a different hash function.
 
-=== How to compute the swap digest
+=== How to compute the swap digest?
 
 It is still to be defined, how exactly the swap digest will be computed.
 In particular, we need to define:
@@ -372,3 +372,11 @@ Only the "negotiated" ones must be added to the swap digest, otherwise the diges
 
 The only answer I have for this so far is that we should just always exlude identities from the swap digest.
 Thinking about it, why would any negotiation protocol ever include identities?
+
+=== Is there a better algorithm than a merkle tree for the swap digest?
+
+A merkle tree was mainly chosen because the size of the merkle root is constant, regardless of how big the tree was.
+A downside of the merkle tree is that it only yields the same digest if the tree is arranged in exactly the same way.
+This leaves room for error in implementations and specifications.
+
+Is there an algorithm that can fulfill the same role but is independent of the ordering of its parameters?
