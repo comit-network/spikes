@@ -418,14 +418,28 @@ This section aims to add rationale why certain alternatives to the proposed were
 === Have cnd automatically add a hold invoice to lnd
 
 We could choose to automatically add the hold invoice from cnd.
-However, I see two down-sides here:
+Doing so would have the upside that the protocol is closer to what we currently have with four actions being executed in total.
+However, this would also change some assumptions:
 
-. We would need write access to lnd
-. Adding a hold invoice is for now only possible via the gRPC API.
+. We need write access to lnd from cnd.
+Lnd has macaroons which can be created with special permissions.
+Unfortunately, the permissions are not fine grained enough to only allow for "hold invoices" to be added.
+All of the RPC calls related to the hold invoice feature use the https://github.com/lightningnetwork/lnd/blob/13671874542b0ed3d21e159081d822b176b620b4/lnrpc/invoicesrpc/invoices_server.go#L42-L59[invoices:write] permissions.
+This permission would allow cnd to not only add a hold invoice but also settle it, which is an action that moves money.
 
-Depending on a gRPC stack is certainly not "free" in terms of effort whereas having the client handling one action more or less does not really make a difference.
-While it is certainly a quality of life improvement for the user, I don't think it is necessary for the MVP.
-We can always ship it as a feature later on.
+. We have to use gRPC to trigger the hold-invoice functionality.
+Experimental features like hold-invoice are not included in the HTTP proxy of lnd and hence can only be used via gRPC.
+gRPC is not part of our stack at the moment
+
+It would certainly be a quality of life improvement for users of cnd if the hold invoice was added automatically.
+
+In regards to (1), I'd rather not violate our value of "COMIT never controls your money".
+If we want to have this improvement, we can ask for more fine gained permissions in a future lnd release.
+We should do so soon though, while hold-invoices are an experimental feature and can face breaking changes easier.
+
+Speaking about experimental feature:
+Once hold-invoices are stable, the API will be exposed through the HTTP proxy and we can simply ship a new version of cnd that automatically adds hold invoices for the user.
+If users use our API correctly (read: they execute actions based on what cnd tells them), this improvement can be shipped as a non-breaking change.
 
 === Ship the whole Lightning integration without opting for the new messaging layer
 
