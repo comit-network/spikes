@@ -281,30 +281,36 @@ Protocol identifier: `/comit/swap/identity/bitcoin/1.0.0`
 [source,json]
 ----
 {
-  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79",
-  "pubkey": "03c9c6a4cd77d03ebe552e85c2a84a5065263824cb006629659821a0bbe496538e"
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79", // <1>
+  "pubkey": "03c9c6a4cd77d03ebe552e85c2a84a5065263824cb006629659821a0bbe496538e" // <2>
 }
 ----
+1. The swap-id from the `/comit/swap/announce/1.0.0/` protocol
+2. A compressed bitcoin public key (33 bytes)
 
 Protocol identifier: `/comit/swap/identity/ethereum/1.0.0`
 
 [source,json]
 ----
 {
-  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79",
-  "address": "0xd3935B8cCA773146Cda591eF468Ce141BD6d57f4"
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79", // <1>
+  "address": "0xd3935B8cCA773146Cda591eF468Ce141BD6d57f4" // <2>
 }
 ----
+1. The swap-id from the `/comit/swap/announce/1.0.0/` protocol
+2. An Ethereum address
 
 Protocol identifier: `/comit/swap/identity/lightning/1.0.0`
 
 [source,json]
 ----
 {
-  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79",
-  "pubkey": "0236055ab508ec9495c07a3968f7ee9a1b5983f70e24d362f677d2619419601052"
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79", // <1>
+  "pubkey": "0236055ab508ec9495c07a3968f7ee9a1b5983f70e24d362f677d2619419601052" // <2>
 }
 ----
+1. The swap-id from the `/comit/swap/announce/1.0.0/` protocol
+2. A Lightning node public key (taken from `lncli getinfo`)
 
 ==== Why do we not need more protocols?
 
