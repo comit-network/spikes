@@ -45,7 +45,7 @@ From an API PoV, we can therefore assume that there is no accept/decline stage w
 ==== Lightning is not a public ledger
 
 This problem is mostly relevant from an integration-design point of view.
-Our current implementation has a module called `btsieve` which takes care of fetching blocks and scanning them for certain `TransactionPattern`s.
+Our current implementation has a module called `btsieve` which takes care of fetching blocks and scanning them for certain `TransactionPattern`'s.
 Lightning doesn't have any blocks, hence the integration with Lightning needs to take different form here.
 
 ==== Standard LN does not support payments without the other party knowing the pre-image
