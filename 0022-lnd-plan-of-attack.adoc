@@ -179,7 +179,7 @@ The protocol is following the "COMIT spirit":
 
 - readonly access to LND; COMIT is never in control of the user's funds
 - moving money is explicit; COMIT emits a dedicated `redeem` action for both protocol (even though it would not be necessary for the HAN-HALight one because Alice knows the secret from the very beginning so she could just use a regular invoice).
-To achieve this, both parties use hold invoices regardless of the whether Lightning the alpha or the beta ledger.
+To achieve this, both parties use hold invoices regardless of the whether Lightning is the alpha or the beta ledger.
 This also makes the protocol symmetric, which makes the implementation a lot easier.
 
 ===== HAN-HALight swap
