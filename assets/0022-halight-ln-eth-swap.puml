@@ -1,0 +1,90 @@
+@startuml
+
+title HALight-HAN atomic swap
+
+actor Alice as a
+
+participant "Alice's CND" as ac
+participant "Alice's LND" as al
+
+participant "Ethereum Chain" as eth
+
+participant "Bob's LND" as bl
+participant "Bob's CND" as bc
+
+actor Bob as b
+
+... We assume a negotiation and communication protocol is in place.\n \
+Both parties have agreed to the same set of parameters and are ready to swap. ...
+
+par
+
+b->bc: Get swap
+bc-->b: Action: lnd-add-hold-invoice
+b->bl: Add hold invoice
+
+a->ac: Get swap
+ac-->a: Action: lnd-pay-invoice
+a->al: Pay invoice
+
+note right a
+You might notice a potential race-condition here. (We are in a par block!)
+What if Alice tries to pay the invoice before Bob added it do his LND node?
+
+The answer to this is "try again". We already make an assumption that cnd's
+clients can successfully make transactions.
+Failing to make a payment because the invoice does not yet exist is similar
+to failing to make a Bitcoin transaction because the fee was to low.
+
+In addition, the proposed communication protcol would allow us a way for
+ensuring Alice doesn't pay before Bob added the invoice.
+
+end note
+
+end
+
+al->bl: Make payment
+
+bc->bl: Get invoice state
+bl-->bc: Payment arrived
+
+note left of b
+At this stage, Bob's LND cannot yet take
+the money because it doesn't know the preimage.
+end note
+
+note right of a
+Alice cannot detect that she is paying a hold invoice.
+She doesn't know that Bob received the payment.
+end note
+
+ac->eth: Watch for contract
+
+b->bc: Get swap
+bc-->b: Action: ethereum-deploy-contract
+b->eth: Deploy Ethereum contract
+bc->eth: Watch contract activity
+
+eth-->ac: Contract deployed!
+
+a->ac: Get swap
+ac-->a: Action: ethereum-call-contract
+
+a->eth: Call contract
+
+note right of a
+Invoking the contract reveals the secret!
+end note
+
+eth-->bc: Contract was redeemed!
+
+bc->bc: Extract secret from transaction
+
+b->bc: Get swap
+bc-->b: Action: lnd-settle-invoice
+
+b->bl: Settle invoice
+
+bl->al: Payment successful
+
+@enduml

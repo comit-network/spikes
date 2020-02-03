@@ -1,0 +1,506 @@
+= Outline a plan of attack for integrating Lightning into cnd
+Thomas Eizinger <thomas@coblox.tech>;
+:toc:
+:revdate: 2020-01-21
+:sectnums:
+:sectnumlevels: 5
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1838[#1838]
+
+== Context
+
+We want to allow users to use Lightning for swapping assets.
+This spike outlines the plan and design of how we can achieve that.
+
+=== Problems
+
+This section defines the problems we need to solve for a good integration of Lightning into our current software and specification.
+The problems identified are:
+
+. Swaps with Lightning are HTLC-based, yet they are different from our current swaps and we don't have a reusable concept in our spec and/or software for defining protocols per ledger
+. Different messaging is required for a swap that includes Lightning vs other protocols but our messaging is not flexible enough to express that
+. Lightning is not a public ledger, hence our current abstraction of watching a blockchain doesn't fit
+. The stable release of LN as of today doesn't support paying someone who doesn't know the preimage, hence the swaps would only work in one direction (if Bob pays Alice via LN)
+. Our current REST API is not capable of using separate protocols per ledger (it is built around the idea of rfc003)
+
+==== Re-use "half the protocol"
+
+Atomic swaps with LN are still HTLC-based, so the other ledger can execute the protocol as currently outlined in RFC003.
+The link:./0021-protocol-naming.adoc[protocol naming spike] already did fundamental work here by introducing the concept of a ledger-specific protocol.
+This allows us to specify the lightning protocol as a standalone protocol, without having to define, what happens on the other ledger.
+
+==== Messaging protocol
+
+We want to change our messaging protocol for various reasons.
+For further detail, please consult the communication protocol spike: https://github.com/comit-network/comit-rs/issues/1827
+In the context of this spike, the relevant points are:
+
+- The need for an ledger-specific protocol; the current messaging protocol only allows for a single protocol to be specified
+- Different information needs to be passed around for the HALight protocol; the current message format would make this more complicated than it needs to be as it would increase the polymorphism one level further (different bodies for different protocol combinations)
+- We also assume that the proposal for the new communication protocol implements everything that the above linked issue describes.
+From an API PoV, we can therefore assume that there is no accept/decline stage with user interaction.
+
+==== Lightning is not a public ledger
+
+This problem is mostly relevant from an integration-design point of view.
+Our current implementation has a module called `btsieve` which takes care of fetching blocks and scanning them for certain `TransactionPattern`'s.
+Lightning doesn't have any blocks, hence the integration with Lightning needs to take different form here.
+
+==== Standard LN does not support payments without the other party knowing the pre-image
+
+In a standard LN setup, parties can only receive payments if their node is knowledgable of the pre-image relevant in this payment.
+In an atomic swap scenario, this would only be given if the Lightning is the beta-ledger.
+In such scenario, Bob would send a payment on Lightning and Alice can immediately take it because she knows the secret.
+
+==== Our current REST API endpoints are not capable of expressing the concept of a protocol per ledger
+
+This is again an integration-design problem.
+We need to define an approach for how to introduce lightning support without unnecessary breaking API-changes.
+
+== Research
+
+=== Addressing above mentioned problems
+
+==== Re-use "half the protocol"
+
+This was effectively solved by the naming protocol spike.
+We can refer to the protocols of each ledger separately.
+This allows us to define a HALight protocol without having to worry about the other side.
+Valid combinations shall be determined by implementations.
+
+==== Messaging protocol
+
+This problem will be solved by a different spike.
+For this current one, we will make the following assumptions (which will influence the design of the new messaging):
+
+- Adding support for the HALight protocol can be done by _adding_ libp2p protocols instead of modifying existing ones (as it is currently the case)
+
+This should allow us to finish this spike and once the new communication protocol is defined, add support for HALight to it based on the needs that will be revealed in this spike.
+
+==== Lightning is not a public ledger
+
+At the moment, the implementation of the rfc003 protocol is based on the `HtlcEvents` trait.
+Said trait exposes the events that can happen as part of the protocol execution.
+
+The implementations of that make use of the `btsieve` module which cannot be used for Lightning as already mentioned above.
+Hence, the integration of Lightning will likely require adding an "Events" traits, conceptually similar to `HtlcEvents`.
+`HtlcEvents` is already specific to a single ledger, so we can simply add a trait `halight::Events` that describes all the events that can happen during the execution of the HALight protocol.
+
+Note: `HtlcEvents` will be decomposed into single function traits with https://github.com/comit-network/comit-rs/issues/1779[#1779].
+The design of `halight::Events` should follow accordingly.
+
+With Lightning being a layer-2 protocol, there is the chance that during a swap, there is a chance that a channel gets closed in the middle of a swap.
+For our usecase, we assume that this is safely handled by LND and we get notified accordingly of whether the payment has been successful or not.
+There is no plan to monitor the underlying blockchain for this.
+
+==== Standard LN does not support payments without the other party knowing the pre-image
+
+There is an experimental feature called "hold-invoice" which we can utilize to design a symmetric protocol.
+As a consequence, users will have to compile LND with the feature flag "invoicesrpc" to get the desired functionality.
+
+==== Our current REST API endpoints are not capable of expressing the concept of a protocol per ledger
+
+At the moment, our REST API only exposes the following endpoints for submitting swaps: `/swaps/rfc003`.
+All the information is encoded in the HTTP body, which not only complicates the deserialization process but also makes it hard for clients to construct a correct payload.
+
+We can kill two birds with one stone if we choose to not add support for the HALight protocol on the existing endpoint but instead add new ones.
+
+. adding new routes is automatically backwards compatible and downstream projects can adapt them gradually
+. the new routes can take a different, less complicated design which aids error messages, deserialization code and client side implementations
+
+The proposal is roughly outlined here: https://github.com/comit-network/comit-rs/issues/1326.
+
+To start with, I would add the following routes: (bitcoin to LN seems pointless but of course we can still add it)
+
+- POST `/swaps/han/ethereum/ether/halight/lightning/bitcoin`
+- POST `/swaps/herc20/ethereum/erc20/halight/lightning/bitcoin`
+- POST `/swaps/halight/lightning/bitcoin/han/ethereum/ether`
+- POST `/swaps/halight/lightning/bitcoin/herc20/ethereum/erc20`
+
+The basic idea here is the following:
+
+We have to supply all this information _somewhere_.
+In HTTP, the combination of method, path and headers uniquely identifies a request.
+From a purist point of view, all the information that determines what kind of request it is, should go in either one of these places.
+The body can then take all the information that varies between different kinds of requests.
+
+Following this reasoning, the above proposal allows us to have a static mapping between the method + path combination and the actual body.
+
+You may have noticed some redundancy in the URL:
+
+- HErc20 and ERC20
+- HALight and Lightning
+
+We could opt to remove this redundancy and infer the ledger from the protocol.
+However, in my opinion, consistency wins here:
+
+. these URLs are unlikely to be typed by developers (as long as the use our SDKs)
+. in the future, I'd hope we expose siren actions for creating swaps, hence the developers only need to follow those actions and will therefore never see this URL anyway
+
+=== The HALight protocol
+
+The HALight protocol allows us to do atomic swaps using HTLCs with assets that are tracked on Lightning.
+
+==== What is the `Ledger` in this protocol?
+
+We consider the whole Lightning network to be our `Ledger`.
+Alternatively to that, we could also categorize a single LN node or even an individual channel to be a `Ledger`.
+
+===== Why not a single LN node
+
+If the `Ledger` in HALight would be a single Lightning node, then doing a swap would conceptually move Bitcoin from one `Ledger` to another one which is not true.
+The only thing that changes is the _ownership_ of the Bitcoin.
+Referring to a single node as the `Leger` would be conceptually similar to referring to the users Bitcoin HD wallet (like a Nano Ledger S) as the `Ledger`.
+We don't do it for Bitcoin, hence we should also not do it for Lightning.
+
+===== Why not a single channel
+
+One could conceptualize a single Lightning channel as a ledger in the way that it tracks ownership of who owns how many Bitcoins.
+Using a channel would be more correct than using a single node but bears other problems.
+In particular, payments in Lightning seldomly involve a single channel.
+Using the channel = Ledger model would work if there were not hops involved within a payment in Lightning.
+
+===== Why referring to the whole Lightning network as the Ledger
+
+It is conceptually similar to how we see other ledgers (Bitcoin, Ethereum).
+The difference is that it is a private ledger, hence not every party can see every transaction.
+I feel the concept of a "private" ledger is better suited here.
+With https://github.com/comit-network/comit-rs/issues/1862 landing, we can introduce ledgers like `lightning::Mainnet` etc.
+Thinking ahead, we are likely going to do something similar with Grin:
+Grin is also a single ledger but with private transactions.
+Modelling Lightning the same way seems like the most sensible solution.
+
+==== What does the protocol look like?
+
+The following diagrams assume that a negotiation protocol is in place and the parties agreed on a set of parameters.
+The protocol is following the "COMIT spirit":
+
+- readonly access to LND; COMIT is never in control of the user's funds
+- moving money is explicit; COMIT emits a dedicated `redeem` action for both protocol (even though it would not be necessary for the HAN-HALight one because Alice knows the secret from the very beginning so she could just use a regular invoice).
+To achieve this, both parties use hold invoices regardless of the whether Lightning is the alpha or the beta ledger.
+This also makes the protocol symmetric, which makes the implementation a lot easier.
+
+===== HAN-HALight swap
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/3e474ff2/assets/0022-halight-eth-ln-swap.puml&fmt=svg[HAN-HALight]
+
+===== HALight-HAN swap
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/3e474ff2/assets/0022-halight-ln-eth-swap.puml&fmt=svg[HAlight-HAN]
+
+==== Which parameters do we need to exchange for the protocol?
+
+To make a payment in Lightning we need to know:
+
+- the recipient pubkey
+- the amount
+- the secret hash
+- the final-cltv-delta
+
+The payment can then by made (using lncli):
+
+[source=bash]
+----
+lncli sendpayment \
+    --dest=0346093cc4b9010fa3885df8dfcb6015bc2190bc9f46f5935a48df0417eeb7667e \
+    --amt=1000 \
+    --payment_hash=ec4916dd28fc4c10d78e287ca5d9cc51ee1ae73cbfde08c6b37324cbfaac8bc5 \
+    --final_cltv_delta=40
+----
+
+==== Which LND APIs do we need to target?
+
+COMIT only needs read-access to LND.
+We need APIs for:
+
+* Monitor an invoice
+* Monitor an outgoing payment
+
+===== Watching an invoice
+
+We need to be able to differentiate between the following states:
+
+* Hold invoice added to LND but not paid yet (see <<HAN-HALight swap>>, cnd needs to be able detect that the invoice was added to emit the next action)
+* Invoice has been paid (analogous to HTLC has been deployed)
+* Invoice has been settled (analogous to HTLC has been redeemed)
+* Invoice has been rejected (this does not exist on Layer 1, it would be analogous for removing the HTLC from the blockchain again)
+* Invoice has timed out (payment was not received in time)
+
+NOTE: The hold invoices shows up as CANCELED in either case (timed-out or rejected)
+
+====== Using HTTP
+
+The API call is a simple GET request.
+
+[source=http]
+----
+GET /v1/invoice/{secret-hash} HTTP/1.1
+Host: LND_HOST:LND_PORT
+----
+
+Documentation: https://api.lightning.community/rest/index.html#get-v1-invoice-r_hash_str
+
+. Advantages:
+- Simple HTTP GET request
+
+. Disadvantages:
+- We have to poll regularly
+
+====== Using gRPC
+
+There is a dedicated gRPC call `SubscribeSingleInvoice` that allows to get a stream of changes of one invoice.
+This RPC call is behind the feature-flag `invoicesrpc` so unfortunately there is no online documentation.
+
+The source code can be found here: https://github.com/lightningnetwork/lnd/blob/13671874542b0ed3d21e159081d822b176b620b4/lnrpc/invoicesrpc/invoices_server.go#L169
+
+. Advantages
+- Updates are pushed to the client
+
+. Disadvantages
+- Need to integrate gRPC and protobuf code generation in the code base
+
+===== Monitor an outgoing payment
+
+We need to be able to monitor outgoing payments and differentiate between the following states:
+
+* invoice has not been paid yet (i.e. the user has not yet sent off the payment)
+* payment is in-progress but not yet settled
+* payment is completed
+* payment has failed
+
+====== Using HTTP
+
+We can fetch all payments (including failed ones) with the following GET request
+
+[source=http]
+----
+GET /v1/payments?include_incomplete=true HTTP/1.1
+Host: LND_HOST:LND_PORT
+----
+
+Documentation: https://api.lightning.community/rest/index.html#v1-payments
+
+. Advantages:
+- Simple HTTP GET request
+
+. Disadvantages:
+- We have to poll regularly
+
+====== Using gRPC
+
+I couldn't find any subscription-based RPC call for outgoing payments but there is the RPC equivalent of the above HTTP call: `listpayments`
+
+Documentation here: https://api.lightning.community/#listpayments
+
+. Advantages
+- No clear advantages
+
+. Disadvantages
+- Need to integrate gRPC and protobuf code generation in the code base
+
+==== How to authenticate with LND?
+
+LND provides macaroons that allow users to very precisely specify the permissions a specific client has.
+Our users will have to provide a macaroon to cnd that we can use to authenticate against it.
+Ideally, we can just tell the user to put the macaroon at a specific place (inside the cnd config folder) so we can automatically discover it.
+
+In addition to macaroons, lnd uses TLS to encrypt the traffic between its clients and itself.
+The certificate is generated by lnd and resides in the corresponding data folder (by default $LND_DIR/tls.cert).
+Cnd will needs access to the certificate.
+
+==== What are the actions we need to emit on cnd's REST API?
+
+Two make the above described protocol we happen, we need to extend cnd's REST API.
+In particular, we need to add three actions:
+
+. `lnd-send-payment`
+. `lnd-add-hold-invoice`
+. `lnd-settle-invoice`
+
+I choose to prefix those with `lnd` instead of `lightning` because "hold invoices" are a client feature of Lightning and don't exist on the protocol level.
+This set of actions allows us to keep cnd's relationship with lnd read-only.
+
+===== `lnd-send-payment`
+
+To send a payment through lnd, this action needs to contain the following parameters:
+
+. recipient lnd pubkey
+. amount
+. secret-hash
+. final-cltv-delta:
+The CLTV (Check-Lock-Time-Verify) delta of the HTLC in the last hop of the payment routing.
+This value is conceptually equivalent with the on-chain expiry value (it is just relative in this case).
+
+===== `lnd-add-hold-invoice`
+
+Adds a new hold invoice to lnd.
+This action could return up to four parameters:
+
+. amount
+. secret-hash
+. expiry:
+This allows us to specify, for how long we are willing to accept a payment for this invoice.
+The default here is 3600 seconds, e.g. 1 hour.
+We should return sensible values here, depending on the roles and the protocol that is used on the other chain.
+If this timeout is too short, Bob might not be able to pay the invoice in the X-HALight case even though we would like to proceed with the swap.
+For the HALight-X case, this would allow Bob to specify a time window up until he would like Alice to start the swap.
+In this case, the timeout should not be too long, otherwise the absolute expiry of his HTLC (assuming a HAN-protocol) is not enough for a secure swap.
+. memo
+We can return a description that says something like "COMIT atomic swap {swap-id} with {peer-id}" to make identifying invoices of swaps easier for the user.
+
+NOTE: This memo is https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md#tagged-fields[constrained in size] (639 bytes).
+We should make sure our description fits in there.
+
+===== `lnd-settle-invoice`
+
+Settles a hold invoice.
+This action needs only one parameter:
+
+. secret
+
+== Recommendation
+
+Integrating Lightning requires effort on several fronts at the same time.
+This section proposed various steps we can take to parallelize this as much as possible.
+At the same time, emphasis is put on spending our time in a "smart" way, that is, not spending too much effort on code that is already known to be replaced.
+
+I see five main areas in which progress can be made in parallel:
+
+. The e2e test suite
+. The support for Lightning inside cnd
+. The messaging protocol
+. The comit-js-sdk
+. create-comit-app
+
+=== The e2e test suite
+
+To know when we are done with integrating Lightning, we should start with extending our e2e test suite with the respective tests.
+Our e2e test suite is in a limbo state at the moment, hence the first step is to get this sorted.
+
+. Make the e2e tests run in parallel: https://github.com/comit-network/comit-rs/issues/1927 (including the dependencies)
+. Setup up the test infrastructure to start an LND instance per actor and open a channel between them
+. Add the HTTP routes to cnd as proposed in this spike (the routes cannot do anything at this point, so they should just return 400 BAD REQUEST)
+. Write e2e tests for all swaps with Lightning that we want to support
+. As <<The support for Lightning inside cnd,Lightning integration>> progresses, these routes can be extended with functionality:
+.. Make use of the new communication protocol
+.. Persist data to the database (given the different messages and the split into alpha/beta protocols, we will likely need new tables)
+.. Actually spawn away the swap
+
+=== The support for Lightning inside cnd
+
+. Splitting the code for RFC003 inside cnd into the respective protocols: HAN and HErc20.
+To maintain backwards compatible with our current clients, we should implement a clever fallback to map RFC003 onto the new protocols depending the ledgers and assets involved on the HTTP and COMIT API.
+In addition, I would also apply this mapping to the database layer.
+To aid deprecation, I recommend making use of the following draft RFC: https://tools.ietf.org/html/draft-dalal-deprecation-header-01
+We don't know the deprecation date yet, so I'd just opt for returning `Deprecation: true` and in addition adding a `Link` header with a link to a GitHub issue / epic that tracks the migration to the new endpoints (read the RFC for more information).
+To make proper use of this, the JavaScript SDK should be extended to scan for these headers in every response and emit a warning if it detects a deprecated resource.
+While not strictly necessary for integrating Lightning, this is a good opportunity to extend our software(-suite) with capabilities that allows us to deprecate parts of the API.
+. Once the inner workings for cnd are adopted to the new two-protocol approach, we can start implementing the HALight protocol next to it.
+For the communication with LND, I would recommend to use HTTP for monitoring invoices and outgoing payments.
+Even though this requires us to use polling, the integration is much simpler as we don't have to bring in and get familiar with a gRPC stack.
+. One important thing that we must not forget is validation of the final-cltv-delta of the payment.
+Similarly to how we verify the expiry value of on-chain HTLCs, cnd needs to verify that the incoming payment has the correct final-cltv-delta set.
+
+=== The messaging protocol
+
+This spike doesn't go into detail on what the new communication protocol looks like.
+However, I'd recommend to not follow an iterative approach but rather implement it as a separate crate on the side and drop it in as a replacement for the current protocol once it is ready.
+Once the new communication protocol is in, we can add the necessary messages for Lightning to make more progress on that.
+
+Given the above recommendations, we can specify the following requirements for the new communication protocol:
+
+. Both parties need to know about the pubkeys of their lnd instances
+. Both parties need knowledge about the final cltv delta
+
+The two other parameters, amount and secret-hash, are expected to be already taken care of in the design of the communication protocol.
+They are already required for the other protocols and should thus be re-usable for the HALight protocol.
+
+=== comit-js-sdk
+
+The SDK has to be extended in several ways.
+
+. As mentioned in <<The support for Lightning inside cnd,Section 3.2>>, we should add support for the `Deprecation` header.
+This allows us to inform our users about upcoming changes to the API.
+. The SDK needs to support the new endpoints described in <<Our current REST API endpoints are not capable of expressing the concept of a protocol per ledger,Section 2.1.5>> for creating new swaps.
+For the beginning, I would hardcode the routes in the SDK.
+We should keep in mind though, that the new endpoints allow us to emit Siren actions for describing how to create a new swap.
+This would decouple the SDK even more from cnd.
+Whether or not that is useful can only be evaluated over time depending on how the SDK evolves.
+To paint a picture of what this could enable: based on an offer, having Siren actions for creating swaps would allow us to automatically find the correct endpoint and enrich it with data not present in the offer (like identities) automatically.
+. The SDK needs to support all the actions listen in <<What are the actions we need to emit on cnd’s REST API?,Section 2.2.6>>.
+This will require using gRPC from the SDK to execute the `lnd-add-hold-invoice` action.
+
+=== create-comit-app
+
+In order for create-comit-app to support Lightning, it needs to be extended to:
+
+. Start two instances of lnd (one for Alice, one for Bob)
+. Open a channel between them
+. Expose the gRPC and HTTP endpoint of both lnd instances to the env file
+. Expose the tls.cert of each lnd instance
+. Generate a macaroon per lnd for cnd
+. Generate a macaroon per lnd for use in the application
+
+Lnd supports bitcoind as a backend, hence we can just connect it to the bitcoind instance that is already started by lnd.
+
+== Alternative considerations
+
+This section aims to add rationale why certain alternatives to the proposed were dismissed.
+
+=== Have cnd automatically add a hold invoice to lnd
+
+We could choose to automatically add the hold invoice from cnd.
+Doing so would have the upside that the protocol is closer to what we currently have with four actions being executed in total.
+However, this would also change some assumptions:
+
+. We need write access to lnd from cnd.
+Lnd has macaroons which can be created with special permissions.
+Unfortunately, the permissions are not fine grained enough to only allow for "hold invoices" to be added.
+All of the RPC calls related to the hold invoice feature use the https://github.com/lightningnetwork/lnd/blob/13671874542b0ed3d21e159081d822b176b620b4/lnrpc/invoicesrpc/invoices_server.go#L42-L59[invoices:write] permissions.
+This permission would allow cnd to not only add a hold invoice but also settle it, which is an action that moves money.
+
+. We have to use gRPC to trigger the hold-invoice functionality.
+Experimental features like hold-invoice are not included in the HTTP proxy of lnd and hence can only be used via gRPC.
+gRPC is not part of our stack at the moment
+
+It would certainly be a quality of life improvement for users of cnd if the hold invoice was added automatically.
+
+In regards to (1), I'd rather not violate our value of "COMIT never controls your money".
+If we want to have this improvement, we can ask for more fine gained permissions in a future lnd release.
+We should do so soon though, while hold-invoices are an experimental feature and can face breaking changes easier.
+
+Speaking about experimental feature:
+Once hold-invoices are stable, the API will be exposed through the HTTP proxy and we can simply ship a new version of cnd that automatically adds hold invoices for the user.
+If users use our API correctly (read: they execute actions based on what cnd tells them), this improvement can be shipped as a non-breaking change.
+
+=== Ship the whole Lightning integration without opting for the new messaging layer
+
+While sounding attractive, this option also includes considerable effort in terms of planning, coding and coordination that is not to be underestimated.
+
+Basically, in order to support Lightning in our current messaging, we would have to first adapt it to support the alpha/beta protocol approach.
+This would very likely be a breaking change (I don't see a point in spending extra effort in trying to do it backwards compatible).
+The question now is really, what is more effort:
+
+. implementing the new communication protocol
+. changing the old one
+
+To estimate this, I would like to recall that:
+
+* our current implementation is based on libp2p prior to async/await
+* our current implementation had to be compatible with our REST API (accept/decline)
+* dependencies of any kind (between issues, people and also code wise) are always a slow-down factor
+
+Implementing the new communication protocol on the side, as a separate crate similar to `libp2p-comit`:
+
+* is free of any dependencies to other work
+* can make immediate use of async/await to deliver its functionality
+
+At the same time, changing the old implementation:
+
+* requires us to maintain conceptual backwards compatibility (i.e. retain accept/decline, etc)
+* requires coordination effort with the changes being done in moving cnd to the alpha/beta protocol approach
+
+I expect the messages in the new communication protocol to be massively simpler than our current implementation.
+This assumption, paired with the arguments above led me to the conclusion that overall we are likely going to be more efficient and effective if we only finish the Lightning integration together with the move the the new messaging layer.
