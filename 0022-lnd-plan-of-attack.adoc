@@ -97,8 +97,11 @@ There is no plan to monitor the underlying blockchain for this.
 
 ==== Standard LN does not support payments without the other party knowing the pre-image
 
-There is an experimental feature called "hold-invoice" which we can utilize to design a symmetric protocol.
-As a consequence, users will have to compile LND with the feature flag "invoicesrpc" to get the desired functionality.
+HAN-HALight swaps can be achieved using standard Lightning.
+HALight-HAN swaps are not possible using standard Lightning because in the COMIT protocol the preimage is known to Alice and not Bob where as for a lightning payment from Alice to Bob the preimage is known to Bob.
+There is an experimental feature called "hold-invoice" which we can utilize to design a protocol that supports HALight-HAN swaps.
+In order to support HALight-HAN swaps both users will have to use lightning nodes executing binaries based on the https://github.com/lightningnetwork/lnd/ project and additionally the binaries must be built with the feature flag "invoicesrpc" to get the desired functionality.
+The steps needed to complete a HALight-HAN swap are _not_ the same as for a HAN-HALight swap.
 
 ==== Our current REST API endpoints are not capable of expressing the concept of a protocol per ledger
 
