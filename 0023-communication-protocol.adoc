@@ -186,11 +186,14 @@ This protocol includes two messages:
 This message is always sent by Alice.
 See <<Assumptions and goals,assumptions point 3>> for further explanation.
 
-The `swap_digest` field is a https://github.com/multiformats/multihash[multihash-encoded] merle root that contains all details of the swap.
+The `swap_digest` field is a https://github.com/multiformats/multihash[multihash-encoded] root hash of a hash list that contains all details of the swap.
 It remains to be defined, how the digest is exactly computed but the idea is the following:
 
-. Take all of the swaps information _known to the COMIT node_ (alpha ledger, alpha asset, protocols, etc) and arrange it as a tree.
-. Compute the merkle root by hashing all of the nodes together
+. Take all of the swaps information _known to the COMIT node_ (alpha ledger, alpha asset, protocols, etc) and arrange it in a list
+. Serialize each item into a yet-to-be defined representation
+. Hash each list entry
+. Sort the hashes lexically
+. Compute the root hash
 
 The idea is that, independently of what information about the swap is given to the COMIT node (imagine different usecases, with different negotiation protocols on top of COMIT), there is a deterministic way of computing this digest.
 If both parties, independently of each other, compute the same digest, they must be knowledgeable of the same parameters.
@@ -353,7 +356,7 @@ This section includes discussion topics that remain to be answered.
 === Should we use multihash for the swap digest
 
 <<Announce-message,Section 3.2>> introduces the concept of a swap digest.
-In order to be forwards compatible with different hash algorithms, it proposes to encode the merkle root as a multihash.
+In order to be forwards compatible with different hash algorithms, it proposes to encode the root hash as a multihash.
 That way, the hash is self-describing and the receiving party knows, which hash algorithm needs to be used to compute the digest.
 
 Do we need the flexibility of changing the hash function that is used to compute the swap digest without a breaking change to the protocol?
@@ -365,7 +368,7 @@ It is still to be defined, how exactly the swap digest will be computed.
 In particular, we need to define:
 
 * the order in which the tree of information about the swap is arranged
-* which parts of the swap are included in the merkle tree
+* which parts of the swap are included in the hash list
 
 Especially the last point is important to discuss.
 Consider the following:
@@ -378,11 +381,3 @@ Only the "negotiated" ones must be added to the swap digest, otherwise the diges
 
 The only answer I have for this so far is that we should just always exlude identities from the swap digest.
 Thinking about it, why would any negotiation protocol ever include identities?
-
-=== Is there a better algorithm than a merkle tree for the swap digest?
-
-A merkle tree was mainly chosen because the size of the merkle root is constant, regardless of how big the tree was.
-A downside of the merkle tree is that it only yields the same digest if the tree is arranged in exactly the same way.
-This leaves room for error in implementations and specifications.
-
-Is there an algorithm that can fulfill the same role but is independent of the ordering of its parameters?
