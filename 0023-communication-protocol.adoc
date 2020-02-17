@@ -134,7 +134,7 @@ In other words, no need to have `type` fields inside the message, the protocol a
 * cheap:
 Opening substreams is very cheap compared to network connections.
 While there is still some inefficiency in terms of opening substreams, a more flexible design seems to be desirable over some added latency.
-Plus, https://github.com/libp2p/specs/tree/master/identify[work is underway] to make this more efficient.
+Plus, https://github.com/libp2p/specs/pull/205/files[work is underway] to make this more efficient.
 
 === Communication requirements
 
