@@ -85,7 +85,7 @@ A communication protocol within COMIT defines how two COMIT nodes interact with 
 Those (libp2p-based) protocols facilitate the exchange of information for the purpose of then following a cryptographic protocol.
 
 These two kinds of protocols have a relationship to each other.
-In the past we went with a N-to-1 relationship: we designed a single communication protocol that was supposed to handle communication for all kinds of cryptographic protocols.
+In the past we went with a 1-to-N relationship: we designed a single communication protocol that was supposed to handle communication for all kinds of cryptographic protocols.
 Even though we sweated blood in the design of the original communication protocol, we quickly learned that it is not as extensible and flexible as we thought it would to be.
 
 === What is the ideal relationship between cryptographic and libp2p protocols?
