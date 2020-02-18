@@ -148,9 +148,7 @@ For HTLC-based protocols like HAN, HErc20 and HALight, Alice generates a secret.
 The communication protocol must provide a way for Alice to share the hash of this secret with Bob.
 We also have to take into account that in the future, we will have swap protocols that depend on other cryptographic elements like signatures.
 
-==== Sharing identities
-
-Atomic swap protocols center around the idea of providing a time window in which the change in ownership of assets is atomic.
+Atomic swap protocols in general center around the idea of providing a time window in which the change in ownership of assets is atomic.
 A core aspect of these protocols are identities.
 The communication protocol must provide a way for both parties to share identities with the other party.
 For on-chain (i.e. Layer 1) protocols like HAN and HErc20, this is always a pair of identities (redeem + refund).
