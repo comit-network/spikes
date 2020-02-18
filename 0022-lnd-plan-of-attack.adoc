@@ -504,3 +504,22 @@ At the same time, changing the old implementation:
 
 I expect the messages in the new communication protocol to be massively simpler than our current implementation.
 This assumption, paired with the arguments above led me to the conclusion that overall we are likely going to be more efficient and effective if we only finish the Lightning integration together with the move the the new messaging layer.
+
+=== Other Lightning implementations
+
+This spike implicitly suggests to use LND as the backing lightning implementation.
+There are other implementations like for example c-lightning.
+
+The reason we are suggesting to use LND in this spike are:
+
+==== Support for hold-invoices
+
+LND needs to be compiled with a special feature flag but after that, the necessary APIs for hold-invoices are available through the same interface (gRPC) as every other functionality.
+Meaning, support for hold-invoices is sort-of first class.
+
+c-lightning supports hold-invoices through their https://github.com/ElementsProject/lightning/pull/2540/files[plugin mechanism].
+Plugins are written in Python which a) is not super well known to the team and b) would likely be difficult and certainly new to integrate with COMIT.
+
+==== Testing
+
+It is the only implementation that the whole protocol flow was tested with as part of this spike (under the assumption of the previous point).
