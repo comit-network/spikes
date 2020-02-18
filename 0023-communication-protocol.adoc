@@ -49,7 +49,7 @@ While designing the new protocol, one should take into account the needs for sup
 
 I've started the research and design of the new communication protocol with the following assumptions and goals in mind.
 
-. Avoid interaction as part of the communication protocol.
+. Avoid user interaction as part of the communication protocol.
 This makes the implementation easier and more resilient as we don't have to maintain in-memory state for each connection.
 . Favor small, single-purpose protocols over more complex ones.
 . In every context, it is clear which party will initiate the communication.
@@ -104,7 +104,8 @@ Almost certainly, we should not design a single communication protocol that cate
 
 Knowing that we likely want more than one communication protocol, the question is, what is the scope of one of those libp2p protocols?
 
-In order to not fall into the same trap as with the original communication protocol, we can just opt to not design libp2p protocols for things that we don't (yet) know.
+With the original communication protocol, we fell into the trap of trying to design for things we don't know yet.
+To avoid this, we should only design a communication protocol for things we already know.
 The result of this idea is that we need (at least) a single libp2p protocol for each cryptographic protocol.
 As elaborated in <<Protocols in COMIT>>, this number is currently 4.
 
