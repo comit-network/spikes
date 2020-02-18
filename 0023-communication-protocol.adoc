@@ -359,13 +359,9 @@ We could always just create `/comit/swap/announce/2.0.0` that defines a differen
 === How to compute the swap digest?
 
 It is still to be defined, how exactly the swap digest will be computed.
-In particular, we need to define:
+In particular, we need to define which parts of the swap are included in the hash list.
 
-* the order in which the tree of information about the swap is arranged
-* which parts of the swap are included in the hash list
-
-Especially the last point is important to discuss.
-Consider the following:
+==== Identities
 
 Given the above protocols, it is possible to realize an implementation of COMIT that only requires a single user interaction (on both sides) before the swap starts.
 Considering our current implementation, we would still generate transient bitcoin identities to use in the HTLC and only pay to the user's wallet upon redeeming.
@@ -375,3 +371,19 @@ Only the "negotiated" ones must be added to the swap digest, otherwise the diges
 
 The only answer I have for this so far is that we should just always exlude identities from the swap digest.
 Thinking about it, why would any negotiation protocol ever include identities?
+
+==== Collision resistance
+
+The digest should be as collision resistant as possible.
+I would propose to include:
+
+- alpha-ledger
+- beta-ledger
+- alpha-asset
+- beta-asset
+- alpha-protocol
+- beta-protocol
+- (depending on the protocol) alpha-expiry
+- (depending on the protocol) beta-expiry
+- alice-identity (libp2p ID)
+- bob-identity (libp2p ID)
