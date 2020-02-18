@@ -373,7 +373,7 @@ In particular, we need to define:
 Especially the last point is important to discuss.
 Consider the following:
 
-Given the above protocols, it is should be possible to realize an implementation of COMIT that only requires a single user interaction (on both sides) before the swap starts.
+Given the above protocols, it is possible to realize an implementation of COMIT that only requires a single user interaction (on both sides) before the swap starts.
 Considering our current implementation, we would still generate transient bitcoin identities to use in the HTLC and only pay to the user's wallet upon redeeming.
 Both of these requirements combined raises the question:
 how does cnd know, which of the parameters submitted via the API are "negotiated" (i.e. also known to the other party) and which ones where added locally by the user?
