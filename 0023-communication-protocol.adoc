@@ -91,18 +91,13 @@ Even though we sweated blood in the design of the original communication protoco
 === What is the ideal relationship between cryptographic and libp2p protocols?
 
 The main problem with the design of the original communication protocol was that we tried to anticipate the future a bit too much.
-Even thought it is important to allow for future extensions, one has to be careful about how the extension mechanism works.
+Even though it is important to allow for future extensions, one has to be careful about how the extension mechanism works.
 
-Let's consider the following requirement:
-
-. In order to execute a certain cryptographic protocol, COMIT nodes may want to exchange information.
+COMIT nodes primarily execute cryptographic protocols.
+To fulfill this task they may need to exchange information.
+Hence, the communication protocol is motivated by the desire for executing cryptographic protocol.
 
 The important thing to realize here is that not every cryptographic protocol necessarily requires communication.
-Almost certainly, we should not design a single communication protocol that caters for all possible cryptographic protocols.
-
-=== What is the scope of a single communication protocol?
-
-Knowing that we likely want more than one communication protocol, the question is, what is the scope of one of those libp2p protocols?
 
 With the original communication protocol, we fell into the trap of trying to design for things we don't know yet.
 To avoid this, we should only design a communication protocol for things we already know.
