@@ -1,0 +1,389 @@
+= Design a new communication protocol for COMIT
+Thomas Eizinger <thomas@coblox.tech>;
+:toc:
+:revdate: 2020-01-28
+:sectnums:
+:sectnumlevels: 5
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1827[#1827]
+
+== Context
+
+NOTE: This is the issue description at the time of writing.
+
+The current communication protocol was our first attempt.
+Since then, we learned many things and also adopted libp2p, which made several aspects of the design redundant.
+
+=== Be "libp2p-native":
+
+- leverage the "protocol" concept of libp2p
+- follow patterns such as oneshot substreams where applicable
+
+=== Leverage the negotiation phase
+
+We've discovered that very likely, there will always be a negotiation phase before COMIT even gets to know about the swap.
+The new communication protocol should leverage this fact to simplify the communication by avoiding (re-)transmission of data the applications already know (the famous, auto-accept problem).
+To solve this, the spike will need to identify, which data definitely needs to be shared among the nodes and is not in control by the applications.
+We've already identified that at the very least, this includes:
+
+- secret-hash
+- transient identities (Bitcoin for now, proposal for Ethereum is available)
+
+=== Modularity & open-closed principle
+
+At the moment, the communication protocol is a single request-response handshake.
+This imposes a lot of complexity on the message format, as it has to handle all kinds of different scenarios.
+Ideally, the new communication protocol has a more modular approach to allow for different messages to be sent, depending on the ledgers, assets and swap-protocols being involved.
+In a way, this relates to the open-closed principle.
+Extensions to the communication protocol should happen in the form of new messages instead of modifying existing ones.
+
+=== Support for more ledgers
+
+While designing the new protocol, one should take into account the needs for support Lightning and Grin.
+
+== Research
+
+=== Assumptions and goals
+
+I've started the research and design of the new communication protocol with the following assumptions and goals in mind.
+
+. Avoid user interaction as part of the communication protocol.
+This makes the implementation easier and more resilient as we don't have to maintain in-memory state for each connection.
+. Favor small, single-purpose protocols over more complex ones.
+. In every context, it is clear which party will initiate the communication.
+This applies to opening the first substream that announces the swap and not to the actual network communication.footnote:[In libp2p, a single network connection is reused between two parties for several substreams.]
+We assume that the two parties have already established the roles of (cryptographic) Alice and Bob and those roles are an input to the communication protocol.
+
+To design a better communication protocol than the first one, it is useful to take a step back and think protocols in a more abstract manner.
+
+=== Protocols in COMIT
+
+A protocol can be roughly defined as the order and semantics of actions.
+
+Within COMIT, we have two kinds of protocols:
+
+. Cryptographic protocols
+. Communication protocols
+
+A cryptographic protocol within COMIT defines the order and semantics of interactions with blockchains.
+At the moment, COMIT specializes in cryptographic protocols that facilitate atomic swaps.
+
+With the https://github.com/comit-network/spikes/blob/master/0021-protocol-naming.adoc[protocol naming spike], we've made it more explicit that COMIT does not support one but several cryptographic protocols at the moment.
+In particular, we currently support:
+
+* HAN for Bitcoin
+* HAN for Ethereum
+* HErc20 for Ethereum
+
+We've managed to identify a protocol (HAN) that can be applied to both of the ledgers that we currently support.
+Even though this allows for some reuse, when you take a look at the actual interactions with the blockchain, HAN for Bitcoin and HAN for Ethereum differ (you cannot broadcast a Bitcoin transaction on Ethereum and vice versa).
+Given that there is always two protocols that need to be combined for an atomic swap, our total number of supported protocols (considering the full swap as a black box) is 6 (2 * 3).footnote:[We don't allow HAN(Ethereum)-HErc20 at the moment, so this number drops to 4 in reality.]
+
+A communication protocol within COMIT defines how two COMIT nodes interact with each other.
+Those (libp2p-based) protocols facilitate the exchange of information for the purpose of then following a cryptographic protocol.
+
+These two kinds of protocols have a relationship to each other.
+In the past we went with a 1-to-N relationship: we designed a single communication protocol that was supposed to handle communication for all kinds of cryptographic protocols.
+Even though we sweated blood in the design of the original communication protocol, we quickly learned that it is not as extensible and flexible as we thought it would to be.
+
+=== What is the ideal relationship between cryptographic and libp2p protocols?
+
+The main problem with the design of the original communication protocol was that we tried to anticipate the future a bit too much.
+Even though it is important to allow for future extensions, one has to be careful about how the extension mechanism works.
+
+COMIT nodes primarily execute cryptographic protocols.
+To fulfill this task they may need to exchange information.
+Hence, the communication protocol is motivated by the desire for executing cryptographic protocol.
+
+The important thing to realize here is that not every cryptographic protocol necessarily requires communication.
+
+With the original communication protocol, we fell into the trap of trying to design for things we don't know yet.
+To avoid this, we should only design a communication protocol for things we already know.
+The result of this idea is that we need (at least) a single libp2p protocol for each cryptographic protocol.
+As elaborated in <<Protocols in COMIT>>, this number is currently 4.
+
+There is a downside to this:
+Duplication.
+
+Designing a completely independent libp2p protocol for each swap would mean having very similar messages with different kinds of data types.
+
+=== The oneshot substream pattern
+
+A pattern common within libp2p is the 'oneshot substream' pattern.
+It refers to the idea of defining protocols that only have a single message.
+Examples include `/ipfs/id/1.0.0/` and `/ipfs/id/push/1.0.0`: https://github.com/libp2p/specs/tree/master/identify
+
+The advantages of using single-message protocols are:
+
+* short-lived:
+Open a substream, send the message, close it again.
+No need to wait for the other party to reply.
+* very focused:
+These protocols are small and focused, avoiding the trap of over-engineering them.
+* simpler client code:
+If there is only one possible message that can be sent, its shape can be hardcoded by the client.
+Software that uses libp2p has to cater for several protocols being active concurrently anyway.
+Using the protocol layer as the level with which messages vary makes many things a lot simpler.
+In other words, no need to have `type` fields inside the message, the protocol already identifies the type.
+* cheap:
+Opening substreams is very cheap compared to network connections.
+While there is still some inefficiency in terms of opening substreams, a more flexible design seems to be desirable over some added latency.
+Plus, https://github.com/libp2p/specs/pull/205/files[work is underway] to make this more efficient.
+
+=== Communication requirements
+
+In order to design the ideal communication protocol, we have to identify which data we want to transfer and why.
+This section aims to achieve that.
+
+==== Verifying the details of the swap
+
+One of the primary requirements for the communication protocol is for both parties to verify that they talk about the same swap.
+This is crucial in avoiding unnecessary transactions, as long as both parties are willing to actually swap.
+
+==== Sending over protocol-specific data
+
+For HTLC-based protocols like HAN, HErc20 and HALight, Alice generates a secret.
+The communication protocol must provide a way for Alice to share the hash of this secret with Bob.
+We also have to take into account that in the future, we will have swap protocols that depend on other cryptographic elements like signatures.
+
+Atomic swap protocols in general center around the idea of providing a time window in which the change in ownership of assets is atomic.
+A core aspect of these protocols are identities.
+The communication protocol must provide a way for both parties to share identities with the other party.
+For on-chain (i.e. Layer 1) protocols like HAN and HErc20, this is always a pair of identities (redeem + refund).
+For Layer 2 protocols like HALight, the identity is a single public key: the identifier of the user's lnd instance.
+We have to accommodate for these differences in protocols.
+
+== Recommendation
+
+Based on the research above, this section presents a proposal for a set of libp2p protocols that can be combined to offer the required functionality.
+
+=== Announcing a swap
+
+Protocol-identifier: `/comit/swap/announce/1.0.0`
+
+This protocol includes two messages:
+
+. The announce message
+. The confirmation message
+
+==== Announce-message
+
+[source,json]
+----
+{
+  "swap_digest": "12202c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+}
+----
+
+This message is always sent by Alice.
+See <<Assumptions and goals,assumptions point 3>> for further explanation.
+
+The `swap_digest` field is a https://github.com/multiformats/multihash[multihash-encoded] root hash of a hash list that contains all details of the swap.
+It remains to be defined, how the digest is exactly computed but the idea is the following:
+
+. Take all of the swaps information _known to the COMIT node_ (alpha ledger, alpha asset, protocols, etc) and arrange it in a list
+. Serialize each item into a yet-to-be defined representation
+. Hash each list entry
+. Sort the hashes lexically
+. Compute the root hash
+
+The idea is that, independently of what information about the swap is given to the COMIT node (imagine different usecases, with different negotiation protocols on top of COMIT), there is a deterministic way of computing this digest.
+If both parties, independently of each other, compute the same digest, they must be knowledgeable of the same parameters.
+This should give us enough certainty to start executing the swap assuming the other party is in good will.footnote:[It is pretty much impossible to fully protected against bad will upfront.]
+Only sending a digest has several advantages over sending the actual data of the swap for comparison:
+
+- The message format is much simpler and can be reused for every swap-protocol, independent of the cryptographic protocol in use.
+- The message format is agnostic over what the nodes are actually committing to.
+
+The nodes know, which data they used to compute the digest.
+Consequently, they are also aware of what is still missing to start the swap.
+Imagine a negotiation protocol that doesn't include expiriesfootnote:[Despite the fact that they are price-relevant.].
+The nodes could:
+
+.. either default to certain expiries and include them in the digest
+.. or simply not include them in the digest.
+
+In case of a), a matching digest means both nodes used the same default expiries.
+In case of b), a matching digest means both nodes are aware that the expiries are still missing and they will have to somehow negotiate them.
+
+==== Confirmation message
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79"
+}
+----
+
+In case Bob knows about a swap with the same digest, he generates a UUIDv4 and sends it back to Alice.
+If he doesn't know about a swap with this digest, he closes the substream without sending any message.
+
+You may wonder why Bob generates an ID on top of the digest that Alice shared with him.
+The reason is simple: while highly unlikely, the digest is not unique.
+
+Having Bob generating a random, dedicated identifier for this swap allows us:
+
+.. Make it explicit that Bob agrees to this swap and is knowledgeable of the same parameters as Alice.
+.. Establish a dependency between this libp2p protocol and all others.
+The other libp2p protocols use the swap-id generated by Bob to identify the swap.
+None of the parties can construct a meaningful message without going through this handshake, making it clear that this handshake has to happen before everything else.
+
+=== Sharing the secret hash
+
+Protocol-identifier: `/comit/swap/secrethash/1.0.0`
+
+This protocol is only to be used by Alice, as she is the one generating the secret.
+
+This protocol only includes a single message to share the secret hash.
+If you paid close attention to the protocol identifier, you may have realized that it is actually protocol agnostic:
+It neither mentions HAN, HErc20 or any of the others.
+The reason is simple: We don't need different messages for different protocol combinations if they always just need to exchange a secret hash.
+Using this libp2p protocol implies that the referenced swap is HTLC-based.
+
+==== Secret hash message
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79",
+  "secret_hash": "122003f2fb5188982860e6bdaa4cebdae5509311da248c4bd7ba1126f78a881cb816"
+}
+----
+
+The `swap_id` refers to the swap-id generated by Bob in the confirmation message.
+The `secret_hash` is a https://github.com/multiformats/multihash[multihash] of the secret generated by Alice.
+
+We use a multi-hash to allow re-use of this message for any HTLC-based protocol, independent of the hash algorithm that is used.
+It is important to note that for a given swap protocol pair, only a single hash algorithm will be valid.
+The above example uses SHA256, which is the hash algorithm we currently use for HAN, HErc20 and HALight.
+
+Implementations MUST verify that the hash algorithm used to encode this multihash is the same one as the one used in the swap protocol.
+Implementations MUST also take care to not being tricked into using a weaker hash algorithm.
+However, this is very unlikely anyway because the hash algorithm used by HTLCs is usually not configurable.
+
+=== Sharing identities
+
+In the context of a swap based on HTLCs, each party has two identities: one on each ledger.
+For the HALight protocol, the parties only need to exchange one identity: their LND pubkey.
+
+We can define very simple protocols to allow for this information to be exchanged.
+These are the protocols we need:
+
+==== Protocols for sharing identities
+
+Protocol identifier: `/comit/swap/identity/bitcoin/1.0.0`
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79", // <1>
+  "pubkey": "03c9c6a4cd77d03ebe552e85c2a84a5065263824cb006629659821a0bbe496538e" // <2>
+}
+----
+1. The swap-id from the `/comit/swap/announce/1.0.0/` protocol
+2. A compressed bitcoin public key (33 bytes)
+
+Protocol identifier: `/comit/swap/identity/ethereum/1.0.0`
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79", // <1>
+  "address": "0xd3935B8cCA773146Cda591eF468Ce141BD6d57f4" // <2>
+}
+----
+1. The swap-id from the `/comit/swap/announce/1.0.0/` protocol
+2. An Ethereum address
+
+Protocol identifier: `/comit/swap/identity/lightning/1.0.0`
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79", // <1>
+  "pubkey": "0236055ab508ec9495c07a3968f7ee9a1b5983f70e24d362f677d2619419601052" // <2>
+}
+----
+1. The swap-id from the `/comit/swap/announce/1.0.0/` protocol
+2. A Lightning node public key (taken from `lncli getinfo`)
+
+==== Why do we not need more protocols?
+
+Given the context of a swap, all of these protocols carry unambiguous information.
+Consider the following example:
+
+Assume `Bitcoin` is the alpha-ledger and `Ethereum` is the beta-ledger.
+In said constellation, Alice's refund identity is a Bitcoin public key and here redeem identity is an Ethereum address.
+
+If Alice would send a message using the `/comit/swap/identity/bitcoin/1.0.0` protocol, it is unambiguous for Bob that Alice is sending her refund identity.
+
+More generally speaking:
+Given knowledge of the alpha and beta ledger and the role, a message can be unambiguously identified as the redeem or refund identity of an actor depending on whether the message is incoming or outgoing.
+
+This allows us to slim down the protocols to the bare minimum of sending over an identity.
+
+=== Finalizing a swap
+
+One of the downsides of splitting the communication for a single swap up into several protocols is the fact that we don't have a natural "end" of the communication.
+If all of the communication were to take place within a single protocol, closing the substream could act as "I am done communicating".
+
+Following a multiple protocol approach, the answer to how we communicate this concern is another protocol.
+
+Introducing: `/comit/swap/finalize/1.0.0`
+
+[source,json]
+----
+{
+  "swap_id": "713b0c93-53a1-46b2-9418-de8d46750b79"
+}
+----
+
+Both parties are expected to use this protocol after they have sent all the data they consider necessary for starting the execution of the swap.
+Once each party sent a finalize message AND received one, implementations should consider the swap finalized and start with the execution phase (i.e. watch for transactions, emit actions, etc)
+
+== Discussion points
+
+This section includes discussion topics that remain to be answered.
+
+=== Should we use multihash for the swap digest
+
+<<Announce-message,Section 3.2>> introduces the concept of a swap digest.
+In order to be forwards compatible with different hash algorithms, it proposes to encode the root hash as a multihash.
+That way, the hash is self-describing and the receiving party knows, which hash algorithm needs to be used to compute the digest.
+
+Do we need the flexibility of changing the hash function that is used to compute the swap digest without a breaking change to the protocol?
+We could always just create `/comit/swap/announce/2.0.0` that defines a different hash function.
+
+=== How to compute the swap digest?
+
+It is still to be defined, how exactly the swap digest will be computed.
+In particular, we need to define which parts of the swap are included in the hash list.
+
+==== Identities
+
+Given the above protocols, it is possible to realize an implementation of COMIT that only requires a single user interaction (on both sides) before the swap starts.
+Considering our current implementation, we would still generate transient bitcoin identities to use in the HTLC and only pay to the user's wallet upon redeeming.
+Both of these requirements combined raises the question:
+how does cnd know, which of the parameters submitted via the API are "negotiated" (i.e. also known to the other party) and which ones where added locally by the user?
+Only the "negotiated" ones must be added to the swap digest, otherwise the digests won't match.
+
+The only answer I have for this so far is that we should just always exlude identities from the swap digest.
+Thinking about it, why would any negotiation protocol ever include identities?
+
+==== Collision resistance
+
+The digest should be as collision resistant as possible.
+I would propose to include:
+
+- alpha-ledger
+- beta-ledger
+- alpha-asset
+- beta-asset
+- alpha-protocol
+- beta-protocol
+- (depending on the protocol) alpha-expiry
+- (depending on the protocol) beta-expiry
+- alice-identity (libp2p ID)
+- bob-identity (libp2p ID)

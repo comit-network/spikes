@@ -2,6 +2,8 @@
 Satoshi Nakamoto <satoshi.nakamoto@coblox.tech>;
 :toc:
 :revdate: YYYY-MM-DD
+:sectnums:
+:sectnumlevels: 5
 
 NOTE: Author: {authors} +
 Date: {revdate} +
