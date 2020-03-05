@@ -326,29 +326,35 @@ This set of actions allows us to keep cnd's relationship with lnd read-only.
 
 To send a payment through lnd, this action needs to contain the following parameters:
 
-. recipient lnd pubkey
-. amount
-. secret-hash
-. final-cltv-delta:
+. recipient lnd pubkey: `to_public_key`
+. `amount`
+. `secret_hash`
+. `final_cltv_delta`:
 The CLTV (Check-Lock-Time-Verify) delta of the HTLC in the last hop of the payment routing.
 This value is conceptually equivalent with the on-chain expiry value (it is just relative in this case).
+. `chain`: The blockchain where the payment is expected (eg `bitcoin`).
+. `network`: The network where the payment is expected (eg `regtest`, `testnet`, `mainnet`).
+. `self_public_key`: The pubkey of the actor's lnd node, to which cnd is connected.
 
 ===== `lnd-add-hold-invoice`
 
 Adds a new hold invoice to lnd.
-This action could return up to four parameters:
+This action returns the following parameters:
 
-. amount
-. secret-hash
-. expiry:
+. `amount`
+. `secret_hash`
+. `expiry`:
 This allows us to specify, for how long we are willing to accept a payment for this invoice.
 The default here is 3600 seconds, e.g. 1 hour.
 We should return sensible values here, depending on the roles and the protocol that is used on the other chain.
 If this timeout is too short, Bob might not be able to pay the invoice in the X-HALight case even though we would like to proceed with the swap.
 For the HALight-X case, this would allow Bob to specify a time window up until he would like Alice to start the swap.
 In this case, the timeout should not be too long, otherwise the absolute expiry of his HTLC (assuming a HAN-protocol) is not enough for a secure swap.
-. memo
-We can return a description that says something like "COMIT atomic swap {swap-id} with {peer-id}" to make identifying invoices of swaps easier for the user.
+. `ctlv_expiry`:
+The final CLTV delta of the HTLC at the last hop of the payment routing, the `final_cltv_delta` of the payment must match it. The name is different because we are following the terminology of lnd RPC API.
+. `chain`: The blockchain where the payment is expected (eg `bitcoin`).
+. `network`: The network where the payment is expected (eg `regtest`, `testnet`, `mainnet`).
+. `self_public_key`: The pubkey of the actor's lnd node, to which cnd is connected.
 
 NOTE: This memo is https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md#tagged-fields[constrained in size] (639 bytes).
 We should make sure our description fits in there.
@@ -356,9 +362,12 @@ We should make sure our description fits in there.
 ===== `lnd-settle-invoice`
 
 Settles a hold invoice.
-This action needs only one parameter:
+This action returns the following parameters:
 
-. secret
+. `secret`
+. `chain`: The blockchain where the payment is expected (eg `bitcoin`).
+. `network`: The network where the payment is expected (eg `regtest`, `testnet`, `mainnet`).
+. `self_public_key`: The pubkey of the actor's lnd node, to which cnd is connected.
 
 == Recommendation
 
