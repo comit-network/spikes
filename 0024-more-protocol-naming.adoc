@@ -1,0 +1,54 @@
+= Introducing our new protocol
+Natoshi Sakamoto <natoshi.sakamoto@root.tld>
+:toc:
+:revdate: 2020-04-01
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/RFCs/issues/130[#130]
+
+== Proposal
+
+Additionally to `HAN`, `HErc20`, `HALight` and `HOMNI` we propose another set of new protocol:
+
+- `BAM` - **B**uy **A**sset on **M**ainnet
+- `FIX` - **F**inancial asset that **I**s not bollo**X**
+- `OIDA` - Since **O**MNI does not do much any more we **I**gnore **D**hat **A**sset.
+- `FODA` - **F**ind an **O**rder for **D**hat **A**sset
+
+Especially `BAM` shall be halighted at this point: The first protocol that _only_ works on mainnet!
+This is something the crypto world has not seen before.
+It is achieved by generating Anglela-trees, a modified form of the Merkle tree.
+
+`FIX` is focussing on all those coins that are just not bollox yet. Just not.
+They might be classified as stool, but not bollox.
+Protocols in this realm are planned to be of equal quality to the coins themselves.
+This will allow us to design them in minutes and implement them in days speeding up implementation.
+Minor security breaches can be expected but are by design.
+
+When it comes to `OIDA` we specifically wanted to design a protocol that will never be in use for anything.
+The beauty of that protocol is its un-usability.
+Additionally it is designed to be compatible to HOMNI trades, in the way that it renders them useless.
+As being unusable by design we expect it to be the protocol with the highest trading volume.
+
+`FODA` is a negotiation protocol implementing teleportation.
+Rather than just finding you an Order the protocol can do way more to you.
+It is planned to be plugged into Tinder to find you the best trading partner - not only limited to coins!
+Through the underlying communication protocol that implements teleportation, trades as well as babies are instant.
+
+Protocols can be combined in the following ways for Alpha and Beta Layer:
+
+- `BAM-OIDA`: Un-usable trades on mainnet. Designed to lock up your money indefinite.
+- `FIX-OIDA`: Useless trades of assets with questionable reputation.
+- `OIDA-FODA`: The definition of useless orders for usless trades.
+- `BAM-FIX`: Questionable trades on mainnet only.
+
+== Reasoning
+
+We identified four different naming spaces:
+
+. Big Names: Names written in **bold**.
+. Small Names: Names for babies.
+. Short Names: Like Al, or Ben.
+. Long Names: Names where you feel that people just could have made a better job in reducing their size because even though the name is expressing exactly what was meant it is a pain in the ass to read all of this.
+
