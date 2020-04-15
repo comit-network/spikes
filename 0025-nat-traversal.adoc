@@ -1,0 +1,161 @@
+= Traversal methods for comit nodes behind a NAT
+Rishab Sharma<rishab.sharma@tenx.tech>;
+:toc:
+:revdate: 2020-03-15
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Tracking issue: https://github.com/comit-network/comit-rs/issues/1172[#1172]
+
+== Context
+
+Currently a  comit node cannot communicate with another dial another comit node that is behind a NAT(network address translation) device.
+Most routers use NAT to allow multiple devices to use the same public IPv4 address.
+A comit node could be running any of these devices and the dialer needs to know how to traverse the NAT to reach the right device.
+
+== Goals
+
+1. Allow a comit node to traverse a NAT to reach another comit node.
+
+
+== Abbreviations
+
+NAT: Network address translation
+
+UPnP: Universal plug and play
+
+TURN: Traveral using relays around NAT
+
+STUN: Session traversal utilities around NAT
+
+ICE: Interactive connectivity Establishment
+
+== NAT Traversal Methods
+
+This sections provides an overview of current NAT traversal methods. Alice is the dialer and Bob is the receiver behind a NAT device.
+
+=== Manual Port Forwarding
+
+Bob configures his router to forward an externally facing port to his device.
+Bob notifies peers of his public IP and forwarded port so that they can dial him.
+This solution does not require any changes to the COMIT codebase and places the burden on the user to configure their router.
+Users who cannot access the router, for example users on a corporate or mobile network will not be able to use this method.
+
+- - Requires the user to have access to NAT configuration
+
+- - Requires the user to configure NAT settings
+
+- + Alice and Bob can directly communicate through a direct connection
+
+=== Automatic Port Forwarding using UPnP
+
+There is no single perfect solution to solving the NAT traversal problem.There is no single perfect solution to solving the NAT traversal problem.
+UPnP enabled routers automatically forward ports required by an application.
+An application will make a request to the router to open specific ports.
+The user wont have to manually forward the ports used by the comit node.
+Due to security concerns, UPnP is often disabled.
+
+- - Requires the user to behind have a UPnP capable and enabled router
+
+- - Opens up the user to security vulnerabilities arising from allowing applications to open externally facing ports
+
+- + Alice and Bob can directly communicate through a direct connection
+
+=== Reverse connection
+
+Bob dials Alice who uses the inbound connection to send to data to Bob.
+This technique only works if Alice knows her public IP and port and has provided it to Bob.
+Since Bob is unable to dial Alice, Bob is unable to initiate a swap and must wait to be dialled by a peer.
+
+If both Alice and Bob are behind a NAT a third peer which is not behind NAT can be used as a relay.
+Alice and Bob both dial a relay peer. Th
+This technique is used by the Bittorrent network and relies on there being a critical mass of relay peers that have a public IP.
+
+- + Does not require the use to have configure to the NAT settings on their router
+
+- + Does not require the user to have access to NAT configuration
+
+- - Does not require the user to have access to NAT configuration
+
+- - Requires Bob to have a known external IP
+
+
+=== STUN/Hole Punching
+
+Bob sends UDP messages to a third peer(STUN server).
+The STUN server will return which ports and public IP Bobs's UDP messages originated from.
+Bob has discovered public IP and ports which peers can use to dial him.
+Bob
+
+STUN cannot be used to traverse NAT configurations that randomnly assign port and/or IP for new connections.
+A symmetric NAT will randomnly generate a new port and/or public IP for each outbound connection made by Alice.
+This prevents Bob from determining the external IP and ports assigned to her by her NAT.
+Symmetric NAT is commonly used by mobile network providers.
+
+- + Does not require the user to configure NAT settiThere is no single perfect solution to solving the NAT traversal problem.ngs
+
+- + Alice and Bob can directly communicate through a direct connection
+
+- - Requires a third peer to facilitate a connection between two peers
+
+- - Cannot traverse symmetric, cone and restricted cone type NATs
+
+- - Requires a third peer to start a connection between Alice and Bob
+
+- - Requires the third peer to know its inbound ports (either through another STUN/TURN or port forwarding)
+
+=== TURN
+
+If STUN cannot be used to traverse a NAT, a relay peer can be used a relay between the comit_nodes.
+When Bob isn’t able to listen on a public address, Bob can dial out to a relay peer, which will keep a long-lived connection open.
+Other peers will be able to dial through the relay peer, which will forward traffic to Bob.
+
+- + Can be used to traverse all commonly know NAT configurations
+
+- + Does not require the use to have configure NAT settings
+
+- - Requires a third peer to serve as a relay for communications between Alice and Bob
+
+- - Requires the third peer to know its inbound ports (either through another STUN/TURN or port forwarding)
+
+
+== Recommendation
+
+Manual and automatic port forwarding solve the NAT traversal problem through hardware configuration.
+We cannot rely on all users to have access to their network hardware and therefore we will need to implement alternative NAT traversal techniques.
+
+Reverse connections cannot be used because many of our protocols require both peers to be able to initate a connection with each other.
+This means that COMIT protocols will have to redesigned to use the connection initiated by dialer to complete a SWAP.
+Peers behind a NAT device will be unable to play an active role in the COMIT network.
+
+In order to allow comit nodes to traverse any NAT configuration the TURN protocol will need to be implemented.
+ICE recommends that peers attempt to connect using STUN if possible only use TURN a connection using STUN cannot be established.
+STUN is preferred over TURN for performance and efficiency reasons as it does require a third party to relay communications between nodes.
+
+Although TURN servers can resolve the NAT traversal problem, at least one STUN or TURN server that knows its own external ports and IP will be required to bootstrap the network and to restart the network in case it goes down.
+
+Users who have knowledge of their public IP and ports should have the option to run as STUN and/or TURN servers.
+
+
+=== Implementation
+
+libp2p-rs contains an identify protocol which implements functionality similar to the STUN protocol.
+The identify protocol allows the the peer behind a NAT to identify their ports and push that information to other peers.
+
+libp2p contains a circuit relay module based off the TURN protocol.
+There is no Rust implementation of the circuit relay module but the Javascript and Go implementations as an implementation guide.
+
+libp2p also contains a spec for a peer discovery protocol called rendezvous which can be used discover circuit relays or TURN servers.
+It is unclear how the rendezvous will interact with decentralised reputation and orderbook systems as they have no been designed.
+It is not neccesarry or advisable to implement the rendezvous protocol to traverse NAT devices.
+
+== Sources
+
+- Wikipedia article on common NAT classifications: https://en.wikipedia.org/wiki/Network_address_translation#Methods_of_translation
+- Twilio overview of STUN, TURN and ICE protocols for NAT traversal: https://www.twilio.com/docs/stun-turn/faq
+- IPFS tutorial on libp2p's circuit relay: https://github.com/ipfs/js-ipfs/blob/master/examples/circuit-relaying/README.md
+- libp2p circuit relay spec:  https://github.com/libp2p/specs/tree/master/relay
+- libp2p rendezvous spec: https://github.com/libp2p/specs/tree/master/rendezvous
+- libp2p identify spec: https://github.com/libp2p/specs/tree/master/identify
+
+
