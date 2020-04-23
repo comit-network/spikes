@@ -13,7 +13,7 @@ NAT: Network address translation/translator
 
 UPnP: Universal plug and play
 
-TURN: Traveral using relays around NAT
+TURN: Traversal Using Relays around NAT
 
 STUN: Session traversal utilities around NAT
 
@@ -170,5 +170,4 @@ This would reduce the load on TURN servers and centralisation of the network.
 - libp2p circuit relay spec:  https://github.com/libp2p/specs/tree/master/relay
 - libp2p identify spec: https://github.com/libp2p/specs/tree/master/identify
 - Nat traversal discussion thread for go-libp2p: https://github.com/libp2p/go-libp2p/issues/375
-
 
