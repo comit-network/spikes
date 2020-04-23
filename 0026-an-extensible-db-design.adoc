@@ -100,9 +100,9 @@ as this one seems to be already in a more sorted form
 | shared_swap_id
 | alpha_ledger_protocol (han_bitcoin, han_eth, herc20, halight)
 | beta_ledger_protocol (han_bitcoin, han_eth, herc20, halight)
-| counter_party : (peer_id, address_hint)
+| counter_party : {peer_id, address_hint}
 | secret_hash
-| role
+| role: (alice, bob)
 |===
 
 .Han_Bitcoin
@@ -179,7 +179,97 @@ Let's review and form 1 NF:
 2) entries in a column are of the same type
 3) rows are uniquely identified - i.e. each row has a unique ID
 
+.Swap
+|===
+| pk local_swap_id
+| shared_swap_id
+| counter_party_peer_id
+| role: (alice, bob)
+|===
 
+1) we removed `alpha/beta_ledger_protocol` because diesel only supports child to parent foreign keys.
+2) the problem with `counter_party` is that `address_hint` depends on the role: Bob does not know an `address_hint` from Alice. Hence, we extracted it into an own table
+
+.Address_hint
+|===
+| pk fk counter_party_peer_id
+| address_hint
+|===
+
+3) We extracted `secret_hash` into its own table where `local_swap_id` is fk and pk at the same time, because there can only be 1 `secret_hash` per swap.
+
+.Secret_hash
+|===
+| pk fk local_swap_id
+| secret_hash
+|===
+
+
+.Han_Bitcoin
+|===
+| swaps_id
+| refund_identity
+| redeem_identity
+| amount
+| network
+| expiry
+| state: (funded, redeemed, refunded, incorrectly_funded)
+| hash_function
+|===
+
+.Han_Ethereum
+|===
+| swaps_id
+| refund_identity
+| redeem_identity
+| amount
+| network
+| expiry
+| state: (funded, redeemed, refunded, incorrectly_funded)
+| hash_function
+|===
+
+.Herc20
+|===
+| swaps_id
+| refund_identity
+| redeem_identity
+| amount
+| token_contract
+| network
+| expiry
+| state: (deployed, funded, redeemed, refunded, incorrectly_funded)
+| hash_function
+|===
+
+.HaLight
+|===
+| redeem_identity
+| refund_identity
+| amount
+| expiry
+| cltv_expiry
+| chain
+| network
+| state: (started, opened, accepted, settled, cancelled)
+| hash_function
+|===
+
+.Swap Communication State
+|===
+| awaiting announcement
+| awaiting announcement failed
+| awaiting announcement timeout
+| finalized
+|===
+
+.Swap State
+|===
+| in_progress
+| not_swapped (error state)
+| swapped (success state)
+| internal_error
+|===
 
 
 ----
