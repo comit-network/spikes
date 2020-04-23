@@ -11,7 +11,7 @@ Tracking issue: https://github.com/comit-network/comit-rs/issues/1172[#1172]
 
 NAT: Network Address Translation/Translator
 
-UPnP: Universal plug and play
+UPnP: Universal Plug and Play
 
 TURN: Traversal Using Relays around NAT
 
