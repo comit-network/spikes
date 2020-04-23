@@ -96,15 +96,13 @@ as this one seems to be already in a more sorted form
 
 .Swap
 |===
-| Swap events
-| id
 | local_swap_id
 | shared_swap_id
-| alpha_ledger_type
-| beta_ledger_type
-| counter_party_id
-| secret
+| alpha_ledger_protocol (han_bitcoin, han_eth, herc20, halight)
+| beta_ledger_protocol (han_bitcoin, han_eth, herc20, halight)
+| counter_party : (peer_id, address_hint)
 | secret_hash
+| role
 |===
 
 .Han_Bitcoin
@@ -114,8 +112,9 @@ as this one seems to be already in a more sorted form
 | redeem_identity
 | amount
 | network
-| alpha_expiry
-| beta_expiry
+| expiry
+| state: (funded, redeemed, refunded, incorrectly_funded)
+| hash_function
 |===
 
 .Han_Ethereum
@@ -125,8 +124,9 @@ as this one seems to be already in a more sorted form
 | redeem_identity
 | amount
 | network
-| alpha_expiry
-| beta_expiry
+| expiry
+| state: (funded, redeemed, refunded, incorrectly_funded)
+| hash_function
 |===
 
 .Herc20
@@ -137,64 +137,52 @@ as this one seems to be already in a more sorted form
 | amount
 | token_contract
 | network
-| alpha_expiry
-| beta_expiry
+| expiry
+| state: (deployed, funded, redeemed, refunded, incorrectly_funded)
+| hash_function
 |===
-
 
 .HaLight
 |===
-| ?
+| redeem_identity
+| refund_identity
+| amount
+| expiry
+| cltv_expiry
+| chain
+| network
+| state: (started, opened, accepted, settled, cancelled)
+| hash_function
 |===
 
-
-.Swap_Events
+.Swap Communication State
 |===
-| id
-| swap_id
-| status
-| occurred_at
-|===
-
-
-.Han_Bitcoin_Events
-|===
-| swap_event_id
-| name: (fund/refund/redeem)
-| tx_id
+| awaiting announcement
+| awaiting announcement failed
+| awaiting announcement timeout
+| finalized
 |===
 
-
-.Han_Ethereum_Events
+.Swap State
 |===
-| swap_event_id
-| name: (fund/refund/redeem)
-| tx_id
-|===
-
-
-.Herc20_Events
-|===
-| swap_event_id
-| name: (deploy/fund/refund/redeem)
-| tx_id
-|===
-
-.haghlight_events HaLight_Events
-|===
-| ?
+| in_progress
+| not_swapped (error state)
+| swapped (success state)
+| internal_error
 |===
 
 
 === Phase 1
 
 Let's review and form 1 NF:
-* each cell to be a single value
-* entries in a column are of the same type
-* rows are uniquely identified - i.e. each row has a unique ID
+1) each cell to be a single value
+2) entries in a column are of the same type
+3) rows are uniquely identified - i.e. each row has a unique ID
 
 
 
 
+----
+== Open Questions
 
-
+* Where do we store the swap secret?
