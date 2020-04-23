@@ -15,7 +15,7 @@ UPnP: Universal Plug and Play
 
 TURN: Traversal Using Relays around NAT
 
-STUN: Session traversal utilities around NAT
+STUN: Session Traversal Utilities for NAT
 
 == Context
 
