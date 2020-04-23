@@ -187,7 +187,7 @@ Let's review and form 1 NF:
 | role: (alice, bob)
 |===
 
-1) we removed `alpha/beta_ledger_protocol` because diesel only supports child to parent foreign keys.
+1) we removed `alpha/beta_ledger_protocol` because diesel only supports child to parent foreign keys. Also, these values are not bound to the table's pk. We will introduce a joint table `swap_ledger_relations` further down below.
 2) the problem with `counter_party` is that `address_hint` depends on the role: Bob does not know an `address_hint` from Alice. Hence, we extracted it into an own table
 
 .Address_hint
@@ -204,9 +204,16 @@ Let's review and form 1 NF:
 | secret_hash
 |===
 
-
-.Han_Bitcoin
+.Swap_ledger_relations
 |===
+| pk fk local_swap_id
+| fk alpha_swap_details -> e.g. Han_Bitcoin_Swap_Details.id
+| fk beta_swap_details -> e.g. Han_Ethereum_Swap_Details.id
+|===
+
+.Han_Bitcoin_Swap_Details
+|===
+| id
 | swaps_id
 | refund_identity
 | redeem_identity
@@ -217,8 +224,9 @@ Let's review and form 1 NF:
 | hash_function
 |===
 
-.Han_Ethereum
+.Han_Ethereum_Swap_Details
 |===
+| id
 | swaps_id
 | refund_identity
 | redeem_identity
@@ -229,8 +237,31 @@ Let's review and form 1 NF:
 | hash_function
 |===
 
-.Herc20
+4) We could combine all `Han` tables as they store the same information. We decided against it as the types are different. Nevertheless, the `states` are the same for all `Han` protocols.
+
+.Han_states
 |===
+| id | state
+| 0 | funded
+| 1 | redeemed
+| 2 | refunded
+| 3 | incorrectly_funded
+|===
+
+.joint_table_protocol_states_whatever_I_m_bad_with_names
+|===
+| pk id
+| fk swap_details (protocol.id)
+| fk han_states.id
+| transaction_id
+| at: (timestamp)
+|===
+
+TODO: we stopped here
+
+.Herc20_Swap_Details
+|===
+| id
 | swaps_id
 | refund_identity
 | redeem_identity
@@ -242,8 +273,9 @@ Let's review and form 1 NF:
 | hash_function
 |===
 
-.HaLight
+.HaLight_Swap_Details
 |===
+| id
 | redeem_identity
 | refund_identity
 | amount
