@@ -121,7 +121,7 @@ Other peers will be able to dial through the relay peer, which will forward traf
 
 - - Requires a third peer to serve as a relay for communications between Alice and Bob
 
-- - Requires the third peer to know its inbound ports (either through another STUN/TURN or port forwarding)
+- - Requires the third peer to have an externally facing IP address
 
 - - Requires a third peer to serve as a relay for communications between Alice and Bob
 
