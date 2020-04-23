@@ -1,0 +1,200 @@
+= Database design for cnd
+Philipp Hoenisch <philipp@coblox.tech>
+:toc:
+:revdate: 2020-04-23
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Status: Draft
+
+
+
+== Problem
+
+Our current database design is complex and hard to maintain or extend.
+
+=== Database normalization
+
+Database normalization is a process to organize a database into tables and columns.
+The main idea with this is that a table should be about a specific topic and only supporting topics included.
+If a table is not properly normalized and has data redundancy then it will not only eat up extra memory space but will also make it difficult to handle and update the database, without facing data loss. Insertion, Updation and Deletion Anomalies are very frequent if database is not normalized.
+There are three main reasons to normalize a database.
+
+* to minimize duplicate data,
+* to minimize or avoid data modification issues,
+* to simplify queries.
+
+
+==== 1 NF:
+* each cell to be a single value
+* entries in a column are of the same type
+* rows are uniquely identified - i.e. each row has a unique ID
+
+==== 2 NF:
+* all attributes (non-key columns) depend on the key - if not, then a conjunction table should be created consisting out of 2 keys joining two otherwise not dependent tables (e.g. protocol and swap)
+
+==== 3 NF:
+* all fields (all columns) can be determined only by the key in the table and no other column. E.g. if for every Han_BTC swap we have the same expiries, then this should be an own table. --> update anomaly
+
+==== 4 NF:
+* no multi-valued dependencies. E.g. a customer who bought 2 items should not be in a table twice with the bought item in one column
+
+
+== What is the data we need to store
+
+.Swap Swap
+|===
+|Swap request | Description
+
+| sent
+|
+
+| received
+|
+
+| accepted (finalized)
+|
+
+| deployed
+|
+
+| funded
+|
+
+| invalid_funded
+|
+
+| redeemed
+|
+
+| refunded
+|
+
+|===
+
+
+.Swap Swap
+|===
+|Swap events | Description
+
+| on_chain_events
+|
+
+| off_chain_events
+|
+
+|===
+
+
+== Database normalization
+
+=== Phase 0
+
+Instead of going from what we have right now, we start with a slightly adapted table layout based on the one proposed by @bonomat
+https://3.basecamp.com/4403044/buckets/16118249/messages/2583518881#__recording_2600021433[in basecamp]
+as this one seems to be already in a more sorted form
+
+.Swap
+|===
+| Swap events
+| id
+| local_swap_id
+| shared_swap_id
+| alpha_ledger_type
+| beta_ledger_type
+| counter_party_id
+| secret
+| secret_hash
+|===
+
+.Han_Bitcoin
+|===
+| swaps_id
+| refund_identity
+| redeem_identity
+| amount
+| network
+| alpha_expiry
+| beta_expiry
+|===
+
+.Han_Ethereum
+|===
+| swaps_id
+| refund_identity
+| redeem_identity
+| amount
+| network
+| alpha_expiry
+| beta_expiry
+|===
+
+.Herc20
+|===
+| swaps_id
+| refund_identity
+| redeem_identity
+| amount
+| token_contract
+| network
+| alpha_expiry
+| beta_expiry
+|===
+
+
+.HaLight
+|===
+| ?
+|===
+
+
+.Swap_Events
+|===
+| id
+| swap_id
+| status
+| occurred_at
+|===
+
+
+.Han_Bitcoin_Events
+|===
+| swap_event_id
+| name: (fund/refund/redeem)
+| tx_id
+|===
+
+
+.Han_Ethereum_Events
+|===
+| swap_event_id
+| name: (fund/refund/redeem)
+| tx_id
+|===
+
+
+.Herc20_Events
+|===
+| swap_event_id
+| name: (deploy/fund/refund/redeem)
+| tx_id
+|===
+
+.haghlight_events HaLight_Events
+|===
+| ?
+|===
+
+
+=== Phase 1
+
+Let's review and form 1 NF:
+* each cell to be a single value
+* entries in a column are of the same type
+* rows are uniquely identified - i.e. each row has a unique ID
+
+
+
+
+
+
