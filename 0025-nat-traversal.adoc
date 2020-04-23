@@ -117,7 +117,7 @@ Other peers will be able to dial through the relay peer, which will forward traf
 
 - + Can be used to traverse all commonly know NAT configurations
 
-- + Does not require the Bob to configure his NAT
+- + Does not require Bob to configure his NAT
 
 - - Requires a third peer to serve as a relay for communications between Alice and Bob
 
