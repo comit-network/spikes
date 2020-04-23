@@ -61,7 +61,7 @@ Bitcoin core removed UPnP support due to security concerns: https://bitcoin.org/
 
 - - Requires the user to have a UPnP capable and enabled NAT (UPnP capable routers are fairly common in home networks)
 
-- - Opens up the user to security vulnerabilities arising from the NAT blindly trusting applications and allowing to open externally facing ports
+- - Opens up the user to security vulnerabilities arising from the NAT blindly trusting applications and allowing incoming traffic to connect to externally facing ports
 
 === Reverse connection
 
