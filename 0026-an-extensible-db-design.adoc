@@ -1,5 +1,5 @@
 = Database design for cnd
-Philipp Hoenisch <philipp@coblox.tech>
+Philipp Hoenisch <philipp@coblox.tech>; Daniel Karzel <daniel.karzel@coblox.tech>;
 :toc:
 :revdate: 2020-04-23
 
@@ -7,28 +7,39 @@ NOTE: Author: {authors} +
 Date: {revdate} +
 Status: Draft
 
-
-
 == Problem
 
 Our current database design is complex and hard to maintain or extend.
+The purpose of this spike is to propose a properly normalized relational database model.
 
-The goal of the database is to allow recovery and efficiently restarting cnd nodes.
+=== Scope
 
-=== Out of scope:
-We won't follow a model-driven approach where the database dictates what swap combinations are actually possible.
+The cnd database is used for the (sole) purpose of allowing recovery and efficiently restarting cnd nodes.
+We do not follow a model-driven approach where the database dictates e.g. what swap combinations are actually possible.
+It is out of scope for this spike to come up with a domain model, the spike should focus only on a model for the relevant data.
+This model, however, should adhere to database normalization constraints.
+
+The following protocols are in scope:
+* HAN
+* HErc20
+* HALight
+
+Protocols based on scriptless scripts are not in focus, but known features (e.g. no secret) can be taken into consideration.
 
 === Database normalization
 
 Database normalization is a process to organize a database into tables and columns.
 The main idea with this is that a table should be about a specific topic and only supporting topics included.
-If a table is not properly normalized and has data redundancy then it will not only eat up extra memory space but will also make it difficult to handle and update the database, without facing data loss. Insertion, Updation and Deletion Anomalies are very frequent if database is not normalized.
+If a table is not properly normalized and has data redundancy then it will not only eat up extra memory space but will also make it difficult to handle and update the database, without facing data loss.
+Insert, Update and Delete anomalies are very frequent if database is not normalized.
 There are three main reasons to normalize a database.
 
 * to minimize duplicate data,
 * to minimize or avoid data modification issues,
 * to simplify queries.
 
+Most database models are free of anomalies when reaching 3 NF footnote:[https://en.wikipedia.org/wiki/Database_normalization]; note that some models may require BCNF (extension of 3NF).
+Normalizing the database model beyond 3 NF is not in scope of this spike but might be considered of deemed necessary.
 
 ==== 1 NF:
 * each cell to be a single value
@@ -41,59 +52,44 @@ There are three main reasons to normalize a database.
 ==== 3 NF:
 * all fields (all columns) can be determined only by the key in the table and no other column. E.g. if for every Han_BTC swap we have the same expiries, then this should be an own table. --> update anomaly
 
+==== BCNF
+* any part of a primary key must not have a functional dependency on another column of the table.
+
 ==== 4 NF:
 * no multi-valued dependencies. E.g. a customer who bought 2 items should not be in a table twice with the bought item in one column
 
 
-== What is the data we need to store
+== Approach
 
-.Swap Swap
-|===
-|Swap request | Description
+. Data collection: Collect all the data to be stored.
+. First model: Create a first model to act upon.
+. Iterations: Iterate on the model to improve and normalize it.
+. Final proposed model
 
-| sent
-|
+Constraints we considered besides the normalization constraints:
 
-| received
-|
-
-| accepted (finalized)
-|
-
-| deployed
-|
-
-| funded
-|
-
-| invalid_funded
-|
-
-| redeemed
-|
-
-| refunded
-|
-
-|===
+. FK  relationships should not be defined in a parent table (problem of not being able to create the parent if the child does not exist)
+. Certain data of a swap is only known at a later point in time (after creation of the swap). We want to avoid updates.
 
 
-.Swap Swap
-|===
-|Swap events | Description
+== Data collection
 
-| on_chain_events
-|
+We identified the following data sources needed:
 
-| off_chain_events
-|
+. Initial data of each swap when being created for a specific role for a specific alpha and beta to protocol where alpha and beta is one of: `HAN`, `HErc20`, `HALight`
+. Additional data added to the swap's alpha or beta ledger data.
 
-|===
+Probably actually  no in scope but currently in the model 😬:
 
+. Swap State (one per swap, aggregated state - record all states with timestamp)
+. Communication State (one per swap - record all states with timestamp)
+. Ledger State (two per swap, record all states with timestamp and additional information if applicable, e.g. transaction ID)
 
-== Database normalization
+Note: It is disputable if we actually have to record all the different swap states for each swap.
+It might be sufficient to record the
+The same accounts for the communication state.
 
-=== Phase 0
+== First model
 
 Instead of going from what we have right now, we start with a slightly adapted table layout based on the one proposed by @bonomat
 https://3.basecamp.com/4403044/buckets/16118249/messages/2583518881#__recording_2600021433[in basecamp]
@@ -176,8 +172,9 @@ as this one seems to be already in a more sorted form
 | internal_error
 |===
 
+== Iterations
 
-=== Phase 1
+=== Iteration 1
 
 Let's review and form 1 NF:
 1) each cell to be a single value
