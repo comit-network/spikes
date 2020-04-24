@@ -13,6 +13,11 @@ Status: Draft
 
 Our current database design is complex and hard to maintain or extend.
 
+The goal of the database is to allow recovery and efficiently restarting cnd nodes.
+
+=== Out of scope:
+We won't follow a model-driven approach where the database dictates what swap combinations are actually possible.
+
 === Database normalization
 
 Database normalization is a process to organize a database into tables and columns.
@@ -237,9 +242,9 @@ Let's review and form 1 NF:
 | hash_function
 |===
 
-4) We could combine all `Han` tables as they store the same information. We decided against it as the types are different. Nevertheless, the `states` are the same for all `Han` protocols.
+4) We could combine all `Han` tables as they store the same information. We decided against it as the types are different. Nevertheless, the `states` are the same for all `Han` protocols. Hence, we extract the states into a _static_ table `Han_ledger_states`. A simple joint table for all Han-protocols would not work as we need to define a fk from this joint table to the specific  `han_ledger_states_joint_table`.
 
-.Han_states
+.Han_ledger_states
 |===
 | id | state
 | 0 | funded
@@ -248,16 +253,28 @@ Let's review and form 1 NF:
 | 3 | incorrectly_funded
 |===
 
-.joint_table_protocol_states_whatever_I_m_bad_with_names
+// TODO come up with a better name
+.han_bitcoin_ledger_states_joint_table
 |===
 | pk id
-| fk swap_details (protocol.id)
-| fk han_states.id
+| fk swap_details.id
+| fk han_states.id --> han_bitcoin_swap_details
 | transaction_id
 | at: (timestamp)
 |===
 
-TODO: we stopped here
+// TODO come up with a better name
+.han_ethereum_ledger_states_joint_table
+|===
+| pk id
+| fk swap_details.id
+| fk han_states.id --> han_ethereum_swap_details
+| transaction_id
+| at: (timestamp)
+|===
+
+
+5) We repeat the same as above for Herc20 and extract `Herc20_states` including a joint table `herc20_states_joint_table`.
 
 .Herc20_Swap_Details
 |===
@@ -271,6 +288,26 @@ TODO: we stopped here
 | expiry
 | state: (deployed, funded, redeemed, refunded, incorrectly_funded)
 | hash_function
+|===
+
+.Herc20_states
+|===
+| id | state
+| 0 | deployed
+| 1 | funded
+| 2 | redeemed
+| 3 | refunded
+| 4 | incorrectly_funded
+|===
+
+// TODO come up with a better name
+.herc20_states_joint_table
+|===
+| pk id
+| fk swap_details.id
+| fk herc20_states.id
+| transaction_id
+| at: (timestamp)
 |===
 
 .HaLight_Swap_Details
@@ -287,22 +324,67 @@ TODO: we stopped here
 | hash_function
 |===
 
-.Swap Communication State
+6) We repeat the same as above for HaLight and extract `HaLight_states` including a joint table `halight_states_joint_table`.
+
+.Herc20_states
 |===
-| awaiting announcement
-| awaiting announcement failed
-| awaiting announcement timeout
-| finalized
+| id | state
+| 0 | started
+| 1 | opened
+| 2 | accepted
+| 3 | settled
+| 4 | canceled
 |===
+
+// TODO come up with a better name
+.halight_states_joint_table
+|===
+| pk id
+| fk swap_details (protocol.id)
+| fk halight_states.id
+| at: (timestamp)
+|===
+
+7) We do the same procedure on the swap communication states
+
+.Swap_communication_states
+|===
+| id | state
+| 0 | awaiting announcement
+| 1 | awaiting announcement failed
+| 2 | awaiting announcement timeout
+| 3 | finalized
+|===
+
+// TODO come up with a better name
+.swap_communication_states_joint_table
+|===
+| pk id
+| fk local_swap_id
+| fk Swap_communication_states.id
+| at: (timestamp)
+|===
+
+8) A swap state can be derived from a combination of `swap_communication_states` and `ledger_states`.
+For the sake of efficiency we keep the table `swap_states` though and additionally introduce a joint table `swap_states_joint_table` to record a ledger's state.
 
 .Swap State
 |===
-| in_progress
-| not_swapped (error state)
-| swapped (success state)
-| internal_error
+| id | state
+| 0 | in_progress
+| 1 | not_swapped (error state)
+| 2 | swapped (success state)
+| 3 | internal_error
 |===
 
+// TODO come up with a better name
+.swap_states_joint_table
+|===
+| pk id
+| fk swap_details (protocol.id)
+| fk halight_states.id
+| at: (timestamp)
+|===
 
 ----
 == Open Questions
