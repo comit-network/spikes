@@ -1,0 +1,12 @@
+@startuml
+' hide the spot
+hide circle
+
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/all_entities.iuml!herc20_swap_protocols
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/all_entities.iuml!herc20_swap_protocols_connections
+'
+' for local use
+'!include all_entities.iuml!herc20_swap_protocols
+'!include all_entities.iuml!herc20_swap_protocols_connections
+
+@enduml

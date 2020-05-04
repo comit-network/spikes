@@ -1,0 +1,294 @@
+' Zero or One	|o--
+' Exactly One	||--
+' Zero or Many	}o--
+' One or Many	}|--
+' One to Many	||--o{
+' Many to One	}o--||
+
+@startuml(id=swap)
+
+entity "swap" as swap {
+    id : <<pk>>,
+    ---
+    local_swap_id : <<unique>>,
+    role,
+    counter_party_peer_id
+}
+
+entity "shared_swap_id" as shared_swap_id {
+    id : <<pk>> <<fk>>,
+    ---
+    shared_swap_id
+}
+
+entity "address_hint" as address_hint {
+    id : <<pk>>
+    ---
+    counter_party_peer_id : <<unique>>,
+    address_hint
+    }
+
+entity "secret_hash" as secret_hash {
+    swap_id : <<pk>> <<fk>>,
+    ---
+    secret_hash
+}
+
+@enduml
+
+@startuml(id=swap_connections)
+
+shared_swap_id |o--|| swap
+address_hint |o--|{ swap
+secret_hash |o--|| swap
+
+@enduml
+
+@startuml(id=han_bitcoin_swap_protocols)
+
+entity "han_bitcoin_swap_detail" as han_bitcoin {
+    han_bitcoin_swap_detail_id : <<pk>>,
+    ---
+    swap_id_fk : <<fk>>,
+    amount,
+    network,
+    expiry,
+    hash_function,
+    redeem_identity,
+    refund_identity,
+    ledger : (alpha | beta)
+}
+
+@enduml
+
+@startuml(id=han_ethereum_swap_protocols)
+
+entity "han_ethereum_swap_detail" as han_ethereum {
+    han_ethereum_swap_detail_id : <<pk>>,
+    ---
+    swap_id_fk : <<fk>>,
+    amount,
+    network,
+    expiry,
+    hash_function,
+    redeem_identity,
+    refund_identity,
+    ledger : (alpha | beta)
+}
+
+@enduml
+
+@startuml(id=han_bitcoin_swap_protocols_state)
+entity "han_bitcoin_state" as han_bitcoin_states {
+    han_bitcoin_state_id : <<pk>>,
+    ---
+    name:
+    (
+        funded
+        | redeemed
+        | refunded
+        | incorrectly_funded
+    )
+}
+
+entity "han_bitcoin_ledger_state" as han_bitcoin_ledger_states {
+    han_bitcoin_ledger_state_id : <<pk>>,
+    ---
+    han_bitcoin_swap_detail_id : <<fk>>,
+    han_bitcoin_state_id : <<fk>>,
+    tx,
+    timestamp
+}
+
+
+@enduml
+
+
+@startuml(id=han_ethereum_swap_protocols_state)
+entity "han_ethereum_state" as han_ethereum_states {
+    han_ethereum_state_id : <<pk>>,
+    ---
+    name:
+    (
+        funded
+        | redeemed
+        | refunded
+        | incorrectly_funded
+    )
+}
+
+entity "han_ethereum_ledger_state" as han_ethereum_ledger_states {
+    han_ethereum_ledger_state_id : <<pk>>,
+    ---
+    han_ethereum_swap_detail_id : <<fk>>,
+    han_ethereum_state_id : <<fk>>,
+    tx,
+    timestamp
+}
+
+@enduml
+
+@startuml(id=han_bitcoin_swap_protocols_connections)
+
+han_bitcoin |o--|| swap
+
+@enduml
+
+@startuml(id=han_bitcoin_swap_protocols_connections_state)
+
+han_bitcoin_ledger_states }--|| han_bitcoin_states
+han_bitcoin_ledger_states }---|| han_bitcoin
+
+@enduml
+
+@startuml(id=han_ethereum_swap_protocols_connections)
+
+han_ethereum |o--|| swap
+
+@enduml
+
+@startuml(id=han_ethereum_swap_protocols_connections_state)
+
+han_ethereum_ledger_states }--|| han_ethereum_states
+han_ethereum_ledger_states }--|| han_ethereum
+
+@enduml
+
+@startuml(id=herc20_swap_protocols)
+
+entity "herc20_swap_detail" as herc20 {
+    herc20_swap_detail_id : <<pk>>,
+    ---
+    swap_id_fk : <<fk>>,
+    amount,
+    network,
+    expiry,
+    hash_function,
+    token_contract,
+    redeem_identity,
+    refund_identity,
+    ledger : (alpha | beta)
+}
+
+@enduml
+
+@startuml(id=herc20_swap_protocols_state)
+entity "herc20_state" as herc20_states {
+    herc20_state_id : <<pk>>,
+    ---
+    name:
+    (
+        deployed
+        | funded
+        | redeemed
+        | refunded
+        | incorrectly_funded
+    )
+}
+
+entity "herc20_ledger_state" as herc20_ledger_states {
+    herc20_ledger_state_id : <<pk>>,
+    ---
+    herc20_swap_detail_id : <<fk>>,
+    herc20_state_id : <<fk>>,
+    tx,
+    timestamp
+}
+@enduml
+
+@startuml(id=herc20_swap_protocols_connections)
+
+herc20 |o--|| swap
+
+@enduml
+
+@startuml(id=herc20_swap_protocols_connections_state)
+herc20_ledger_states }--|| herc20_states
+herc20_ledger_states }--|| herc20
+@enduml
+
+@startuml(id=halight_swap_protocols)
+
+entity "halight_swap_detail" as halight {
+    halight_swap_detail_id : <<pk>>,
+    ---
+    swap_id_fk : <<fk>>,
+    amount,
+    network,
+    chain,
+    expiry,
+    cltv_expiry,
+    hash_function,
+    redeem_identity,
+    refund_identity,
+    ledger : (alpha | beta)
+}
+
+@enduml
+
+@startuml(id=halight_swap_protocols_state)
+entity "halight_state" as halight_states {
+    halight_state_id : <<pk>>,
+    ---
+    name:
+    (
+        started
+        | opened
+        | accepted
+        | settled
+        | canceled
+    )
+}
+
+entity "halight_ledger_state" as halight_ledger_states {
+    halight_ledger_state_id : <<pk>>,
+    ---
+    halight_swap_detail_id : <<fk>>,
+    halight_state_id : <<fk>>,
+    timestamp
+}
+@enduml
+
+@startuml(id=halight_swap_protocols_connections)
+
+halight |o--|| swap
+
+@enduml
+
+@startuml(id=halight_swap_protocols_connections_state)
+
+halight_ledger_states }--|| halight_states
+halight_ledger_states }--|| halight
+
+@enduml
+
+@startuml(id=swap_states)
+
+entity "swap_communication_state" as swap_communication_state {
+    swap_communication_state_id : <<pk>>,
+    ---
+    name:
+    (
+        announced
+        | finalized
+    )
+}
+
+entity "swap_communication_state_for_swap" as swap_communication_states_joint_table {
+    swap_communication_state_for_swap_id: <<pk>>,
+    ---
+    swap_id : <<fk>>,
+    swap_communication_state_id : <<fk>>
+    timestamp
+}
+
+
+
+@enduml
+
+@startuml(id=swap_states_connections)
+
+swap_communication_states_joint_table }o--|| swap_communication_state
+swap_communication_states_joint_table }o--|| swap
+
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+' hide the spot
+hide circle
+
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/all_entities.iuml!swap_states
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/all_entities.iuml!swap_states_connections
+'
+' for local use
+'!include all_entities.iuml!swap_states
+'!include all_entities.iuml!swap_states_connections
+
+@enduml

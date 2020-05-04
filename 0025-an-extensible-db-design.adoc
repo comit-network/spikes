@@ -1,0 +1,285 @@
+= Database design for cnd
+Philipp Hoenisch <philipp@coblox.tech>; Daniel Karzel <daniel.karzel@coblox.tech>;
+:toc:
+:revdate: 2020-04-23
+
+NOTE: Author: {authors} +
+Date: {revdate} +
+Status: Draft
+
+== Problem
+
+Our current database design is complex and hard to maintain or to extend.
+The purpose of this spike is to propose a properly normalized relational database model.
+
+=== Scope
+
+The cnd database is used for the (sole) purpose of allowing recovery and efficiently restarting cnd nodes.
+We do not follow a model-driven approach where the database dictates e.g. what swap combinations are actually possible.
+It is out of scope for this spike to come up with a domain model, the spike should focus only on a model for the relevant data.
+This model, however, should adhere to database normalization constraints.
+
+The following protocols are in scope:
+
+* HAN
+* HErc20
+* HALight
+
+Protocols based on scriptless scripts are not in focus, but known constraints (e.g. no secret) are taken into consideration.
+
+=== Database normalization
+
+Database normalization is a process to organize a database into tables and columns.
+The main idea with this is that a table should be about a specific topic and only supporting topics included.
+If a table is not properly normalized and has data redundancy then it will not only eat up extra memory space but will also make it difficult to handle and update the database, without facing data corruption.
+Insert, Update and Delete anomalies are very frequent if database is not normalized.
+There are three main reasons to normalize a database.
+
+* to minimize duplicate data,
+* to minimize or avoid data modification issues,
+* to simplify queries.
+
+Most database models are free of anomalies when reaching 3 NF footnote:[https://en.wikipedia.org/wiki/Database_normalization]; note that some models may require BCNF (extension of 3NF).
+Normalizing the database model beyond 3 NF is not in scope of this spike but might be considered if deemed necessary.
+
+==== 1 NF:
+* each cell to be a single value
+* entries in a column are of the same type
+* rows are uniquely identified - i.e. each row has a unique ID
+
+==== 2 NF:
+* all attributes (non-key columns) depend on the key - if not, then a conjunction table should be created consisting out of 2 keys joining two otherwise not dependent tables (e.g. protocol and swap)
+
+==== 3 NF:
+* all fields (all columns) can be determined only by the key in the table and no other column. E.g. if for every Han_BTC swap we have the same expiries, then these should be in their own table. --> update anomaly
+
+==== BCNF
+* any part of a primary key must not have a functional dependency on another column of the table.
+
+==== 4 NF:
+* no multi-valued dependencies. E.g. a customer who bought 2 items should not be in a table twice with the bought item in one column
+
+
+== Approach
+
+. Data collection: Collect all the data to be stored.
+. First model: Create a first model to act upon.
+. Iterations: Iterate on the model to improve and normalize it.
+. Final model
+
+Constraints we considered besides the normalization constraints:
+
+. FK  relationships should not be defined in a parent table (problem of not being able to create the parent if the child does not exist)
+. Certain data of a swap may only be known to a specific role at a later point in time (after creation of the swap). We want to avoid table updates.
+
+
+== Data collection
+
+We identified the following data sources needed:
+
+. Initial data of each swap when being created for a specific role for a specific alpha and beta protocol where alpha and beta is one of: `HAN_Bitcoin`, `HAN_Ethereum`, `HErc20`, `HALight`
+. Additional data added to the swap for a specific role (e.g. secret hash only known to Bob during announcement)
+. Additional data added to the swap's alpha or beta ledger data.
+
+While not necessarily in scope we considered the following as well:
+
+. Communication State (one per swap - record all events with timestamp)
+. Ledger State (two per swap, record all events with timestamp and additional information if applicable, e.g. transaction ID)
+
+
+== Final model
+
+Instead of starting from scratch, we started iterating over a slightly adapted table layout based on the one proposed by @bonomat
+https://3.basecamp.com/4403044/buckets/16118249/messages/2583518881#__recording_2600021433[in basecamp].
+
+The final full model can be found at the end of this document.
+Our reasoning for creating certain table relations is summed up in the sections below.
+
+=== Swaps
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/swap.puml&fmt=svg[Swaps]
+
+Our first challenge was depicting `alpha` and `beta` protocols for the swap.
+We found at least 3 different approaches how to model this:
+
+1)
+
+[source]
+----
+- `swap`
+	- id
+    - ...
+
+- `han_ethereum_protocol`
+	- id
+	- wei_quantity
+	- ...
+
+- `han_bitcoin_protocol`
+	- id
+	- satoshi_quantity
+	- ...
+
+- `han_ethereum_han_bitcoin_swap`
+	- id
+	- alpha_ledger_fk -> `han_ethereum_protocol`
+	- beta_ledger_fk -> `han_bitcoin_protocol`
+	- swap_fk -> `swap`
+	- ...
+----
+
+This approach would lead to several tables, i.e. one join table for each ledger combination
+
+2)
+[source]
+----
+- `swap`
+	- id
+    - ...
+
+- `han_ethereum_swap_details`
+	- id
+	- wei_quantity
+	- ...
+
+
+- `alpha_ledger_ethereum`
+	- id
+	- local_swap_id_fk -> `swap`
+	- han_ethereum_swap_details_fk -> `han_ethereum_swap_details`
+	- ...
+
+- `beta_ledger_ethereum`
+	- id
+	- local_swap_id_fk -> `swap`
+	- han_ethereum_swap_details_fk -> `han_ethereum_swap_details`
+	- ...
+----
+
+This approach would lead to  2 additional table per protocol.
+
+3)
+[source]
+----
+
+- `protocol`
+    - id
+    - name -> (han_bitcoin | han_ethereum | ...)
+
+- `swap`
+	- id
+    - alpha_ledger_fk -> protocol_id
+    - beta_ledger_fk -> protocol_id
+    - ...
+
+- `han_ethereum_swap_details`
+	- id
+	- wei_quantity
+	- ...
+
+----
+
+This approach does not give us full type safety as data stored in `han_ethereum_swap_details` is not bound to the swap at all.
+
+4)
+
+[source]
+----
+
+
+- `swap`
+	- id
+    - ...
+
+- `han_ethereum_swap_details`
+	- id
+    - swap_id_fk -> swap_id
+	- wei_quantity
+    - ledger : (alpha | beta)
+	- ...
+
+----
+
+Eventually we decided to go for the last approach as this is the least amount of added tables reduces the join complexity when loading data.
+
+This allows us to :
+
+* add additional protocols easily (one new table per protocol, e.g. `{protocol}_swap_detail`)
+* rename protocol tables as needed :)
+
+The second thing which was a bit challenging was how to model data which is only known at a later point in time and how to model data which not all `Swaps` have in common.
+We decided to go for an _extension table_ approach which allows us to add additional information where needed:
+
+* Bob only learns the hash of the secret during the announcement, additionally not every Swap has a secret hash.
+* The shared swap id is only available after a swap was finalized.
+
+We added `secret_hash` and `shared_swap_id` as extension tables, that have the `swap_local_id` as primary key (so there can only be one entry per swap).
+This allows us to add information to one specific swap without having to update the `swap` table.
+Note that the actual secret is not stored in the database, Alice always computes it from the swap parameters and her seed.
+
+Third we dealt with the problem that there is not always an `address_hint` (i.e. Bob does not need to know the `address_hint` of Alice).
+We added the `address_hint` extension table that relates to `swap` on the `counter_party_peer_id` field (rather than on the `swap_local_id`).
+
+Note that the role could be factored out of the table, but we decided against it because it adds unnecessary complexity for now.
+
+What remains is a simple table for `swap` which contains only the information which all swaps have in common: `local_swap_id` `role` and `counter_party_peer_id`.
+
+=== Protocols
+
+[[HanProtocols]]
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/han_bitcoin_swap_protocols_without_state.puml&fmt=svg[HanBitcoinProtocols]
+
+In order to store details for each swap such as data we need for creating the HTLCs for each protocol we introduce `\{protocol\}_swap_details`, where `\{protocol\}` can be `han_bitcoin`, ``han_ethereum`, `herc20` or `halight` for now.
+Similar to the `Swaps` table, we add information which is only known at a later point of time into a sub-table.
+This resulted in quite an excess of sub-tables such as `han_bitcoin/ethereum_redeem_identity`, `han_bitcoin/ethereum_refund_identity`, etc.
+
+Some notable sub-tables:
+
+* `han_bitcoin/ethereum_swap_detail` contains data needed to create the HTLCs. We decided to give this table a generated primary key, rather than using `swap_local_id` as the primary key to allow same chain swaps.
+* `han_bitcoin_ethereum_redeem/refund_identity`: Since some identities are exchanged during announcement, the identities are kept in extension tables.
+
+HErc20 and HaLight follow the same principles as described above.
+For completeness we depict `herc20` and `halight` diagrams below.
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/han_ethereum_swap_protocols_without_state.puml&fmt=svg[HanEthereumProtocols]
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/herc20_swap_protocols_without_state.puml&fmt=svg[Herc20Protocols]
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/halight_swap_protocols_without_state.puml&fmt=svg[HalightProtocols]
+
+
+==== Protocols with states:
+
+While states are generally out of scope we keep these here for future inspiration:
+
+`han_bitcoin/ethereum_ledger_state`: is a new table which we introduced in this database schema.
+It records observed ledger events such as `fund`/`redeem`/`refund`-transaction.
+We extracted the states into `han_bitcoin_state` in order to reduce duplication in each table and not have an extra column for the event-type (`fund`/`redeem`/`refund`).
+We could reuse this table across all `han_*` protocols but decided for separate _state_ tables per protocol.
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/han_bitcoin_swap_protocols_with_state.puml&fmt=svg[HanBitcoinProtocols]
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/han_ethereum_swap_protocols_with_state.puml&fmt=svg[HanEthereumProtocols]
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/herc20_swap_protocols_with_state.puml&fmt=svg[Herc20Protocols]
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/halight_swap_protocols_with_state.puml&fmt=svg[HalightProtocols]
+
+=== Swap State
+
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/swap_states.puml&fmt=svg[SwapStates]
+
+Additional to the specific `alpha` and `beta` ledger state (depicted in <<Protocols>>) a `swap` has two additional states:
+
+. the _communication_ state which depicts the state during the announcement phase, i.e. `announced` and `finalized`.
+. an aggregated state of the swap, aggregation of the communication state, ledger states, plus an additional error state, i.e. `in_progress`, `swapped`, `not_swapped`, `internal_failure`
+
+While the former one should be stored in the database, the latter one can be dervived easily from the communication state and the ledger states, hence no additional table is needed.
+
+Note that all `*_state` tables are static tables similar to the `protocol` table.
+These tables contain fixed values that are only changed if the state-model changes.
+
+== Full DB Model
+
+[[COMITDBSchema]]
+image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/0025-database-diagram.puml&fmt=svg[COMITDBSchema]

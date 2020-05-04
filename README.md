@@ -29,5 +29,6 @@ List of spike outcomes for COMIT network.
 - [spike-0022](0022-lnd-plan-of-attack.adoc) - Plan of attack for integrating LND into cnd
 - [spike-0023](0023-communication-protocol.adoc) - Design a new communication protocol for COMIT
 - [spike-0024](0024-more-protocol-naming.adoc) - Contribution by Natoshi Sakamoto (rejected)
+- [spike-0025](0025-an-extensible-db-design.adoc) - An extensible database design for cnd
 
 For new spike outcomes, please use [template.adoc](template.adoc) as basis.

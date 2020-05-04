@@ -1,0 +1,24 @@
+@startuml
+' hide the spot
+hide circle
+
+' avoid problems with angled crows feet
+skinparam linetype ortho
+
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/swap.puml
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/swap_states.puml
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/han_bitcoin_swap_protocols_with_state.puml
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/han_ethereum_swap_protocols_with_state.puml
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/herc20_swap_protocols_with_state.puml
+!include https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/halight_swap_protocols_with_state.puml
+'
+' for local use
+'!include db_schema/swap.puml
+'!include db_schema/swap_states.puml
+'!include db_schema/han_bitcoin_swap_protocols_with_state.puml
+'!include db_schema/han_ethereum_swap_protocols_with_state.puml
+'!include db_schema/herc20_swap_protocols_with_state.puml
+'!include db_schema/halight_swap_protocols_with_state.puml
+
+
+@enduml
