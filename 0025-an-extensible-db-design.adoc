@@ -230,16 +230,12 @@ What remains is a simple table for `swap` which contains only the information wh
 image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/han_bitcoin_swap_protocols_without_state.puml&fmt=svg[HanBitcoinProtocols]
 
 In order to store details for each swap such as data we need for creating the HTLCs for each protocol we introduce `\{protocol\}_swap_details`, where `\{protocol\}` can be `han_bitcoin`, ``han_ethereum`, `herc20` or `halight` for now.
-Similar to the `Swaps` table, we add information which is only known at a later point of time into a sub-table.
-This resulted in quite an excess of sub-tables such as `han_bitcoin/ethereum_redeem_identity`, `han_bitcoin/ethereum_refund_identity`, etc.
+Similar to the `Swaps` table, we add information which is only known at a later point of time.
+For the identities and the secret-hash we accept null-values, thus the relevant fields were not pulled out into separate tables.
+When information becomes available the `*_swap_detail` table will be updated.
+We decided to give each `*_swap_detail`  table a generated primary key, rather than using `swap_local_id` as the primary key to allow same chain swaps.
 
-Some notable sub-tables:
-
-* `han_bitcoin/ethereum_swap_detail` contains data needed to create the HTLCs. We decided to give this table a generated primary key, rather than using `swap_local_id` as the primary key to allow same chain swaps.
-* `han_bitcoin_ethereum_redeem/refund_identity`: Since some identities are exchanged during announcement, the identities are kept in extension tables.
-
-HErc20 and HaLight follow the same principles as described above.
-For completeness we depict `herc20` and `halight` diagrams below.
+THe following diagrams show the `*_swap_detail` tables for the specific protocols.
 
 image::http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/comit-network/spikes/master/assets/db_schema/han_ethereum_swap_protocols_without_state.puml&fmt=svg[HanEthereumProtocols]
 
