@@ -1,0 +1,133 @@
+= Standardizing COMIT Expiry Times
+Tobin C. Harding <tobin@coblox.tech>;
+:toc:
+:revdate: 2020-08-20
++ Created on: {revdate} +
+
+== Introduction
+
+In order for two parties to exchange assets (swap) using the COMIT protocol each party must take certain pre-defined actions at certain times.
+A swap involves two expiry times, one for each ledger (alpha and beta), we refer to these as alpha expiry and beta expiry respectively.
+What actions are available at what time is governed by the state of the swap and the expiry times.
+A swap is guaranteed to be atomic if, and only if, the correct sequence of actions is followed.
+
+It is therefore paramount that a user knows what stage the swap is up to and what step they should take next.
+
+The purpose of this document is to investigate two things
+
+* How should expiry times be calculated
+* Once calculated, how do these expiry times effect the actions of both parties in the swap as the swap progresses.
+
+== Useful Expiry Times
+
+On an abstract level, for a pair of expiries to be useful there exists three invariants:
+
+1. The beta expiry must elapse before the alpha expiry.
+2. Alice must have time to redeem the swap before the beta expiry elapses.
+3. Bob must have time to redeem the swap before the alpha expiry elapses.
+
+The first of these invariants does not change over time and will not be discussed further.
+
+Irrespective of how the expiry times are implemented, in order to reason about the expiry times, they can be thought of as relative to some fixed point which marks the start of the swap.
+For a swap to take place the expiries must be 'useful', useful is defined to mean a swap can successfully be completed with these expiries.
+Additionally, at any stage, each party should be able to answer the following question: "If I do the next step will these expiries still be useful for the counterparty?"
+
+== Modelling a Swap
+
+If we want to know if there is time enough to complete a swap we should know how long a swap takes.
+To predict how long a swap may take we should know a few things, what events must occur to complete the swap, in what order must they occur, do they overlap, and how long do they take.
+Therefore in order to reason about the expiry times in relation to the sequence of events that make up a swap we need to have some model of the swap.
+
+We aim to produce a state diagram that fully describes a successful atomic swap.
+
+Initial state diagram:
+
+        `Started` --> `Alpha Funded` --> `Beta Funded` --> `Beta Redeemed` --> `Alpha Redeemed` --> `Completed`
+
+There exists some sequence of actions that enables a swap to transition to 'Completed'.
+We first annotate the state diagram with actions and then describe each action below.
+
+Annotated state diagram:
+
+        `Started` - fund - mine - finality -> `Alpha Funded` - fund - mine - finality -> `Beta Funded` - redeem - mine - finality -> `Beta Redeemed` - redeem - mine - finality -> `Alpha Redeemed` --> `Completed`
+
+We now define the term 'done' to mean the swap is successfully completed from the perspective of the actor.
+For Alice 'done' is defined as `Beta Redeemed`.
+For Bob 'done' is defined as `Alpha Redeemed`.
+We also note that while the state transitions are the same for both parties the actions required to transition are not the same for both parties.
+
+For each action that an actor must take there is some reasonable time period in which the action can be completed.
+In order to reason about the expiries each actor must know the actions they must take but also the actions the counterparty must take.
+This is because we wish to reason about the usefulness of the expiries to both ourselves and our counterparty.
+At any stage of the swap the sum of the actions to transition from the current state to done represents the time required to complete the swap.
+
+We will now describe each of the actions that appears in the annotated state diagram.
+
+* fund, redeem: Fund and redeem refer to creating the fund/redeem transaction and submitting it to the blockchain network.
+* mine: The time it takes for an unconfirmed transaction to be mined i.e., included in a block.
+* finality: The time it takes for a transaction, once mined, to reach finality.
+
+Each of these times is specific to the actor, the transaction type (redeem/refund), and the underlying blockchain.
+
+We now model the swap from each actors perspective.
+
+Annotated state diagram by actor:
+
+Alice:
+
+        `Started` - fund - mine - finality -> `Alpha Funded` - fund - mine - finality -> `Beta Funded` - redeem - mine - finality -> `Beta Redeemed` --> `Done`
+
+Bob:
+
+        `Started` - fund - mine - finality -> `Alpha Funded` - fund - mine - finality -> `Beta Funded` - redeem(beta) - redeem(alpha) - mine - finality -> `Done`
+
+Here we see that as soon as the beta redeem transaction becomes known to the network Bob can create his redeem transaction and submit it to the alpha blockchain network.
+
+
+== Transition Period per Action
+
+=== Fund/Redeem
+
+There exists some amount of time that it takes for an actor to create a transaction and submit it to the network.
+Of consideration some transactions may be created in software some may take user intervention.
+A likely solution for this time period is defining some constant amount of time required by a user and some amount of time required by a software system.
+
+=== Mine
+
+The time it takes for a transaction to be include in the blockchain is determined by blocktime, network congestion, and transaction fees.
+We can dynamically determine a transaction fee with the aim of being included within some number of blocks.
+If we know the amount of time it takes to mine this many blocks then we can calculate a predicted time to mine.
+
+The amount of time it takes to mine N blocks is governed by the Poisson distribution of events.
+See https://en.wikipedia.org/wiki/Poisson_distribution for more information.
+
+=== Finality
+
+A transaction is said to reach finality when the probability of the block containing the transaction being immutable is above some threshold.
+Typically this is said to occur after some number of blocks has been mined on top of the block containing the transaction (referred to as number of confirmations).
+With a pre-defined value for the number of confirmations and the above mention Poisson distribution we can calculate the time it takes for a transaction to reach finality to within some threshold, finality is always probabilistic and never certain.
+
+== Notes on HTLC Expiry Times and Atomicity
+
+COMIT swaps are atomic due to the functionality provide by Hash Time Locked Contracts.
+Mapped to COMIT swap parlance, a user may not refund until after the expiry time has elapsed.
+
+In order for a swap to be guaranteed atomic the redeem transaction must be included in the blockchain _before_ the expiry time elapses.
+A transaction can not be said to be included until it has reached finality and is deemed immutable.
+After an expiry has elapsed a redeem transaction cannot be guaranteed because a refund transaction (i.e. another transaction spending the same outputs) could be submitted to the network at the same time.
+Given that the two transactions are mutually-exclusive, only one of them can be mined into a block.
+
+Therefore, there exists a time `T` after which attempting the redeem action is considered 'unsafe' because there is not enough time for the transaction to be mined and reach finality.
+
+== System Functionality
+
+The system is expected to provide the following functionality:
+
+.Requirements
+1. Given two blockchains, create a pair of useful expiries.
+2. Given a pair of expiries and their respective blockchains, determine if the expiries are useful.
+3. Given the current swap state, determine what the user should do.
+
+The expiries shall be represented as a duration i.e. a relative expiry time.
+Useful should be able to be calculated from some given reference point i.e., these expiries are useful if we want to start the swap at time T.
+Given the current swap state, some way of determining time from the perspective of the underlying blockchain, and the expiries the system should be able to determine whether the expiries are useful to both actors.
