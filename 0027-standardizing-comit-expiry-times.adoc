@@ -89,7 +89,7 @@ Here we see that as soon as the beta redeem transaction becomes known to the net
 === Fund/Redeem
 
 There exists some amount of time that it takes for an actor to create a transaction and submit it to the network.
-Of consideration some transactions may be created in software some may take user intervention.
+Of consideration some transactions may be created in software some may take user interaction.
 A likely solution for this time period is defining some constant amount of time required by a user and some amount of time required by a software system.
 
 === Mine
